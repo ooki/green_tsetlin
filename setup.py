@@ -1,39 +1,65 @@
+import sys
+
 # Available at setup time due to pyproject.toml
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+import os
+from pybind11.setup_helpers import Pybind11Extension
+from cpuinfo import get_cpu_info
 from setuptools import setup
+
+import distutils
+distutils.log.set_verbosity(1)
+
 
 __version__ = "0.0.1"
 
-# The main interface is through Pybind11Extension.
-# * You can add cxx_std=11/14/17, and then build_ext can be removed.
-# * You can set include_pybind11=false to add the include directory yourself,
-#   say from a submodule.
-#
-# Note:
-#   Sort input source files if you glob sources to ensure bit-for-bit
-#   reproducible builds (https://github.com/pybind/python_example/pull/53)
+
+cpu_info = get_cpu_info()
+has_avx2 = "avx2" in cpu_info.get("flags", "")
+
+brand_raw = cpu_info.get("brand_raw", "").lower().split()
+has_neon = "m1" in brand_raw or "m2" in brand_raw
+
+
+
+compile_args = []
+define_macros = [('VERSION_INFO', __version__)]
+
+if sys.platform.startswith('darwin') and has_neon:
+    print("TODO: replace -mcpu=native with a proper build flag! ALSO: check if NEON is in flags somehow...")
+    compile_args = ["-mcpu=native", "-O3", "-mmacosx-version-min=10.15"]  # -mfloat-abi=hard needs to be used with neon
+    # also took out: "-arch=arm64", "-mfloat-abi=hard", 
+    define_macros.append(("USE_NEON", 1))
+
+
+elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and has_neon is False):    
+    compile_args =["-mavx2", "-mfma", "-O3", "-pthread"]
+
+    if has_avx2:
+        define_macros.append(("USE_AVX2", 1))
+     
+print("using defines:", define_macros)
 
 ext_modules = [
-    Pybind11Extension("python_example",
+    Pybind11Extension("green_tsetlin_core",
         ["src/main.cpp"],
-        # Example: passing in the version to the compiled code
-        define_macros = [('VERSION_INFO', __version__)],
+        define_macros = define_macros,
+        cxx_std=17,
+        include_dirs=["src/"],       
+        extra_compile_args=["-DNDEBUG"] + compile_args
         ),
 ]
 
 setup(
-    name="python_example",
+    name="green_tsetlin",
     version=__version__,
-    author="Sylvain Corlay",
-    author_email="sylvain.corlay@gmail.com",
+    author="Sondre 'Ooki' Glimsdal",
+    author_email="sondre.glimsdal@gmail.com",
     url="https://github.com/pybind/python_example",
-    description="A test project using pybind11",
+    description="A fast Tsetlin Machine impl, based on c++ and pybind11",
     long_description="",
     ext_modules=ext_modules,
     extras_require={"test": "pytest"},
-    # Currently, build_ext only provides an optional "highest supported C++
-    # level" feature, but in the future it may provide more features.
-    cmdclass={"build_ext": build_ext},
     zip_safe=False,
     python_requires=">=3.7",
+    packages=['green_tsetlin']
 )
