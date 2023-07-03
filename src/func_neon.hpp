@@ -528,6 +528,8 @@ namespace green_tsetlin
                 {
                     // std::cout << "---------- CLAUSE: " << clause_k << "---------------" << std::endl;
                     state.clause_outputs[clause_k] = 1;
+                    state.literal_counts[clause_k] = 0;
+                    
                     const int8_t* clause_row =  &clauses[clause_k * (state.num_literals_mem * 2)];
 
                     for(int chunk_i = 0; chunk_i < n_chunks; ++chunk_i)
