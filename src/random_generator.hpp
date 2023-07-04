@@ -94,8 +94,8 @@ namespace green_tsetlin
             }
     };
 
-    //#define USE_NEON
-    #define FAKE_NEON_PRNG
+    #define USE_NEON
+    //#define FAKE_NEON_PRNG
     #ifdef USE_NEON
     
     void int8_print_debug(const int8_t* c, int n)
@@ -130,6 +130,9 @@ namespace green_tsetlin
                     start_seed = rd();
                 }
 
+                if(start_seed == 0)
+                    start_seed = 42;
+
                 seed_internal(start_seed);
 
                 for(int i = 0; i < 32; i++)  // help it mix         
@@ -152,50 +155,47 @@ namespace green_tsetlin
                 return out;
             }            
             #else 
-            uint8x16_t next()
+            int8x16_t next()
             {
-                const uint8x16_t result = vreinterpretq_u8_u32(s[0]);
-                const uint32x4_t t = vshlq_n_u32(s[1], 9);
+                uint64x2_t s1 = g_state[0];
+                const uint64x2_t s0 = g_state[1];
 
-                s[2] ^= s[0];
-                s[3] ^= s[1];
-                s[1] ^= s[2];
-                s[0] ^= s[3];
+                g_state[0] = s0;
+                s1 = vshrq_n_u64(s1, 23);
+                g_state[1] = veorq_u64(s0, s1);
+                s1 = vshlq_n_u64(s1, 17);
+                g_state[0] = veorq_u64(g_state[0], s1);
+                s0 = vshrq_n_u64(s0, 26);
+                g_state[1] = veorq_u64(g_state[1], s0);
+                s0 = vshlq_n_u64(s0, 55);
 
-                s[2] ^= t;
-
-                s[3] = vshlq_n_u32(s[3], 11);
-
-                return result;
+                return vreinterpretq_s8_u8(vreinterpretq_u8_u64(veorq_u64(g_state[0], g_state[1])));
             }
             #endif 
 
-            
-
-
-            uint32x4_t s[4];
+        
+            uint64x2_t g_state[2];
 
         private:
             void seed_internal(unsigned int seed) // hack to get slightly better seeds that the standard '42' type seed.
-            {
-                const size_t num_bytes_per_part = 16;
-                const size_t num_bytes = num_bytes_per_part * 4;
+            {                
+                const size_t num_bytes = 8;
 
                 std::default_random_engine seed_rng(seed);
-                std::uniform_int_distribution random_byte(5, 251);
+                std::uniform_int_distribution random_byte(0, 255);
 
-                uint8_t tmp_seed[num_bytes];
+                union{
+                    uint8_t tmp_seed[num_bytes];
+                    uint64_t seed64;
+                };
+
                 for(size_t i = 0; i < num_bytes; ++i)
                 {
                     tmp_seed[i] = random_byte(seed_rng);
                 }
 
-                s[0] = vld1q_s64((const int64_t*)&tmp_seed[0]);
-                s[1] = vld1q_s64((const int64_t*)&tmp_seed[1]);
-                s[2] = vld1q_s64((const int64_t*)&tmp_seed[2]);
-                s[3] = vld1q_s64((const int64_t*)&tmp_seed[3]);
-
-
+                g_state[0] = vdupq_n_u64(seed64);
+                g_state[1] = vdupq_n_u64(0x73A2C175221D6A27);
             }
 
     };

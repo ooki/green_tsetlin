@@ -10,7 +10,7 @@ import distutils
 distutils.log.set_verbosity(1)
 
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 
 cpu_info = get_cpu_info()
@@ -26,7 +26,7 @@ define_macros = [('VERSION_INFO', __version__)]
 
 if sys.platform.startswith('darwin') and has_neon:
     print("TODO: replace -mcpu=native with a proper build flag! ALSO: check if NEON is in flags somehow...")
-    compile_args = ["-mcpu=native", "-O3", "-mmacosx-version-min=10.15"]  # -mfloat-abi=hard needs to be used with neon
+    compile_args = ["-target arm64-apple-macos11", "-arch=arm64", "-O3", "-mmacosx-version-min=10.15", "-mfloat-abi=hard"]  # -mfloat-abi=hard needs to be used with neon
     # also took out: "-arch=arm64", "-mfloat-abi=hard", 
     define_macros.append(("USE_NEON", 1))
 
