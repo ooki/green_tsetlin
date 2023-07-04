@@ -157,24 +157,23 @@ namespace green_tsetlin
             #else 
             int8x16_t next()
             {
-                uint64x2_t s1 = g_state[0];
-                const uint64x2_t s0 = g_state[1];
-
-                g_state[0] = s0;
+                uint64x2_t s1 = state[0];
+                const uint64x2_t s0 = state[1];
+                state[0] = s0;
                 s1 = vshrq_n_u64(s1, 23);
-                g_state[1] = veorq_u64(s0, s1);
+                state[1] = veorq_u64(s0, s1);
                 s1 = vshlq_n_u64(s1, 17);
-                g_state[0] = veorq_u64(g_state[0], s1);
+                state[0] = veorq_u64(state[0], s1);
                 s0 = vshrq_n_u64(s0, 26);
-                g_state[1] = veorq_u64(g_state[1], s0);
-                s0 = vshlq_n_u64(s0, 55);
+                state[1] = veorq_u64(state[1], s0);
+                s0 = vshlq_n_u64(s0, 55);            
 
-                return vreinterpretq_s8_u8(vreinterpretq_u8_u64(veorq_u64(g_state[0], g_state[1])));
+                return vreinterpretq_s8_u8(vreinterpretq_u8_u64(veorq_u64(state[0], state[1])));
             }
             #endif 
 
         
-            uint64x2_t g_state[2];
+            uint64x2_t state[2];
 
         private:
             void seed_internal(unsigned int seed) // hack to get slightly better seeds that the standard '42' type seed.
@@ -194,8 +193,8 @@ namespace green_tsetlin
                     tmp_seed[i] = random_byte(seed_rng);
                 }
 
-                g_state[0] = vdupq_n_u64(seed64);
-                g_state[1] = vdupq_n_u64(0x73A2C175221D6A27);
+                state[0] = vdupq_n_u64(seed64);
+                state[1] = vdupq_n_u64(0x73A2C175221D6A27);
             }
 
     };
