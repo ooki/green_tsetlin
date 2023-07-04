@@ -94,8 +94,8 @@ namespace green_tsetlin
             }
     };
 
-    #define USE_NEON
-    //#define FAKE_NEON_PRNG
+    //#define USE_NEON
+    #define FAKE_NEON_PRNG
     #ifdef USE_NEON
     
     void int8_print_debug(const int8_t* c, int n)
