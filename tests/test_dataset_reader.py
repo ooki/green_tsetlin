@@ -26,18 +26,18 @@ class TsetlinTransformer:
             
         
 
-def test_read_dataset():
-    abalone_file = (Path(__file__).parent).parent / "test_data" / "abalone" / "abalone.data"    
+# def test_read_dataset():
+#     abalone_file = (Path(__file__).parent).parent / "test_data" / "abalone" / "abalone.data"    
     
-    df = pd.read_csv(abalone_file)    
+#     df = pd.read_csv(abalone_file)    
     
     
-    #print(df.head())
+#     #print(df.head())
     
-    tt = TsetlinTransformer(df)
-    #tt.set_column_names(["sex", "length", "diameter", "height", "whole weight", "shucked weight", "viscera weight", "shell weight", "rings"])
-    # tt.set_column_names(df) # if available from pandas import directly    
-    #tt.set_target("rings")
+#     tt = TsetlinTransformer(df)
+#     #tt.set_column_names(["sex", "length", "diameter", "height", "whole weight", "shucked weight", "viscera weight", "shell weight", "rings"])
+#     # tt.set_column_names(df) # if available from pandas import directly    
+#     #tt.set_target("rings")
     
     
 if __name__ == "__main__":
