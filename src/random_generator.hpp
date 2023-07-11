@@ -95,7 +95,7 @@ namespace green_tsetlin
     };
 
     //#define USE_NEON
-    #define FAKE_NEON_PRNG
+    //#define FAKE_NEON_PRNG
     #ifdef USE_NEON
     
     void int8_print_debug(const int8_t* c, int n)
@@ -160,15 +160,24 @@ namespace green_tsetlin
                 uint64x2_t s1 = state[0];
                 const uint64x2_t s0 = state[1];
                 state[0] = s0;
-                s1 = vshrq_n_u64(s1, 23);
-                state[1] = veorq_u64(s0, s1);
-                s1 = vshlq_n_u64(s1, 17);
-                state[0] = veorq_u64(state[0], s1);
-                s0 = vshrq_n_u64(s0, 26);
-                state[1] = veorq_u64(state[1], s0);
-                s0 = vshlq_n_u64(s0, 55);            
 
-                return vreinterpretq_s8_u8(vreinterpretq_u8_u64(veorq_u64(state[0], state[1])));
+                s1 = veorq_u64(vshlq_n_u64(s1, 23), s1);
+                state[1] = veorq_u64(veorq_u64(s1, s0), veorq_u64(vshrq_n_u64(s1, 18), vshrq_n_u64(s0, 5)));
+            
+                
+                // state1 = s1 ^ s0 ^ (s1 >> 18) ^ (s0 >> 5); // b, c
+                return vreinterpretq_s8_u8(vreinterpretq_u8_u64(state[1] + s0));
+
+
+
+                // state[1] = (s0, s1);
+                // s1 = vshlq_n_u64(s1, 17);
+                // state[0] = veorq_u64(state[0], s1);
+                // s0 = vshrq_n_u64(s0, 26);
+                // state[1] = veorq_u64(state[1], s0);
+                // s0 = vshlq_n_u64(s0, 55);            
+
+                // return vreinterpretq_s8_u8(vreinterpretq_u8_u64(veorq_u64(state[0], state[1])));
             }
             #endif 
 

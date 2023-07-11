@@ -251,31 +251,31 @@ def test_SetClauseOutputNeon_literal_counts_reminder():
     cb.cleanup()
     
 
-# def test_xor_train_to_100_neon():
-#     n_literals = 10
-#     n_clauses = 16
-#     n_classes = 2
-#     s = 3.0
-#     n_literal_budget = 2
-#     threshold = 15    
+def test_xor_train_to_100_neon():
+    n_literals = 10
+    n_clauses = 16
+    n_classes = 2
+    s = 3.0
+    n_literal_budget = 2
+    threshold = 15    
     
-#     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, n_literal_budget=n_literal_budget)
-#     assert tm._tm_cls == gtc.ClauseBlockNeon
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, n_literal_budget=n_literal_budget)
+    assert tm._tm_cls == gtc.ClauseBlockNeon
 
-#     x, y, ex, ey = gt.dataset_generator.xor_dataset(noise=0.25, n_literals=n_literals, n_train=5000, n_test=500, seed=41)
-#     tm.set_train_data(x, y)
-#     tm.set_test_data(ex, ey)
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(noise=0.25, n_literals=n_literals, n_train=5000, n_test=500, seed=41)
+    tm.set_train_data(x, y)
+    tm.set_test_data(ex, ey)
 
-#     best_test_acc = 0.0
-#     for i in range(0, 5):
-#         trainer = gt.Trainer(threshold, n_epochs=100, seed=32+i, n_jobs=0, early_exit_acc=True, progress_bar=False)
-#         r = trainer.train(tm)
-#         best_test_acc = max(best_test_acc, r["best_test_score"])
+    best_test_acc = 0.0
+    for i in range(0, 5):
+        trainer = gt.Trainer(threshold, n_epochs=100, seed=32+i, n_jobs=0, early_exit_acc=True, progress_bar=False)
+        r = trainer.train(tm)
+        best_test_acc = max(best_test_acc, r["best_test_score"])
 
-#         if r["did_early_exit"]:            
-#             break
+        if r["did_early_exit"]:            
+            break
 
-#     assert best_test_acc > 0.95
+    assert best_test_acc > 0.95
 
 
 def test_Type2_feedback_ignore_positive_states():
