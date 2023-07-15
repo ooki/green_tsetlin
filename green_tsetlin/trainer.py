@@ -17,6 +17,46 @@ def empty_epoch_callback(epoch, train_acc, test_score):
     pass
 
 class Trainer:
+    """Trainer for a Tsetlin Machine. 
+    
+    
+    This class train a coalesced tsetlin machine in a supervised manner.
+    
+    
+    Parameters
+    ----------
+    threshold : int, bound for number of votes (-threshold < votes < threshold).
+    
+    feedback_type: str, {"focused_negative_sampling"}, default="focused_negative_sampling"
+                Select how the feedback to the TM should be given.        
+            
+            - "focused_negative_sampling", proportionally select the most 'wrong' negative class and update it.
+        
+        
+    n_jobs: int, number of threads to run during training. default=1    
+        The Trainer will split the TM into blocks 
+        that each gets it own thread. The performance may degrade if the number of threads gets too high compared to the number of clauses.        
+    
+    n_epochs: int, number of epochs to train for. default=20
+    
+    seed: int, seed for the random generators. 0 gives a random seed. default=0
+    
+    early_exit_acc: float, if the score (e.g. accuracy) gets larger than this, perform a early exit. default=1.0
+    
+    load_best_state: bool, if true overwrite the state of each TM with the best state found during training. default=True
+    
+    fn_epoch_callback: callback on epoch end - can for instance be used to track progress. default=empty_epoch_callback
+                callback signature: callback_on_epoch(epoch, train_acc, test_score)
+                
+    
+    fn_test_score: Callback to generate a test score for the epoch. default="accuracy"
+                    If "accuracy" then acuraccy will be calculated. 
+                    Can also be a callback with signature:  callback( y_true : np.array, y_pred : np.array )
+                    
+    progress_bar: bool, show progress bar (tqdm). default=True
+        
+    
+    """
     def __init__(self, threshold: int,
                  feedback_type="focused_negative_sampling",
                  n_jobs:int=1,
@@ -67,6 +107,22 @@ class Trainer:
 
 
     def train(self, tms: Union[TsetlinMachine, List[TsetlinMachine]]) -> dict:
+        """ Perform the training of a TM with the paramters set in the constructor.
+
+        Args:
+            tms (Union[TsetlinMachine, List[TsetlinMachine]]): TM's to train, can either be a single TM or a list of TM's.
+            All TM's must have the same number of classes.
+
+        Returns:
+            dict: {
+                "best_test_score": best_test_score,
+                "best_test_epoch": best_test_epoch,
+                n_epochs": n_epochs_trained,
+                "train_log": train_log,
+                "test_log": test_log,
+                "did_early_exit": did_early_exit
+        }
+        """
         if isinstance(tms, TsetlinMachine):
             tms = [tms]
 
