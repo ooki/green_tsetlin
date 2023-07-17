@@ -24,6 +24,20 @@ except AttributeError:
 
 
 class TsetlinMachine:
+    """ Represent a Tsetlin Machine that can be trained with a Trainer instance.
+    
+    The actual allocation is not done until the train() method is called from a trainer.
+    
+    
+    Parameters
+    ----------
+    n_literals: int, number of literals
+    n_clauses: int, number of clauses to use
+    n_classes: int, number of classes to select from
+    s: float, spesifisity, must be more than 1.0. 
+    n_literal_budget: int, soft cap on how many literals that can be active in a clause. (-1 to turn off), default=-1
+    
+    """
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int,  s:float, n_literal_budget: Optional[int] = -1):
         
         self.name = hash(uuid.uuid4().hex)
@@ -51,6 +65,14 @@ class TsetlinMachine:
         self._state = None
         
     def get_state(self):
+        """ Get the state of the TM after training.
+
+        Raises:
+            ValueError: If the TM is not trained.
+
+        Returns:
+            dict: {"w": weights, "c": clauses}
+        """
         if self._state is None:
             raise ValueError("Cannot get the state of a non-trained Tsetlin Machine")
         
@@ -60,6 +82,15 @@ class TsetlinMachine:
         return self.name
 
     def set_train_data(self, x: np.array, y: Optional[np.array] = None) -> None:
+        """ Set the training data for this Tsetlin Machine.
+        
+        Args:
+            x np.array: input data must be np.uint8, should be of size: (n_examples, n_literals)
+            
+            y np.array]: labels, must be np.int32, should be of size (n_examples). Default: None
+                         Note that if multiple TM's are trained with a single trainer only 1 should have
+                         the y (labels) set. The rest should be None. 
+        """
 
         if x.dtype != np.uint8:
             raise ValueError("Train data x must be of type np.uint8, was: {}".format(x.dtype))                
@@ -85,6 +116,16 @@ class TsetlinMachine:
             self._train_y = y            
         
     def set_test_data(self, x: np.array, y: Optional[np.array] = None) -> None:
+        """ Set the test data for this Tsetlin Machine.
+        
+        Args:
+            x np.array: input data must be np.uint8, should be of size: (n_examples, n_literals)
+            
+            y np.array]: labels, must be np.uint32, should be of size (n_examples). Default: None
+                         Note that if multiple TM's are trained with a single trainer only 1 should have
+                         the y (labels) set. The rest should be None. 
+        """
+        
         if x.dtype != np.uint8:
             raise ValueError("Test data x must be of type np.uint8, was: {}".format(x.dtype))                
 
@@ -109,6 +150,13 @@ class TsetlinMachine:
             self._test_y = y                   
         
     def construct_clause_blocks(self, n_blocks:int=1):
+        """construct_clause_blocks 
+
+        Args:
+            n_blocks: number of blocks to create. Defaults to 1.
+            
+        Returns a list of clause blocks (of type given by self._tm_cls)
+        """
         n_clause_per_block = self.n_clauses // n_blocks
         n_add = self.n_clauses % n_blocks
         
@@ -141,13 +189,34 @@ class TsetlinMachine:
     
     
     def set_state(self, state):
+        """set_state of the TM (clauses and weights).
+
+        Args:
+            state: dict {
+                "c": np array: dtype:int8, size: (n_clauses, n_literals*2)
+                "w": np array: dtype:int16, size: (n_clauses, n_classes                
+                }
+        """
         c = state["c"]
         w = state["w"]
         
+        if c.dtype != np.int8:
+            raise ValueError("Clause state much be np.int8 is {}".format(c.dtype))
+        
+        if c.shape[0] != self.n_clauses or c.shape[1] != (self.n_literals*2):
+            raise ValueError("Clause State array is of wrong shape ({}) should be {}".format(c.shape, (self.n_clauses, self.n_literals*2)))
+        
+        if w.dtype != np.int16:
+            raise ValueError("Clause Weights much be np.int16 is {}".format(w.dtype))
+        
+        if w.shape[0] != self.n_clauses or w.shape[1] != self.n_classes:
+            raise ValueError("Clause Weights array is of wrong shape {} should be {}".format(w.shape, (self.n_clauses, self.n_classes)))
+       
+            
         clause_offset = 0 
         for cb in self._cbs:
-            cb.set_clause_state(self._state["c"], clause_offset)
-            cb.set_clause_weights(self._state["w"], clause_offset)
+            cb.set_clause_state(c, clause_offset)
+            cb.set_clause_weights(w, clause_offset)
             clause_offset += cb.get_number_of_clauses()
             
         

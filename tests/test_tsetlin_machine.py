@@ -9,7 +9,7 @@ import numpy as np
 
 
 import green_tsetlin as gt
-
+import green_tsetlin_core as gtc
 
 
 def test_set_train_test_data_correct_data_format():
@@ -128,14 +128,57 @@ def test_store_state():
 
     for cb in cbs:
         cb.cleanup()
+        
+
+def test_get_set_state():
+    n_literals = 4
+    n_clauses = 7
+    n_classes = 3
+    s = 2.23
+
+
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s)
+    tm._tm_cls = gtc.ClauseBlockNV
+
+    n_blocks = 1
+    cbs = tm.construct_clause_blocks(n_blocks=n_blocks)    
+    cb = cbs[0]
+    
+    cb.initialize()
+          
+    #cb.set_clause_weight(0, 1, 1338)        
+    #tm.store_state()
+    
+    n_c = n_clauses * n_literals*2
+    n_w = n_clauses * n_classes
+    c0 = np.arange(0, n_c).reshape(n_clauses, n_literals*2).astype(dtype=np.int8)
+    w0 = np.arange(0, n_w).reshape(n_clauses, n_classes).astype(dtype=np.int16)    
+    d0 = {"c": c0, "w": w0}
+    tm.set_state(d0)
+    
+        
+    c1 = np.empty_like(c0)
+    w1 = np.empty_like(w0)
+    c1.fill(13)
+    w1.fill(14)
+        
+    cb.get_clause_state(c1, 0)
+    cb.get_clause_weights(w1, 0)
+    
+    assert np.allclose(c0, c1)
+    assert np.allclose(w0, w1)
+    
+    cb.cleanup()
 
 if __name__ == "__main__":
-    test_set_train_test_data_correct_data_format()
-    test_throws_on_invalid_s()
-    test_zero_or_negative_literal_budget_get_set_to_all()
-    test_construct_cb_has_correct_properties()
+    # test_set_train_test_data_correct_data_format()
+    # test_throws_on_invalid_s()
+    # test_zero_or_negative_literal_budget_get_set_to_all()
+    # test_construct_cb_has_correct_properties()
     
-    test_store_state()
+    # test_store_state()
+    
+    test_get_set_state()
     print("<done tests:", __file__, ">")
     
 
