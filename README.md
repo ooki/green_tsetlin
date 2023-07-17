@@ -1,12 +1,15 @@
 green_tsetlin
 ==============
 
+green_tsetlin let you easily train and do inference on a Coalesced Tsetlin Machine.
+It is CPU based and will use AVX2 / NEON instrics in the backend if available.  
 
-Installation
-------------
+The package does not provide all bells and whistles a Tsetlin Machine can have, instead it support a 
+carefully selected subset of features. As such, once we
+reach version 1, then the API will be stable.
 
- - clone this repository
- - `pip install ./green_tsetlin`
+If you want the lastest research features the [TMU project](https://github.com/cair/tmu) is the place to go.
+This project is intended to by tested, stable and intended more toward production.
 
 
 Examples
