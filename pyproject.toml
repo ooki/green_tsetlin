@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",
     "pybind11>=2.10.0",
     "py-cpuinfo>=9.0.0",
 ]
@@ -21,4 +21,4 @@ extend-select = [
 extend-ignore = [
   "E501",   # Line too long
 ]
-target-version = "py37"
+

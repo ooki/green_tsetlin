@@ -57,11 +57,17 @@ setup(
     author="Sondre 'Ooki' Glimsdal",
     author_email="sondre.glimsdal@gmail.com",
     url="https://github.com/ooki/green_tsetlin",
+    project_urls= {
+        "Bug Tracker": "https://github.com/ooki/green_tsetlin/issues",
+        "Documentation": "https://github.com/ooki/green_tsetlin",
+        "Source Code": "https://github.com/ooki/green_tsetlin",
+    },
     description="A fast Tsetlin Machine impl, based on c++",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
         "Programming Language :: C",
         "Programming Language :: Python",
         "Topic :: Software Development",
