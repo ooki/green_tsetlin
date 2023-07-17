@@ -169,6 +169,10 @@ def test_get_set_state():
     assert np.allclose(w0, w1)
     
     cb.cleanup()
+    
+    
+    
+    
 
 if __name__ == "__main__":
     # test_set_train_test_data_correct_data_format()
@@ -178,7 +182,7 @@ if __name__ == "__main__":
     
     # test_store_state()
     
-    test_get_set_state()
+    #test_get_set_state()
     print("<done tests:", __file__, ">")
     
 

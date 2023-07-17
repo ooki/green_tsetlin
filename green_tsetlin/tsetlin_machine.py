@@ -64,9 +64,11 @@ class TsetlinMachine:
         self._cbs = None
         self._state = None
         
+        
     def get_state(self):
         """ Get the state of the TM after training.
-
+            Note: does NOT return a copy
+        
         Raises:
             ValueError: If the TM is not trained.
 
@@ -75,8 +77,6 @@ class TsetlinMachine:
         """
         if self._state is None:
             raise ValueError("Cannot get the state of a non-trained Tsetlin Machine")
-        
-        return self._state
         
     def __hash__(self) -> int:
         return self.name

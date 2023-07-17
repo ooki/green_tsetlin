@@ -54,7 +54,8 @@ class Trainer:
                     Can also be a callback with signature:  callback( y_true : np.array, y_pred : np.array )
                     
     progress_bar: bool, show progress bar (tqdm). default=True
-        
+    
+    
     
     """
     def __init__(self, threshold: int,
