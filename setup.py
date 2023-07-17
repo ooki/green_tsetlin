@@ -2,6 +2,8 @@ import sys
 
 # Available at setup time due to pyproject.toml
 import os
+from pathlib import Path
+
 from pybind11.setup_helpers import Pybind11Extension
 from cpuinfo import get_cpu_info
 from setuptools import setup
@@ -12,6 +14,8 @@ distutils.log.set_verbosity(1)
 
 __version__ = "0.1.0"
 
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 cpu_info = get_cpu_info()
 has_avx2 = "avx2" in cpu_info.get("flags", "")
@@ -81,7 +85,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     license='MIT',
-    long_description="",
+    long_description=long_description,
     ext_modules=ext_modules,
     extras_require={"test": "pytest"},
     zip_safe=False,
