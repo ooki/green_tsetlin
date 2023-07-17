@@ -83,8 +83,7 @@ class Trainer:
         self.early_exit_acc = early_exit_acc
         self.progress_bar = progress_bar
         
-        self.fn_epoch_callback = fn_epoch_callback
-        
+        self.fn_epoch_callback = fn_epoch_callback        
         
         if n_jobs < 0:
             n_cpus = os.cpu_count()                        
