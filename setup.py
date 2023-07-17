@@ -12,7 +12,7 @@ import distutils
 distutils.log.set_verbosity(1)
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
@@ -94,6 +94,10 @@ setup(
     packages=['green_tsetlin'],
     install_requires=[
           'numpy >= 1.24',
+          'scipy >= 1.11',
+          'scikit-learn >= 1.2',
+          'tqdm >= 4.65'
+          
       ],
     
 )
