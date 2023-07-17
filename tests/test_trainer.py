@@ -1,3 +1,4 @@
+from collections import namedtuple
 
 import pytest
 
@@ -90,11 +91,35 @@ def test_train_epoch_callback_gets_called():
     assert counter[0] > 0
 
 
+
+def test_block_allocation_works_for_multiple_and_single_trainer():
+
+    tm_nt = namedtuple("TsetlinMachine", "n_clauses")
+    def get_tms(cs):
+        return [tm_nt(c) for c in cs]
+    
+    # 1 job -> multiple tms : all gets 1 block
+    trainer0 = gt.Trainer(1, n_epochs=2, seed=32, n_jobs=1)    
+    blocks0 = trainer0._calculate_blocks_per_tm(get_tms([50]*5))
+    assert len(blocks0) == 5
+    assert all([b == 1 for b in blocks0])
+    
+    
+    # 6 jobs, should allocate as 1, 2, 3
+    trainer1 = gt.Trainer(1, n_epochs=2, seed=32, n_jobs=6)
+    blocks1 = trainer1._calculate_blocks_per_tm(get_tms([5, 30, 100])) 
+    # => counts [5, 30->15, 100->50->25]   
+    assert blocks1 == [1, 2, 3]
+
+
+
 if __name__ == "__main__":
-    test_checks_for_inconsistent_number_of_classes()
-    test_checks_threshold_param()
-    test_train_xor_no_crash()
-    test_train_epoch_callback_gets_called()
+#     test_checks_for_inconsistent_number_of_classes()
+#     test_checks_threshold_param()
+#     test_train_xor_no_crash()
+#     test_train_epoch_callback_gets_called()
+    
+    test_block_allocation_works_for_multiple_and_single_trainer()
 
     print("<done tests:", __file__, ">")
     

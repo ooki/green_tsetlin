@@ -1,5 +1,5 @@
 
-
+import os
 from typing import Optional, List, Union
 from collections import defaultdict
 
@@ -34,8 +34,14 @@ class Trainer:
         
         
     n_jobs: int, number of threads to run during training. default=1    
-        The Trainer will split the TM into blocks 
-        that each gets it own thread. The performance may degrade if the number of threads gets too high compared to the number of clauses.        
+        The Trainer will split the TM into blocks so
+        that each block gets it own thread. The performance may degrade if the number of threads gets too high compared to the number of clauses per block.  
+        If multiple TMs are used the blocks are diveded as follows: first all tm gets 1 block, then the highest clause count gets an additional
+        block, while halving the number of clauses in that block. 
+        For instance the following number of clauses [10, 30, 100] and 6 jobs, will result in [1,2,3] blocks.
+        
+        If set to -1, all CPUs are used (from os.cpu_count()). For n_jobs below -1, (n_cpus + 1 + n_jobs) are used.
+        For example with n_jobs=-2, all CPUs but one are used.)
     
     n_epochs: int, number of epochs to train for. default=20
     
@@ -72,13 +78,25 @@ class Trainer:
         self.threshold = threshold        
         self.feedback_type = feedback_type
         self.seed = seed
-        self.n_jobs = n_jobs
         self.n_epochs = n_epochs
         self.load_best_state = load_best_state
         self.early_exit_acc = early_exit_acc
         self.progress_bar = progress_bar
         
         self.fn_epoch_callback = fn_epoch_callback
+        
+        
+        if n_jobs < 0:
+            n_cpus = os.cpu_count()                        
+            self.n_jobs = n_cpus + 1 + n_jobs
+            
+        elif n_jobs == 0:
+            self.n_jobs = 1
+            
+        else:
+            self.n_jobs = n_jobs
+        
+
         
         if fn_test_score == "accuracy":
             self.fn_test_score = accuracy_score
@@ -105,6 +123,26 @@ class Trainer:
         for tm in tms:            
             tm.store_state()
 
+
+    def _calculate_blocks_per_tm(self, tms:List[TsetlinMachine]) -> List[int]:
+        
+        if len(tms) < 2:
+            return [self.n_jobs]
+        
+        clauses = np.array([tm.n_clauses for tm in tms], dtype=float)
+        blocks = [1] * len(tms)
+        
+        while sum(blocks) < self.n_jobs:
+            idx_most_clauses = np.argmax(clauses)
+            clauses[idx_most_clauses] *= 0.5
+            blocks[idx_most_clauses] += 1
+            
+        return blocks
+            
+        
+        
+        
+        
 
 
     def train(self, tms: Union[TsetlinMachine, List[TsetlinMachine]]) -> dict:
@@ -153,10 +191,11 @@ class Trainer:
            
         cb_seed = self.seed
         all_cbs = []
-        for ib, tm in zip(ibs, tms):
+        block_allocation = self._calculate_blocks_per_tm(tms)
+        
+        for k, (ib, tm) in enumerate(zip(ibs, tms)):
             
-            # TODO: fix so the number of blocks/jobs is based on all #clauses 
-            n_blocks = max(self.n_jobs, 1)
+            n_blocks = block_allocation[k]
             cbs = tm.construct_clause_blocks(n_blocks)
             
             for cb in cbs:            
