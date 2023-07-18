@@ -130,7 +130,7 @@ def test_store_state():
         cb.cleanup()
         
 
-def test_get_set_state():
+def test_set_state():
     n_literals = 4
     n_clauses = 7
     n_classes = 3
@@ -171,6 +171,30 @@ def test_get_set_state():
     cb.cleanup()
     
     
+
+def test_get_state_returns_state():
+    n_literals = 7
+    n_clauses = 12
+    n_classes = 3
+    s = 2.23
+
+    fake_state = "the state"
+
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s)
+    tm._state = fake_state
+
+    assert tm.get_state() == fake_state
+
+def test_get_state_throws_if_not_trained():
+    n_literals = 7
+    n_clauses = 12
+    n_classes = 3
+    s = 2.23
+
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s)
+
+    with pytest.raises(ValueError) as e_info:
+        tm.get_state()        
     
     
 
@@ -182,7 +206,8 @@ if __name__ == "__main__":
     
     # test_store_state()
     
-    #test_get_set_state()
+    #test_set_state()
+    test_get_state_throws_if_not_trained()
     print("<done tests:", __file__, ">")
     
 

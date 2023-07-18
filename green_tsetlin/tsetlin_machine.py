@@ -78,6 +78,8 @@ class TsetlinMachine:
         if self._state is None:
             raise ValueError("Cannot get the state of a non-trained Tsetlin Machine")
         
+        return self._state
+        
     def __hash__(self) -> int:
         return self.name
 
