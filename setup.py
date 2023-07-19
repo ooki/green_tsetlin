@@ -94,7 +94,7 @@ setup(
     packages=['green_tsetlin'],
     install_requires=[
           'numpy >= 1.24',
-          'scipy >= 1.11',
+          'scipy >= 1.10.1',
           'scikit-learn >= 1.2',
           'tqdm >= 4.65'
           
