@@ -61,8 +61,6 @@ class Trainer:
                     
     progress_bar: bool, show progress bar (tqdm). default=True
     
-    
-    
     """
     def __init__(self, threshold: int,
                  feedback_type="focused_negative_sampling",
@@ -108,6 +106,7 @@ class Trainer:
             raise ValueError("threshold cannot be less than 1, is: {}".format(self.threshold))
         
 
+        self.n_blocks_used : int = 0
         self.best_state : list = None
         
     def _get_feedback_block(self, n_classes, threshold):
@@ -205,7 +204,8 @@ class Trainer:
                 cb_seed += 1
                 
             all_cbs.extend(cbs)
-            
+        
+        self.n_blocks_used = len(all_cbs)
 
         # if no epochs, clean and exit
         if self.n_epochs < 1:            

@@ -91,8 +91,27 @@ def test_train_epoch_callback_gets_called():
     assert counter[0] > 0
 
 
+def test_allocate_correct_number_of_blocks():
+    n_literals = 3
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, n_literal_budget=4)
 
-def test_block_allocation_works_for_multiple_and_single_trainer():
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)
+    tm.set_train_data(x, y)
+    tm.set_test_data(ex, ey)
+
+    n_jobs = 21
+    trainer = gt.Trainer(threshold, n_epochs=3, seed=32, n_jobs=n_jobs, early_exit_acc=True)
+    trainer.train(tm)
+
+    assert trainer.n_blocks_used == n_jobs
+
+
+
+def test_block_allocation_works_for_multiple_and_single_jobs():
 
     tm_nt = namedtuple("TsetlinMachine", "n_clauses")
     def get_tms(cs):
@@ -112,6 +131,12 @@ def test_block_allocation_works_for_multiple_and_single_trainer():
     assert blocks1 == [1, 2, 3]
 
 
+    # 6 job -> 1 tms : gets 6 blocks
+    trainer2 = gt.Trainer(1, n_epochs=2, seed=32, n_jobs=6)    
+    blocks2 = trainer2._calculate_blocks_per_tm(get_tms([100]))
+    assert len(blocks2) == 1
+    assert blocks2[0] == 6
+
 
 if __name__ == "__main__":
 #     test_checks_for_inconsistent_number_of_classes()
@@ -119,7 +144,7 @@ if __name__ == "__main__":
 #     test_train_xor_no_crash()
 #     test_train_epoch_callback_gets_called()
     
-    test_block_allocation_works_for_multiple_and_single_trainer()
+    test_allocate_correct_number_of_blocks()
 
     print("<done tests:", __file__, ">")
     
