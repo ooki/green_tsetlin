@@ -36,9 +36,10 @@ class TsetlinMachine:
     n_classes: int, number of classes to select from
     s: float, spesifisity, must be more than 1.0. 
     n_literal_budget: int, soft cap on how many literals that can be active in a clause. (-1 to turn off), default=-1
+    multi_label: bool, Run on multi label or single label, default=False
     
     """
-    def __init__(self, n_literals:int, n_clauses: int, n_classes: int,  s:float, n_literal_budget: Optional[int] = -1):
+    def __init__(self, n_literals:int, n_clauses: int, n_classes: int,  s:float, n_literal_budget: Optional[int] = -1, multi_label:bool=False):
         
         self.name = hash(uuid.uuid4().hex)
         
@@ -50,6 +51,7 @@ class TsetlinMachine:
         if self.s < 1.0:
             raise ValueError("Cannot set s paramter to less than 1.0, (set to: {})".format(s))
 
+        self._is_multi_label:bool = multi_label
         self.n_literals_budget = n_literal_budget
         if self.n_literals_budget < 1:
             self.n_literals_budget = self.n_literals             
@@ -114,7 +116,14 @@ class TsetlinMachine:
         
             if x.shape[0] != y.shape[0]:
                 raise ValueError("Train data x/y does not match in shape[0] (example index) : {} != {}".format(x.shape[0], y.shape[0]))
+                        
+            if self._is_multi_label is False and y.ndim > 1:
+                raise ValueError("TsetlinMachine is flagged as single label - but multi label y is set (train)")
             
+            if self._is_multi_label is True and y.shape[1] != self.n_classes:
+                raise ValueError("Multi label TsetlinMachine need 0/1 encoded multi label, got {} (expected: {}) (train)".format(
+                    y.shape[1], self.n_classes))
+                            
             self._train_y = y            
         
     def set_test_data(self, x: np.array, y: Optional[np.array] = None) -> None:
@@ -149,6 +158,10 @@ class TsetlinMachine:
             if x.shape[0] != y.shape[0]:
                 raise ValueError("Test data x/y does not match in shape[0] (example index) : {} != {}".format(x.shape[0], y.shape[0]))
             
+            if self._is_multi_label is False and y.ndim > 1:
+                raise ValueError("TsetlinMachine is flagged as single label - but multi label y is set (test)")
+            
+                
             self._test_y = y                   
         
     def construct_clause_blocks(self, n_blocks:int=1):
@@ -169,7 +182,11 @@ class TsetlinMachine:
             if k > 0:
                 n_add = 0
                 
-            cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
+            n_interal_classes = self.n_classes
+            if self._is_multi_label:
+                n_interal_classes *= 2
+                
+            cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, n_interal_classes)
             cb.set_s(self.s)
             cb.set_literal_budget(self.n_literals_budget)
             

@@ -105,13 +105,17 @@ class Trainer:
         if self.threshold < 1:
             raise ValueError("threshold cannot be less than 1, is: {}".format(self.threshold))
         
-
+        self._is_multi_label : bool = None
         self.n_blocks_used : int = 0
         self.best_state : list = None
         
     def _get_feedback_block(self, n_classes, threshold):
         if self.feedback_type == "focused_negative_sampling":
-            return gtc.FeedbackBlock(n_classes, threshold)
+            if self._is_multi_label is False:
+                return gtc.FeedbackBlock(n_classes, threshold, self.seed)
+            else:
+                return gtc.FeedbackBlockMultiLabel(n_classes, threshold, self.seed)
+            
         
         else:
             raise ValueError("Unknown feedback type: {}".format(self.feedback_type))
@@ -167,11 +171,13 @@ class Trainer:
         if len(set([tm.n_classes for tm in tms])) != 1:
             raise ValueError("All TsetlinMachines in a single trainer instance must have the same number of classes.")
 
-        n_classes = tms[0].n_classes
-        feedback_block = self._get_feedback_block(n_classes, self.threshold)
+        self._is_multi_label = tms[0]._is_multi_label
+        if all([tm._is_multi_label==tms[0]._is_multi_label for tm in tms]) is False:
+            raise ValueError("Cannot mix single label and multi label tm's in the same Trainer")
+                
 
         label_tm = None
-        ibs = []                
+        ibs = []                        
         for tm in tms:
             ib = gtc.DenseInputBlock(tm.n_literals)
             ib.set_data(tm._train_x, tm._train_y)
@@ -185,6 +191,11 @@ class Trainer:
 
         if label_tm is None:
             raise ValueError("No TM has labels, please use set_train_data() to spesify labels.")
+        
+        
+        n_classes = tms[0].n_classes        
+        feedback_block = self._get_feedback_block(n_classes, self.threshold)
+        
 
            
         cb_seed = self.seed
@@ -242,7 +253,12 @@ class Trainer:
                 for ib, tm in zip(ibs, tms):
                     ib.set_data(tm._test_x, tm._test_y)
                                 
-                y_hat = exec.eval_predict()                            
+                if self._is_multi_label is False:
+                    y_hat = exec.eval_predict()                            
+                else:
+                    y_hat = exec.eval_predict_multi()
+                    
+                print("got ourself a y_hat")
                 test_score = self.fn_test_score(label_tm._test_y, np.array(y_hat))
                 
                 test_log.append(test_score)

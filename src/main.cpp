@@ -343,11 +343,13 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     ;
 
     py::class_<MultiThreadExecutor>(m, "MultiThreadExecutor")
-        .def(py::init<std::vector<gt::InputBlock*>, std::vector<gt::ClauseBlock*>, gt::FeedbackBlock*, int, int>())
-        .def("eval_predict", &MultiThreadExecutor::eval_predict)
+        .def(py::init<std::vector<gt::InputBlock*>, std::vector<gt::ClauseBlock*>, gt::FeedbackBlock*, int, int>())        
         .def("get_number_of_examples_ready", &MultiThreadExecutor::get_number_of_examples_ready)        
         .def("train_epoch", &MultiThreadExecutor::train_epoch)        
-        .def("train_slice", &MultiThreadExecutor::train_slice);
+        .def("train_slice", &MultiThreadExecutor::train_slice)
+        .def("eval_predict", &MultiThreadExecutor::eval_predict)
+        .def("eval_predict_multi", &MultiThreadExecutor::eval_predict_multi)
+    ;
 
     py::class_<Inference8>(m, "Inference")
         .def(py::init<int, int, int, int>())

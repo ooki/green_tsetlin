@@ -197,8 +197,10 @@ namespace green_tsetlin
 
             std::vector<std::vector<int>> eval_predict_multi()
             {
-                int n_examples = get_number_of_examples_ready();
+                std::cout << "starting eval_predict_multi" << std::endl;
+                int n_examples = get_number_of_examples_ready();                
                 
+
                 std::vector<std::vector<int>> output;
                 output.resize(n_examples);
 
@@ -214,6 +216,8 @@ namespace green_tsetlin
                     //output[i] = m_feedback_block->predict();
                     output[i] = m_feedback_block->predict_multi();
                 }
+
+                std::cout << "starting eval_predict_multi - DONE" << std::endl;
                 
                 return output;
             }
