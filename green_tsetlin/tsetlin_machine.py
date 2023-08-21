@@ -44,7 +44,7 @@ class TsetlinMachine:
         self.name = hash(uuid.uuid4().hex)
         
         self.n_literals = n_literals
-        self.n_clauses = n_clauses 
+        self.n_clauses = n_clauses
         self.n_classes = n_classes
 
         self.s = s
@@ -52,6 +52,10 @@ class TsetlinMachine:
             raise ValueError("Cannot set s paramter to less than 1.0, (set to: {})".format(s))
 
         self._is_multi_label:bool = multi_label
+        if self._is_multi_label:
+            self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
+
+
         self.n_literals_budget = n_literal_budget
         if self.n_literals_budget < 1:
             self.n_literals_budget = self.n_literals             
@@ -81,6 +85,34 @@ class TsetlinMachine:
             raise ValueError("Cannot get the state of a non-trained Tsetlin Machine")
         
         return self._state
+    
+    def save_state_to_file(self, file_path:str) -> None:
+        """Saves the internal state to a compressed .npz file for easy loading
+        Does not use pickle, and should be safe to distribute.
+        See: https://numpy.org/doc/stable/reference/security.html
+
+        Args:
+            file_path (str): Out file, will throw if it fails to open file.
+        """
+        if self._state is None:
+            raise ValueError("Cannot save a empty Tsetlin Machine without a stored state. Is the Tsetlin Machine trained?")
+
+        np.savez_compressed(file_path, w=self._state["w"], c=self._state["c"])
+
+    def load_state_from_file(self, file_path:str) -> None:
+        """Load the state of a tm from a .npz file. Will not recover hyper-parameters.
+        Does not use pickle, and should be safe to distribute.
+        See: https://numpy.org/doc/stable/reference/security.html
+
+        Args:
+            file_path (str): file to load.
+        """
+        o = np.load(file_path)
+
+        d = {"w": o["w"], "c": o["c"]}
+        self.set_state(d)
+
+
         
     def __hash__(self) -> int:
         return self.name
@@ -120,9 +152,10 @@ class TsetlinMachine:
             if self._is_multi_label is False and y.ndim > 1:
                 raise ValueError("TsetlinMachine is flagged as single label - but multi label y is set (train)")
             
-            if self._is_multi_label is True and y.shape[1] != self.n_classes:
+            n_expected_classes = self.n_classes // 2
+            if self._is_multi_label is True and y.shape[1] != n_expected_classes:
                 raise ValueError("Multi label TsetlinMachine need 0/1 encoded multi label, got {} (expected: {}) (train)".format(
-                    y.shape[1], self.n_classes))
+                    y.shape[1], n_expected_classes))
                             
             self._train_y = y            
         
@@ -181,12 +214,8 @@ class TsetlinMachine:
         for k in range(n_blocks):
             if k > 0:
                 n_add = 0
-                
-            n_interal_classes = self.n_classes
-            if self._is_multi_label:
-                n_interal_classes *= 2
-                
-            cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, n_interal_classes)
+            
+            cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
             cb.set_s(self.s)
             cb.set_literal_budget(self.n_literals_budget)
             

@@ -114,7 +114,7 @@ class Trainer:
             if self._is_multi_label is False:
                 return gtc.FeedbackBlock(n_classes, threshold, self.seed)
             else:
-                return gtc.FeedbackBlockMultiLabel(n_classes, threshold, self.seed)
+                return gtc.FeedbackBlockMultiLabel(n_classes // 2, threshold, self.seed) # since we have actual classes as 2*classes since we use 0/1 per class
             
         
         else:
@@ -258,7 +258,6 @@ class Trainer:
                 else:
                     y_hat = exec.eval_predict_multi()
                     
-                print("got ourself a y_hat")
                 test_score = self.fn_test_score(label_tm._test_y, np.array(y_hat))
                 
                 test_log.append(test_score)

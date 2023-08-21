@@ -79,7 +79,7 @@ namespace green_tsetlin
                 int n_labels_per_example = m_label_input->get_num_labels_per_example();
                 if(m_label_input->is_multi_label())
                 {
-                    std::cout << "exec:" << "n_labels_per_example: " << n_labels_per_example << " " << "#classes:" << feedback_block->get_number_of_classes() << std::endl;
+                    // std::cout << "exec:" << "n_labels_per_example: " << n_labels_per_example << " " << "#classes:" << feedback_block->get_number_of_classes() << std::endl;
                     if(n_labels_per_example != feedback_block->get_number_of_classes())
                         throw std::runtime_error("InputBlock is multilabel but Input labels does match feedback labels() in Executor()");
                     
@@ -197,10 +197,8 @@ namespace green_tsetlin
 
             std::vector<std::vector<int>> eval_predict_multi()
             {
-                std::cout << "starting eval_predict_multi" << std::endl;
                 int n_examples = get_number_of_examples_ready();                
                 
-
                 std::vector<std::vector<int>> output;
                 output.resize(n_examples);
 
@@ -216,9 +214,6 @@ namespace green_tsetlin
                     //output[i] = m_feedback_block->predict();
                     output[i] = m_feedback_block->predict_multi();
                 }
-
-                std::cout << "starting eval_predict_multi - DONE" << std::endl;
-                
                 return output;
             }
 
