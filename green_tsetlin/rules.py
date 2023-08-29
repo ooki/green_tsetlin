@@ -8,10 +8,11 @@ import green_tsetlin_core as gtc
 
 
 class RulePredictor:
-    def __init__(self, support_literal_importance:bool=False, pickle_support:bool=True, empty_class_output:Optional[int]=None):
+    def __init__(self, support_literal_importance:bool=False, pickle_support:bool=True, empty_class_output:Optional[int]=None, multi_label:bool=False):
         self._inference : gtc.Inference = None
         self.support_literal_importance = support_literal_importance
         self.pickle_support = pickle_support
+        self.multi_label = multi_label
 
         # used for pickle support
         self.empty_class_output = empty_class_output

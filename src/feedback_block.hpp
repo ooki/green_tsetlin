@@ -231,7 +231,10 @@ namespace green_tsetlin
             FeedbackBlockMultiLabel(int num_classes, double threshold, int seed)                
                 : FeedbackBlock(num_classes, threshold, seed)
             {                
-                m_votes.resize(num_classes * 2, 0);    // since we now have both + and - of each class.         
+
+                m_votes.resize(num_classes * 2, 0);    // since we now have both + and - of each class.                         
+                                                       // layout: [0 - n_classes] : ON
+                                                       //         [n_classes - (n_clases*2)]  : OFF
             }
 
 

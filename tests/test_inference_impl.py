@@ -27,6 +27,35 @@ def get_test_inference_object(literal_support):
     return n_literals, n_clauses, n_classes, n_features, inference
 
 
+def get_test_multi_inference_object():
+    n_literals = 2
+    n_clauses = 4
+    n_category_classes = 3
+    n_classes = n_category_classes * 2
+    n_features = 2
+
+
+    inference = gtc.InferenceNoLiteralsImportance(n_literals, n_clauses, n_classes, n_features)
+
+    raw_rules = [[0], [0,1], [0,1], [2,3]]
+    raw_weights = [[-1, 2, 1, +1, -2, -1], [-3, 4, 2, +3, -4, -2], [5, -6, -3, -5, +6, +3], [7, -8, 5, -7, +8, +99]] 
+
+    features_by_clause = [[0], [1], [0,1], [1]]
+
+    inference.set_rules_and_features(raw_rules, raw_weights, features_by_clause)
+
+    return n_literals, n_clauses, n_classes, n_features, inference
+
+
+
+def test_multi_label_inference():
+    n_literals, n_clauses, n_classes, n_features, inference = get_test_multi_inference_object()
+
+    assert np.array_equal(inference.predict_multi(np.array([0,0], dtype=np.uint8)), [1, 0, 0])
+    assert np.array_equal(inference.predict_multi(np.array([1,0], dtype=np.uint8)), [0, 1, 1])
+    assert np.array_equal(inference.predict_multi(np.array([1,1], dtype=np.uint8)), [1, 1, 1])
+
+
 def test_default_empty_class_is_zero_and_getset_works():
     n_literals, n_clauses, n_classes, n_features, inference = get_test_inference_object(literal_support=True)
     assert inference.get_empty_class_output() == 0
@@ -76,10 +105,11 @@ def test_predict_take_empty_class_into_account():
 
 
 if __name__ == "__main__":
-    test_explantions_return_type_are_numpy_arrays_literal_sup()    
-    test_default_empty_class_is_zero_and_getset_works()
-    test_predict()
-    test_predict_take_empty_class_into_account()
+    # test_explantions_return_type_are_numpy_arrays_literal_sup()    
+    # test_default_empty_class_is_zero_and_getset_works()
+    # test_predict()
+    # test_predict_take_empty_class_into_account()
+    test_multi_label_inference()
     print("<done tests:", __file__, ">")
 
 

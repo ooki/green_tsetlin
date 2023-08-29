@@ -355,11 +355,14 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def(py::init<int, int, int, int>())
         .def("set_rules_and_features", &Inference8::set_rules_and_features)
         .def("predict", &Inference8::predict_npy)
+        .def("predict_multi", &Inference8::predict_multi_npy)
         .def("calc_local_importance", &Inference8::calc_local_importance)
         .def("calculate_global_importance", &Inference8::calculate_global_importance)
         .def("get_active_clauses", &Inference8::get_active_clauses)        
         .def("set_empty_class_output", &Inference8::set_empty_class_output)
         .def("get_empty_class_output", &Inference8::get_empty_class_output)
+
+        
 
         .def("get_cached_literal_importance", &Inference8::get_cached_literal_importance)                
     ;
@@ -368,6 +371,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def(py::init<int, int, int, int>())
         .def("set_rules_and_features", &Inference8NoLiteralsImportance::set_rules_and_features)
         .def("predict", &Inference8NoLiteralsImportance::predict_npy)
+        .def("predict_multi", &Inference8NoLiteralsImportance::predict_multi_npy)
         .def("calc_local_importance", &Inference8NoLiteralsImportance::calc_local_importance)
         .def("calculate_global_importance", &Inference8NoLiteralsImportance::calculate_global_importance)
         .def("get_active_clauses", &Inference8NoLiteralsImportance::get_active_clauses)        

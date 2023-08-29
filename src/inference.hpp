@@ -25,6 +25,7 @@ namespace green_tsetlin
         public:
             typedef _ExampleType example_type;
 
+            // note that for multi-label the num_classes will be 2x the actual classes, with ON classes first, and OFF afterwards.
             Inference(int num_literals, int num_clauses, int num_classes, int num_features)
             {
                 m_num_literals = num_literals;
@@ -38,6 +39,7 @@ namespace green_tsetlin
                 if(calculate_literal_importance)                 
                     m_literal_importance.resize(m_num_literals*2, 0.0);
                 
+
 
                 // change to aligned malloc?
                 m_example = new example_type[m_num_literals*2];
@@ -81,6 +83,15 @@ namespace green_tsetlin
                 
                 uint32_t y_hat = predict(example_ptr);            
                 return y_hat;
+            }
+
+            pybind11::array_t<uint32_t> predict_multi_npy(pybind11::array_t<example_type> examples)
+            {
+                pybind11::buffer_info buffer_info = examples.request();
+                std::vector<ssize_t> shape = buffer_info.shape;
+
+                example_type* example_ptr = static_cast<example_type*>(buffer_info.ptr);
+                return pybind11::cast(predict_multi(example_ptr));
             }
 
 
@@ -152,6 +163,44 @@ namespace green_tsetlin
 
                 return best_k;
 
+            }
+
+            std::vector<uint32_t> predict_multi(example_type* example)
+            {
+                std::fill(m_votes.begin(), m_votes.end(), 0);
+                m_active_clauses.clear();
+                // copy -> rewrite to use vectors
+
+                memcpy(m_example, example, m_num_literals * sizeof(example_type));
+                for(int i = 0; i < m_num_literals; i++)
+                    m_example[m_num_literals+i] = !m_example[i];
+
+                for(uint32_t clause_k = 0; clause_k < m_rules.size(); clause_k++)
+                {                    
+                    for(uint32_t lit_index : m_rules[clause_k])
+                    {
+                        if(m_example[lit_index] == 0)                        
+                            goto end_of_clause;                        
+                    }
+
+                    m_active_clauses.push_back(clause_k);
+
+                    for(int i = 0; i < m_num_classes; i++)
+                        m_votes[i] += m_weights[clause_k][i];
+
+                    end_of_clause:;
+                }                
+
+                
+                int num_output_classes = m_num_classes / 2;
+                std::vector<uint32_t> multi_predict(num_output_classes, 0);
+                for(int i = 0; i < num_output_classes; ++i)
+                { 
+                    if(m_votes[i] >= m_votes[i + num_output_classes])                    
+                        multi_predict[i] = 1;                    
+                }
+
+                return multi_predict;
             }
 
         protected:
