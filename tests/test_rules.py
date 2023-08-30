@@ -54,6 +54,23 @@ def get_xor_state():
     return {"w": w, "c": c}
     
 
+def test_multi_label_output():
+    state = get_xor_state()
+
+    w = state["w"]    
+    state["w"] = np.concatenate([w, -w, -w, w], axis=1)
+    n_weights = state["w"].shape[1]
+    n_classes = n_weights // 2
+
+    print("w:", state["w"].shape)
+    
+    rp = gt.RulePredictor(multi_label=True)
+    rp.create_from_state(state)
+
+    x_y0 = np.array([0, 0], dtype=np.uint8)
+    out = rp.predict(x_y0)
+    assert n_classes == out.shape[0]
+
 
 def test_empty_output_default_get_set():
 
@@ -144,11 +161,16 @@ def test_local_importance_xor():
     rp_no_lit.create_from_state(state)
     with pytest.raises(ValueError): # should raise attribute error as 
         (e0_f, e0_l), (e1_f, e1_l) = rp_no_lit.explain(x_y0, [0, 1], normalize=False, literal_importance=True)
+
+
+
+
     
 if __name__ == "__main__":
-    test_empty_output_default_get_set()
-    test_empty_output_sets()
+    # test_empty_output_default_get_set()
+    # test_empty_output_sets()
     
-    test_global_importance_xor()        
-    test_local_importance_xor()
+    # test_global_importance_xor()        
+    # test_local_importance_xor()
+    test_multi_label_output()
     print("<done tests:", __file__, ">")

@@ -87,7 +87,10 @@ class RulePredictor:
 
     def predict(self, x : np.ndarray, explain:bool=False, normalize_explaination:bool=True, literal_importance:bool=False) -> Union[int,  Tuple[int, list]]:
         
-        y = self._inference.predict(x)
+        if self.multi_label is False:
+            y = self._inference.predict(x)
+        else:
+            y = self._inference.predict_multi(x)
 
         if explain is False:
             return y
