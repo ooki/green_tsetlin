@@ -1,6 +1,7 @@
 
 import pytest
 import numpy as np
+import pickle
 
 import green_tsetlin as gt
 
@@ -92,6 +93,22 @@ def test_empty_output_sets():
 
 
 
+def test_pickle_support():
+    state = get_xor_state()
+    rp = gt.RulePredictor()    
+    rp.create_from_state(state)
+
+    byte_data = pickle.dumps(rp, protocol=pickle.HIGHEST_PROTOCOL)
+    del rp
+
+    rp2 = pickle.loads(byte_data)
+    print("rp2:", rp2.n_classes)
+    
+    assert hasattr(rp2, "_inference")
+    assert rp2._inference
+
+
+
 def test_global_importance_xor():
 
     state = get_xor_state()
@@ -172,5 +189,6 @@ if __name__ == "__main__":
     
     # test_global_importance_xor()        
     # test_local_importance_xor()
-    test_multi_label_output()
+    # test_multi_label_output()
+    test_pickle_support()
     print("<done tests:", __file__, ">")

@@ -20,20 +20,32 @@ class RulePredictor:
         self._raw_weights_cache = None
         self._raw_features_by_clause = None
 
+        self.n_literals: int = -1
+        self.n_clauses: int = -1
+        self.n_classes: int = -1
+        self.n_features: int = -1
 
-    #def __getstate__(self):
-    #def __setstate__(self, state):
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["_inference"]
+
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._create_inference_object()
     
     def create_from_state(self, state, feature_map: Optional[list] = None):
         w = state["w"]
         c = state["c"]
         
-        n_clauses, n_classes = w.shape[0], w.shape[1]
-        n_literals = c.shape[1] // 2
-        assert n_clauses == c.shape[0]               
+        self.n_clauses, self.n_classes = w.shape[0], w.shape[1]
+        self.n_literals = c.shape[1] // 2
+        assert self.n_clauses == c.shape[0]               
 
         if feature_map is None:            
-            feature_map = list(range(n_literals)) 
+            feature_map = list(range(self.n_literals)) 
                             
         rules = {}
         for k, row in enumerate(c):
@@ -42,7 +54,7 @@ class RulePredictor:
                 continue
             
             key = tuple(on_literals)
-            weights = rules.get(key, np.zeros(n_classes, dtype=np.int16))  
+            weights = rules.get(key, np.zeros(self.n_classes, dtype=np.int16))  
             weights += w[k]                                            
             
             if (w[k] == 0).all():
@@ -55,35 +67,44 @@ class RulePredictor:
 
         features_by_clause = []
 
-        if len(feature_map) != n_literals:
-            raise ValueError("feature_map ({}) must be of length n_literals ({}).".format(len(feature_map, n_literals)))
+        if len(feature_map) != self.n_literals:
+            raise ValueError("feature_map ({}) must be of length n_literals ({}).".format(len(feature_map, self.n_literals)))
 
         for rule in raw_rules:
-            features_in_rule = set(feature_map[lit_k] if lit_k < n_literals else (lit_k - n_literals) for lit_k in rule)
+            features_in_rule = set(feature_map[lit_k] if lit_k < self.n_literals else (lit_k - self.n_literals) for lit_k in rule)
             features_by_clause.append(list(features_in_rule))
 
                 
-        n_features = max(feature_map) + 1        
-        n_clauses = len(raw_rules)
+        self.n_features = max(feature_map) + 1        
+        self.n_clauses = len(raw_rules)
+        self._raw_rules_cache = raw_rules
+        self._raw_weights_cache = raw_weights
+        self._raw_features_by_clause = features_by_clause   
+
+        self._create_inference_object()
+
+        if self.pickle_support is False:
+            self._raw_rules_cache = None
+            self._raw_weights_cache = None 
+            self._raw_features_by_clause = None
 
 
-        #print("create with, n_clauses:", n_clauses, "n_classes:", n_classes, "n_features:", n_features, "raw_rules:", len(raw_rules))
+    def _create_inference_object(self):
+        """
+        Creates and set the inference backend object.
+        """
         if self.support_literal_importance:
-            self._inference = gtc.Inference(n_literals, n_clauses, n_classes, n_features)             
+            self._inference = gtc.Inference(self.n_literals, self.n_clauses, self.n_classes, self.n_features)             
         else:
-            self._inference = gtc.InferenceNoLiteralsImportance(n_literals, n_clauses, n_classes, n_features)            
+            self._inference = gtc.InferenceNoLiteralsImportance(self.n_literals, self.n_clauses, self.n_classes, self.n_features)            
                            
-        self._inference.set_rules_and_features(raw_rules, raw_weights, features_by_clause)
+        self._inference.set_rules_and_features(self._raw_rules_cache, self._raw_weights_cache, self._raw_features_by_clause)
 
         if self.empty_class_output is None:
             self.empty_class_output = self._inference.get_empty_class_output()
         else:
             self._inference.set_empty_class_output(self.empty_class_output)            
-
-        if self.pickle_support:
-            self._raw_rules_cache = raw_rules
-            self._raw_weights_cache = raw_weights
-            self._raw_features_by_clause = features_by_clause        
+     
 
     def predict(self, x : np.ndarray, explain:bool=False, normalize_explaination:bool=True, literal_importance:bool=False) -> Union[int,  Tuple[int, list]]:
         

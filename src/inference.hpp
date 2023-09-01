@@ -94,6 +94,10 @@ namespace green_tsetlin
                 return pybind11::cast(predict_multi(example_ptr));
             }
 
+            pybind11::array_t<int32_t> get_votes_npy() 
+            {
+                return pybind11::cast(m_votes);
+            }
 
             pybind11::array_t<double> calc_local_importance(uint32_t target_class, bool normalize)
             {   

@@ -361,9 +361,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("get_active_clauses", &Inference8::get_active_clauses)        
         .def("set_empty_class_output", &Inference8::set_empty_class_output)
         .def("get_empty_class_output", &Inference8::get_empty_class_output)
-
+        .def("get_votes", &Inference8::get_votes_npy)
         
-
         .def("get_cached_literal_importance", &Inference8::get_cached_literal_importance)                
     ;
 
@@ -377,6 +376,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("get_active_clauses", &Inference8NoLiteralsImportance::get_active_clauses)        
         .def("set_empty_class_output", &Inference8NoLiteralsImportance::set_empty_class_output)
         .def("get_empty_class_output", &Inference8NoLiteralsImportance::get_empty_class_output)
+        .def("get_votes", &Inference8NoLiteralsImportance::get_votes_npy)
     ;
 
     #ifdef VERSION_INFO

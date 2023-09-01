@@ -174,6 +174,10 @@ class Trainer:
         self._is_multi_label = tms[0]._is_multi_label
         if all([tm._is_multi_label==tms[0]._is_multi_label for tm in tms]) is False:
             raise ValueError("Cannot mix single label and multi label tm's in the same Trainer")
+        
+        n_classes = tms[0].n_classes
+        if all([tm.n_classes==n_classes for tm in tms]) is False:
+            raise ValueError("All Tsetlin Machines must have same number of classes: {}".format(n_classes))
                 
 
         label_tm = None
@@ -192,8 +196,7 @@ class Trainer:
         if label_tm is None:
             raise ValueError("No TM has labels, please use set_train_data() to spesify labels.")
         
-        
-        n_classes = tms[0].n_classes        
+             
         feedback_block = self._get_feedback_block(n_classes, self.threshold)
         
 
@@ -239,7 +242,7 @@ class Trainer:
         train_log = []
         test_log = []
         did_early_exit = False
-        
+
         hide_progress_bar = self.progress_bar is False  
         with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
             progress_bar.set_description("Processing epoch 1 of {}, train acc: N\A, best test score: N\A".format(self.n_epochs))
