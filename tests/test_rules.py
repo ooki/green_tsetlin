@@ -181,6 +181,35 @@ def test_local_importance_xor():
 
 
 
+def test_pickeled_rules_still_solves_xor():
+
+    state = get_xor_state()
+    rp = gt.RulePredictor()    
+    rp.create_from_state(state)
+
+    byte_data = pickle.dumps(rp, protocol=pickle.HIGHEST_PROTOCOL)
+    del rp
+
+    rp2 = pickle.loads(byte_data)
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals= rp2.n_literals)    
+
+    preds = []
+    for xk, yk in zip(ex, ey):
+        y_pred = rp2.predict(xk)
+        preds.append(y_pred==yk)
+
+    acc = np.mean(preds)
+    assert acc > 0.99
+
+
+
+
+
+    
+    
+    #assert tm0._state is not None
+
+    
 
     
 if __name__ == "__main__":
@@ -190,5 +219,5 @@ if __name__ == "__main__":
     # test_global_importance_xor()        
     # test_local_importance_xor()
     # test_multi_label_output()
-    test_pickle_support()
+    test_pickeled_rules_still_solves_xor()
     print("<done tests:", __file__, ">")
