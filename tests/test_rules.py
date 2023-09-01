@@ -202,16 +202,6 @@ def test_pickeled_rules_still_solves_xor():
     assert acc > 0.99
 
 
-
-
-
-    
-    
-    #assert tm0._state is not None
-
-    
-
-    
 if __name__ == "__main__":
     # test_empty_output_default_get_set()
     # test_empty_output_sets()
