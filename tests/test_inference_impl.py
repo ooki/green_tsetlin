@@ -5,6 +5,8 @@ import numpy as np
 import green_tsetlin_core as gtc
 
 
+def get_test_rules():
+    return [[0], [0,1], [0,1], [2,3]]
 
 def get_test_inference_object(literal_support):
     n_literals = 2
@@ -18,7 +20,7 @@ def get_test_inference_object(literal_support):
         inference = gtc.InferenceNoLiteralsImportance(n_literals, n_clauses, n_classes, n_features)
 
 
-    raw_rules = [[0], [0,1], [0,1], [2,3]]
+    raw_rules = get_test_rules()
     raw_weights = [[-1, 2], [-3, 4], [5, -6], [7, -8]]
     features_by_clause = [[0], [1], [0,1], [1]]
 
@@ -61,6 +63,19 @@ def test_default_empty_class_is_zero_and_getset_works():
     assert inference.get_empty_class_output() == 0
     inference.set_empty_class_output(1337)
     assert inference.get_empty_class_output() == 1337
+
+
+def test_get_rules_by_literals():
+    n_literals, n_clauses, n_classes, n_features, inference = get_test_inference_object(literal_support=True)
+    
+    rules = set(tuple(r) for r in get_test_rules())
+    
+    for k in range(len(rules)):
+        rule = inference.get_rule_by_literals(k)
+        raw = tuple(rule.tolist())
+        assert raw in rules
+
+
 
 
 
@@ -109,7 +124,8 @@ if __name__ == "__main__":
     # test_default_empty_class_is_zero_and_getset_works()
     # test_predict()
     # test_predict_take_empty_class_into_account()
-    test_multi_label_inference()
+    # test_multi_label_inference()
+    tet_get_rules_by_literals()
     print("<done tests:", __file__, ">")
 
 

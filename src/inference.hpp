@@ -99,21 +99,27 @@ namespace green_tsetlin
                 return pybind11::cast(m_votes);
             }
 
-            pybind11::array_t<double> calc_local_importance(uint32_t target_class, bool normalize)
+            pybind11::array_t<double> calc_local_importance_npy(uint32_t target_class, bool normalize)
             {   
                 calculate_importance_score(target_class, normalize);             
                 return pybind11::cast(m_feature_importance);
             }
 
-            pybind11::array_t<double> get_cached_literal_importance()
+            pybind11::array_t<double> get_cached_literal_importance_npy()
             {
                 return pybind11::cast(m_literal_importance);
             }
 
-            pybind11::array_t<int> get_active_clauses()
+            pybind11::array_t<int> get_active_clauses_npy()
             {
                 return pybind11::cast(m_active_clauses);
             }
+
+            pybind11::array_t<uint32_t> get_rule_by_literals_npy(int k)
+            {
+                return pybind11::cast(m_rules[k]);
+            }
+
 
             pybind11::array_t<double>  calculate_global_importance(int y, bool normalize)
             {

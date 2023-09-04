@@ -356,14 +356,15 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_rules_and_features", &Inference8::set_rules_and_features)
         .def("predict", &Inference8::predict_npy)
         .def("predict_multi", &Inference8::predict_multi_npy)
-        .def("calc_local_importance", &Inference8::calc_local_importance)
+        .def("calc_local_importance", &Inference8::calc_local_importance_npy)
         .def("calculate_global_importance", &Inference8::calculate_global_importance)
-        .def("get_active_clauses", &Inference8::get_active_clauses)        
+        .def("get_active_clauses", &Inference8::get_active_clauses_npy)        
         .def("set_empty_class_output", &Inference8::set_empty_class_output)
         .def("get_empty_class_output", &Inference8::get_empty_class_output)
         .def("get_votes", &Inference8::get_votes_npy)
+        .def("get_rule_by_literals", &Inference8::get_rule_by_literals_npy)
         
-        .def("get_cached_literal_importance", &Inference8::get_cached_literal_importance)                
+        .def("get_cached_literal_importance", &Inference8::get_cached_literal_importance_npy)                
     ;
 
     py::class_<Inference8NoLiteralsImportance>(m, "InferenceNoLiteralsImportance")
@@ -371,12 +372,13 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_rules_and_features", &Inference8NoLiteralsImportance::set_rules_and_features)
         .def("predict", &Inference8NoLiteralsImportance::predict_npy)
         .def("predict_multi", &Inference8NoLiteralsImportance::predict_multi_npy)
-        .def("calc_local_importance", &Inference8NoLiteralsImportance::calc_local_importance)
+        .def("calc_local_importance", &Inference8NoLiteralsImportance::calc_local_importance_npy)
         .def("calculate_global_importance", &Inference8NoLiteralsImportance::calculate_global_importance)
-        .def("get_active_clauses", &Inference8NoLiteralsImportance::get_active_clauses)        
+        .def("get_active_clauses", &Inference8NoLiteralsImportance::get_active_clauses_npy)        
         .def("set_empty_class_output", &Inference8NoLiteralsImportance::set_empty_class_output)
         .def("get_empty_class_output", &Inference8NoLiteralsImportance::get_empty_class_output)
         .def("get_votes", &Inference8NoLiteralsImportance::get_votes_npy)
+        .def("get_rule_by_literals", &Inference8NoLiteralsImportance::get_rule_by_literals_npy)
     ;
 
     #ifdef VERSION_INFO
