@@ -25,8 +25,13 @@ class RulePredictor:
         self.n_classes: int = -1
         self.n_features: int = -1
 
+        print("empty_class_output:", self.empty_class_output)
+
 
     def __getstate__(self):
+        if self.multi_label:
+            self.n_classes = self.n_classes * 2 # make sure we handle classes in the multi scenario correct
+
         state = self.__dict__.copy()
         del state["_inference"]
 
@@ -34,6 +39,10 @@ class RulePredictor:
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+        # if self.multi_label is True:
+        #     self.n_classes = 
+
         self._create_inference_object()
     
     def create_from_state(self, state, feature_map: Optional[list] = None):
@@ -45,7 +54,7 @@ class RulePredictor:
         assert self.n_clauses == c.shape[0]               
 
         if feature_map is None:            
-            feature_map = list(range(self.n_literals)) 
+            feature_map = list(range(self.n_literals))
                             
         rules = {}
         for k, row in enumerate(c):
@@ -77,9 +86,11 @@ class RulePredictor:
                 
         self.n_features = max(feature_map) + 1        
         self.n_clauses = len(raw_rules)
+                
+
         self._raw_rules_cache = raw_rules
         self._raw_weights_cache = raw_weights
-        self._raw_features_by_clause = features_by_clause   
+        self._raw_features_by_clause = features_by_clause
 
         self._create_inference_object()
 
@@ -100,10 +111,22 @@ class RulePredictor:
                            
         self._inference.set_rules_and_features(self._raw_rules_cache, self._raw_weights_cache, self._raw_features_by_clause)
 
+
+        # shorten down - make sure we increase (2x) when we pickle for correct handling
+        if self.multi_label is True:
+            self.n_classes = self.n_classes // 2
+
+                
         if self.empty_class_output is None:
-            self.empty_class_output = self._inference.get_empty_class_output()
+            self.empty_class_output = self._inference.get_empty_class_output()                                        
         else:
-            self._inference.set_empty_class_output(self.empty_class_output)            
+            self._inference.set_empty_class_output(self.empty_class_output)
+
+
+        
+
+
+        
      
 
     def predict(self, x : np.ndarray, explain:bool=False, normalize_explaination:bool=True, literal_importance:bool=False) -> Union[int,  Tuple[int, list]]:

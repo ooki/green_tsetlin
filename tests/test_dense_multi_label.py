@@ -27,7 +27,7 @@ def test_multi_label_xor_trainer():
     tm.set_train_data(xt, yt)
     tm.set_test_data(xe, ye)
 
-    trainer = gt.Trainer(threshold=threshold, progress_bar=False, n_epochs=100,  n_jobs=2)
+    trainer = gt.Trainer(threshold=threshold, progress_bar=False, n_epochs=n_epochs,  n_jobs=n_jobs, seed=seed)
     r = trainer.train(tm)
     d = tm.get_state()
 

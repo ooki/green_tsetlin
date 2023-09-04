@@ -63,14 +63,49 @@ def test_multi_label_output():
     n_weights = state["w"].shape[1]
     n_classes = n_weights // 2
 
-    print("w:", state["w"].shape)
     
     rp = gt.RulePredictor(multi_label=True)
     rp.create_from_state(state)
 
     x_y0 = np.array([0, 0], dtype=np.uint8)
     out = rp.predict(x_y0)
+
     assert n_classes == out.shape[0]
+    assert rp.n_classes == n_classes
+
+
+def test_multi_label_output_pickle_support():
+    state = get_xor_state()
+
+    w = state["w"]    
+    state["w"] = np.concatenate([w, -w, -w, w], axis=1)
+    n_weights = state["w"].shape[1]
+    n_classes = n_weights // 2
+
+    rp = gt.RulePredictor(multi_label=True)
+    rp.create_from_state(state)
+
+    byte_data = pickle.dumps(rp, protocol=pickle.HIGHEST_PROTOCOL)
+    del rp
+
+    rp2 = pickle.loads(byte_data)
+    x_y0 = np.array([0, 0], dtype=np.uint8)
+    out = rp2.predict(x_y0)
+
+    assert rp2.n_classes == n_classes 
+    assert n_classes == out.shape[0]
+
+    byte_data = pickle.dumps(rp2, protocol=pickle.HIGHEST_PROTOCOL)
+    del rp2
+
+    rp3 = pickle.loads(byte_data)
+    x_y0 = np.array([0, 0], dtype=np.uint8)
+    out = rp3.predict(x_y0)
+
+    assert rp3.n_classes == n_classes 
+    assert n_classes == out.shape[0]
+
+
 
 
 def test_empty_output_default_get_set():
@@ -102,8 +137,8 @@ def test_pickle_support():
     del rp
 
     rp2 = pickle.loads(byte_data)
-    print("rp2:", rp2.n_classes)
-    
+
+    assert rp2.n_classes == 2
     assert hasattr(rp2, "_inference")
     assert rp2._inference
 
@@ -209,5 +244,7 @@ if __name__ == "__main__":
     # test_global_importance_xor()        
     # test_local_importance_xor()
     # test_multi_label_output()
-    test_pickeled_rules_still_solves_xor()
+    # test_pickle_support()
+    test_multi_label_output_pickle_support()
+    
     print("<done tests:", __file__, ">")

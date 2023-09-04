@@ -12,7 +12,7 @@ import distutils
 distutils.log.set_verbosity(1)
 
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
