@@ -25,8 +25,6 @@ class RulePredictor:
         self.n_classes: int = -1
         self.n_features: int = -1
 
-        print("empty_class_output:", self.empty_class_output)
-
 
     def __getstate__(self):
         if self.multi_label:
