@@ -70,7 +70,17 @@ def test_zero_or_negative_literal_budget_get_set_to_all():
     
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, n_literal_budget=-1)
     assert tm.n_literals_budget == n_literals
+
+
+
+def test_positive_budget_is_set():
+    n_literals = 7
+    n_clauses = 12
+    n_classes = 3
+    s = 1.5
     
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, n_literal_budget=1, positive_budget=True)
+    assert tm.positive_budget
 
     
 def test_construct_cb_has_correct_properties():

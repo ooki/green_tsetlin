@@ -39,7 +39,7 @@ class TsetlinMachine:
     multi_label: bool, Run on multi label or single label, default=False
     
     """
-    def __init__(self, n_literals:int, n_clauses: int, n_classes: int,  s:float, n_literal_budget: Optional[int] = -1, multi_label:bool=False):
+    def __init__(self, n_literals:int, n_clauses: int, n_classes: int,  s:float, n_literal_budget: Optional[int] = -1, multi_label:bool=False, positive_budget:bool=False):
         
         self.name = hash(uuid.uuid4().hex)
         
@@ -60,7 +60,20 @@ class TsetlinMachine:
         if self.n_literals_budget < 1:
             self.n_literals_budget = self.n_literals             
         
+        self.positive_budget = positive_budget
         self._tm_cls = _tm_cls
+
+        if self.positive_budget is True:            
+            if self._tm_cls == gtc.ClauseBlockAVX2:
+                self._tm_cls = gtc.ClauseBlockAVX2PB
+            
+            elif self._tm_cls == gtc.ClauseBlockNV:
+                self._tm_cls = gtc.ClauseBlockNVPB
+
+            else:
+                raise NotImplementedError("Positive Budget is not implemented for: {}".format(self._tm_cls))
+            
+
 
         self._train_x : np.array = None
         self._train_y : np.array = None

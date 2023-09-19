@@ -69,13 +69,26 @@ typedef typename gt::ClauseBlockT<
                                     gt::CoaleasedTsetlinStateNV,
                                     gt::InitializeNV<gt::CoaleasedTsetlinStateNV, true>, // do_literal_budget = true
                                     gt::CleanupNV<gt::CoaleasedTsetlinStateNV, true>, // do_literal_budget = true
-                                    gt::SetClauseOutputNV<gt::CoaleasedTsetlinStateNV, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputNV<gt::CoaleasedTsetlinStateNV, true, false>, // do_literal_budget = true, force_at_least_one_positive_literal=false
                                     gt::EvalClauseOutputNV<gt::CoaleasedTsetlinStateNV>,
                                     gt::CountVotesNV<gt::CoaleasedTsetlinStateNV>,
                                     TrainUpdateNVImpl,
                                     DenseInputBlock8u
                                 >
                                 ClauseBlockNVImpl;
+
+
+typedef typename gt::ClauseBlockT<
+                                    gt::CoaleasedTsetlinStateNV,
+                                    gt::InitializeNV<gt::CoaleasedTsetlinStateNV, true>, // do_literal_budget = true
+                                    gt::CleanupNV<gt::CoaleasedTsetlinStateNV, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputNV<gt::CoaleasedTsetlinStateNV, true, true>, // do_literal_budget = true, force_at_least_one_positive_literal=true
+                                    gt::EvalClauseOutputNV<gt::CoaleasedTsetlinStateNV>,
+                                    gt::CountVotesNV<gt::CoaleasedTsetlinStateNV>,
+                                    TrainUpdateNVImpl,
+                                    DenseInputBlock8u
+                                >
+                                ClauseBlockNVImplPU;
 
 
 //-------------------- sparse impl ---------------------
@@ -123,13 +136,26 @@ typedef typename gt::ClauseBlockT<
                                     gt::CoaleasedTsetlinStateAligned32,
                                     gt::InitializeAligned32<gt::CoaleasedTsetlinStateAligned32, true, true>, // pad_class=true, do_literal_budget = true
                                     gt::CleanupAligned32<gt::CoaleasedTsetlinStateAligned32, true>, // do_literal_budget = true
-                                    gt::SetClauseOutputAVX2<gt::CoaleasedTsetlinStateAligned32, true>,  // do_literal_budget = true
+                                    gt::SetClauseOutputAVX2<gt::CoaleasedTsetlinStateAligned32, true, false>,  // do_literal_budget = true, force_at_least_one_positive_literal=False
                                     gt::EvalClauseOutputAVX2<gt::CoaleasedTsetlinStateAligned32>,
                                     gt::CountVotesAVX2<gt::CoaleasedTsetlinStateAligned32>,    // CountVotesAVX2  CountVotesVectorAVX2                                
                                     TrainUpdateAVX2Impl,
                                     DenseInputBlock8u
                                 >
                                 ClauseBlockAVX2Impl;
+
+
+typedef typename gt::ClauseBlockT<
+                                    gt::CoaleasedTsetlinStateAligned32,
+                                    gt::InitializeAligned32<gt::CoaleasedTsetlinStateAligned32, true, true>, // pad_class=true, do_literal_budget = true
+                                    gt::CleanupAligned32<gt::CoaleasedTsetlinStateAligned32, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputAVX2<gt::CoaleasedTsetlinStateAligned32, true, true>,  // do_literal_budget = true, force_at_least_one_positive_literal=True
+                                    gt::EvalClauseOutputAVX2<gt::CoaleasedTsetlinStateAligned32>,
+                                    gt::CountVotesAVX2<gt::CoaleasedTsetlinStateAligned32>,    // CountVotesAVX2  CountVotesVectorAVX2                                
+                                    TrainUpdateAVX2Impl,
+                                    DenseInputBlock8u
+                                >
+                                ClauseBlockAVX2ImplPB;                                
 
 #endif
 
@@ -162,6 +188,27 @@ typedef typename gt::ClauseBlockT<
                                 ClauseBlockNeonImpl;
 
 #endif 
+
+
+template<typename _T>
+void define_clause_block(py::module& m, const char* name)
+{
+    py::class_<_T, gt::ClauseBlock>(m, name)
+        .def(py::init<int, int, int>())
+        .def("set_input_block", &_T::set_input_block)
+        .def("set_clause_weight", &_T::set_clause_weight)
+        .def("get_clause_weight", &_T::get_clause_weight) 
+        .def("set_ta_state", &_T::set_ta_state)
+        .def("get_ta_state", &_T::get_ta_state)
+        .def("get_copy_clause_outputs", &_T::get_copy_clause_outputs)
+        .def("get_copy_literal_counts", &_T::get_copy_literal_counts)
+        .def("get_copy_clause_states", &_T::get_copy_clause_states)
+        .def("set_clause_state", &_T::set_clause_state_npy)
+        .def("get_clause_state", &_T::get_clause_state_npy)
+        .def("set_clause_weights", &_T::set_clause_weights_npy)
+        .def("get_clause_weights", &_T::get_clause_weights_npy);
+}
+
 
 
 PYBIND11_MAKE_OPAQUE(std::vector<int>);
@@ -243,62 +290,77 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
                 
         .def("set_feedback", &gt::ClauseBlock::set_feedback);
 
-    // NV
-    py::class_<ClauseBlockNVImpl, gt::ClauseBlock>(m, "ClauseBlockNV")
-        .def(py::init<int, int, int>())
-        .def("set_input_block", &ClauseBlockNVImpl::set_input_block)
-        .def("set_clause_weight", &ClauseBlockNVImpl::set_clause_weight)
-        .def("get_clause_weight", &ClauseBlockNVImpl::get_clause_weight)
-        .def("set_ta_state", &ClauseBlockNVImpl::set_ta_state)
-        .def("get_ta_state", &ClauseBlockNVImpl::get_ta_state)
-        .def("get_copy_clause_outputs", &ClauseBlockNVImpl::get_copy_clause_outputs)
-        .def("get_copy_literal_counts", &ClauseBlockNVImpl::get_copy_literal_counts)
-        .def("get_copy_clause_states", &ClauseBlockNVImpl::get_copy_clause_states)
-        .def("set_clause_state", &ClauseBlockNVImpl::set_clause_state_npy)
-        .def("get_clause_state", &ClauseBlockNVImpl::get_clause_state_npy)
-        .def("set_clause_weights", &ClauseBlockNVImpl::set_clause_weights_npy)
-        .def("get_clause_weights", &ClauseBlockNVImpl::get_clause_weights_npy)
-        ;
+    // // NV
+    // py::class_<ClauseBlockNVImpl, gt::ClauseBlock>(m, "ClauseBlockNV")
+    //     .def(py::init<int, int, int>())
+    //     .def("set_input_block", &ClauseBlockNVImpl::set_input_block)
+    //     .def("set_clause_weight", &ClauseBlockNVImpl::set_clause_weight)
+    //     .def("get_clause_weight", &ClauseBlockNVImpl::get_clause_weight)
+    //     .def("set_ta_state", &ClauseBlockNVImpl::set_ta_state)
+    //     .def("get_ta_state", &ClauseBlockNVImpl::get_ta_state)
+    //     .def("get_copy_clause_outputs", &ClauseBlockNVImpl::get_copy_clause_outputs)
+    //     .def("get_copy_literal_counts", &ClauseBlockNVImpl::get_copy_literal_counts)
+    //     .def("get_copy_clause_states", &ClauseBlockNVImpl::get_copy_clause_states)
+    //     .def("set_clause_state", &ClauseBlockNVImpl::set_clause_state_npy)
+    //     .def("get_clause_state", &ClauseBlockNVImpl::get_clause_state_npy)
+    //     .def("set_clause_weights", &ClauseBlockNVImpl::set_clause_weights_npy)
+    //     .def("get_clause_weights", &ClauseBlockNVImpl::get_clause_weights_npy)
+    //     ;
 
-        
+    define_clause_block<ClauseBlockNVImpl>(m, "ClauseBlockNV");
+    define_clause_block<ClauseBlockNVImplPU>(m, "ClauseBlockNVPU");
+
+
+
 
 #ifdef USE_AVX2
-    py::class_<ClauseBlockAVX2Impl, gt::ClauseBlock>(m, "ClauseBlockAVX2")
-        .def(py::init<int, int, int>())
-        .def("set_input_block", &ClauseBlockAVX2Impl::set_input_block)
-        .def("set_clause_weight", &ClauseBlockAVX2Impl::set_clause_weight)
-        .def("get_clause_weight", &ClauseBlockAVX2Impl::get_clause_weight) 
-        .def("set_ta_state", &ClauseBlockAVX2Impl::set_ta_state)
-        .def("get_ta_state", &ClauseBlockAVX2Impl::get_ta_state)
-        .def("get_copy_clause_outputs", &ClauseBlockAVX2Impl::get_copy_clause_outputs)
-        .def("get_copy_literal_counts", &ClauseBlockAVX2Impl::get_copy_literal_counts)
-        .def("get_copy_clause_states", &ClauseBlockAVX2Impl::get_copy_clause_states)
-        .def("set_clause_state", &ClauseBlockAVX2Impl::set_clause_state_npy)
-        .def("get_clause_state", &ClauseBlockAVX2Impl::get_clause_state_npy)
-        .def("set_clause_weights", &ClauseBlockAVX2Impl::set_clause_weights_npy)
-        .def("get_clause_weights", &ClauseBlockAVX2Impl::get_clause_weights_npy)
-        ;
+
+
+
+
+    // py::class_<ClauseBlockAVX2Impl, gt::ClauseBlock>(m, "ClauseBlockAVX2")
+    //     .def(py::init<int, int, int>())
+    //     .def("set_input_block", &ClauseBlockAVX2Impl::set_input_block)
+    //     .def("set_clause_weight", &ClauseBlockAVX2Impl::set_clause_weight)
+    //     .def("get_clause_weight", &ClauseBlockAVX2Impl::get_clause_weight) 
+    //     .def("set_ta_state", &ClauseBlockAVX2Impl::set_ta_state)
+    //     .def("get_ta_state", &ClauseBlockAVX2Impl::get_ta_state)
+    //     .def("get_copy_clause_outputs", &ClauseBlockAVX2Impl::get_copy_clause_outputs)
+    //     .def("get_copy_literal_counts", &ClauseBlockAVX2Impl::get_copy_literal_counts)
+    //     .def("get_copy_clause_states", &ClauseBlockAVX2Impl::get_copy_clause_states)
+    //     .def("set_clause_state", &ClauseBlockAVX2Impl::set_clause_state_npy)
+    //     .def("get_clause_state", &ClauseBlockAVX2Impl::get_clause_state_npy)
+    //     .def("set_clause_weights", &ClauseBlockAVX2Impl::set_clause_weights_npy)
+    //     .def("get_clause_weights", &ClauseBlockAVX2Impl::get_clause_weights_npy)
+    //     ;
+    define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2");
+    define_clause_block<ClauseBlockAVX2ImplPB>(m, "ClauseBlockAVX2PB");
+        
+
 #endif 
+
 
 #ifdef USE_NEON
-    py::class_<ClauseBlockNeonImpl, gt::ClauseBlock>(m, "ClauseBlockNeon")
-        .def(py::init<int, int, int>())
-        .def("set_input_block", &ClauseBlockNeonImpl::set_input_block)
-        .def("set_clause_weight", &ClauseBlockNeonImpl::set_clause_weight)
-        .def("get_clause_weight", &ClauseBlockNeonImpl::get_clause_weight)
-        .def("set_ta_state", &ClauseBlockNeonImpl::set_ta_state)
-        .def("get_ta_state", &ClauseBlockNeonImpl::get_ta_state)
-        .def("get_copy_clause_outputs", &ClauseBlockNeonImpl::get_copy_clause_outputs)
-        .def("get_copy_literal_counts", &ClauseBlockNeonImpl::get_copy_literal_counts)
-        .def("get_copy_clause_states", &ClauseBlockNeonImpl::get_copy_clause_states)
-        .def("set_clause_state", &ClauseBlockNeonImpl::set_clause_state_npy)
-        .def("get_clause_state", &ClauseBlockNeonImpl::get_clause_state_npy)
-        .def("set_clause_weights", &ClauseBlockNeonImpl::set_clause_weights_npy)
-        .def("get_clause_weights", &ClauseBlockNeonImpl::get_clause_weights_npy)
+    // py::class_<ClauseBlockNeonImpl, gt::ClauseBlock>(m, "ClauseBlockNeon")
+    //     .def(py::init<int, int, int>())
+    //     .def("set_input_block", &ClauseBlockNeonImpl::set_input_block)
+    //     .def("set_clause_weight", &ClauseBlockNeonImpl::set_clause_weight)
+    //     .def("get_clause_weight", &ClauseBlockNeonImpl::get_clause_weight)
+    //     .def("set_ta_state", &ClauseBlockNeonImpl::set_ta_state)
+    //     .def("get_ta_state", &ClauseBlockNeonImpl::get_ta_state)
+    //     .def("get_copy_clause_outputs", &ClauseBlockNeonImpl::get_copy_clause_outputs)
+    //     .def("get_copy_literal_counts", &ClauseBlockNeonImpl::get_copy_literal_counts)
+    //     .def("get_copy_clause_states", &ClauseBlockNeonImpl::get_copy_clause_states)
+    //     .def("set_clause_state", &ClauseBlockNeonImpl::set_clause_state_npy)
+    //     .def("get_clause_state", &ClauseBlockNeonImpl::get_clause_state_npy)
+    //     .def("set_clause_weights", &ClauseBlockNeonImpl::set_clause_weights_npy)
+    //     .def("get_clause_weights", &ClauseBlockNeonImpl::get_clause_weights_npy)
     ;
+
+    define_clause_block<ClauseBlockNeonImpl>(m, "ClauseBlockNeon");
 #endif 
 
-
+    /*
     py::class_<ClauseBlockSparseNVImpl, gt::ClauseBlock>(m, "SparseClauseBlockNV")
         .def(py::init<int, int, int, int, int>())
         .def("set_input_block", &ClauseBlockSparseNVImpl::set_input_block)
@@ -306,6 +368,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_ta_state", &ClauseBlockSparseNVImpl::set_ta_state)
         .def("get_ta_state", &ClauseBlockSparseNVImpl::get_ta_state)
     ;
+    */
 
     /*
     py::class_<gt::ConvolutionalClauseBlock, gt::ClauseBlock>(m, "ConvolutionalClauseBlock")

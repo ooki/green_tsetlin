@@ -545,7 +545,67 @@ def test_SetClauseOutputAVX2_set_clause_weights():
     cb.cleanup()
     
 
-def test_SetClauseOutputAVX2_literal_counts_reminder():
+def test_SetClauseOutputAVX2_literal_counts_reminder_AND_force_positive_literal_on():
+    n_literals = 4
+    n_classes = 1
+    n_clauses = 6
+    threshold = 100
+    s_param = 5.0
+        
+    
+    ib = gtc.DenseInputBlock(n_literals)        
+    cb = gtc.ClauseBlockAVX2(n_literals, n_clauses, n_classes)
+    feedback_block = gtc.FeedbackBlock(n_classes, threshold)
+    
+    cb.initialize()
+    cb.set_feedback(feedback_block)
+    cb.set_input_block(ib)
+    cb.set_s(s_param)
+    
+    x = np.array([[0, 0, 1, 1]], dtype=np.uint8)
+    y = np.array([0], dtype=np.uint32)
+    ib.set_data(x, y)
+
+    avx2_ta_per_chunk = 32
+    for c in range(n_clauses):
+        for k in range(avx2_ta_per_chunk):        
+            cb.set_ta_state(c, k, True, -10)
+            cb.set_ta_state(c, k, False, -10)
+        
+    cb.set_ta_state(0, 2, True, 3)    
+    cb.set_ta_state(0, 3, True, 4)
+
+    cb.set_ta_state(1, 0, False, 5)
+
+    cb.set_ta_state(2, 2, True, 3)    
+    cb.set_ta_state(2, 3, True, 4)
+    cb.set_ta_state(2, 0, False, 5)
+
+    # 3 is empty
+
+    cb.set_ta_state(4, 2, True, 3)    
+    cb.set_ta_state(4, 3, True, 4)
+
+    # make sure we correctly mask the input
+    cb.set_ta_state(5, 2, True, 3)
+    cb.set_ta_state(5, 16, True, 4) # these  2 are outside the bounds and should not affect the count
+    cb.set_ta_state(5, 16, False, 5)
+            
+    ib.prepare_example(0)
+    gtc.time_train_set_clause_output_and_set_votes(cb)
+
+    counts = cb.get_copy_literal_counts()
+    assert counts[0] == 2 # positive
+    assert counts[1] > 0 # negated only - since we are using PB and its only negative -> set it to a high number
+    assert counts[2] == 3 # pos+neg
+    assert counts[3] == 0 # empty
+    assert counts[4] > 0  # clause_output = 0 -> dont reset the count
+    assert counts[5] == 1 # make sure the masked ta's dont affect the count
+
+    cb.cleanup()
+
+
+def test_SetClauseOutputAVX2_literal_counts_reminder_AND_force_positive_literal_on():
     n_literals = 4
     n_classes = 1
     n_clauses = 6
@@ -604,6 +664,7 @@ def test_SetClauseOutputAVX2_literal_counts_reminder():
 
     cb.cleanup()
 
+
 def test_xor_train_to_100_avx2():
     n_literals = 10
     n_clauses = 16
@@ -655,7 +716,8 @@ if __name__ == "__main__":
     
     # test_xor_train_to_100_avx2()
 
-    test_Type1b_feedback_increase_states()
+    # test_Type1b_feedback_increase_states()
+    test_SetClauseOutputAVX2_literal_counts_reminder_AND_force_positive_literal_on()
 
     print("<tests - clause_block_avx2 - done>")
 

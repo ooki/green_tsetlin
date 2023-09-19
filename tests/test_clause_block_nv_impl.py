@@ -394,6 +394,56 @@ def test_CoaleasedTsetlinStateNV_set_clause_weights():
     cb.cleanup()
     
 
+def test_SetClauseOutputNV_literal_counts_AND_force_one_true_literal_is_ON():
+    n_literals = 4
+    n_classes = 1
+    n_clauses = 4
+    threshold = 100
+    s_param = 5.0
+        
+    
+    ib = gtc.DenseInputBlock(n_literals)        
+    cb = gtc.ClauseBlockNVPU(n_literals, n_clauses, n_classes)
+    feedback_block = gtc.FeedbackBlock(n_classes, threshold)
+    
+    cb.initialize()
+    cb.set_feedback(feedback_block)
+    cb.set_input_block(ib)
+    cb.set_s(s_param)
+    
+    x = np.array([[0, 0, 1, 1]], dtype=np.uint8)
+    y = np.array([0], dtype=np.uint32)
+    ib.set_data(x, y)
+
+    for c in range(n_clauses):
+        for k in range(n_literals):        
+            cb.set_ta_state(c, k, True, -10)
+            cb.set_ta_state(c, k, False, -10)
+        
+    cb.set_ta_state(0, 2, True, 3)    
+    cb.set_ta_state(0, 3, True, 4)
+
+    cb.set_ta_state(1, 0, False, 5)
+
+    cb.set_ta_state(2, 2, True, 3)    
+    cb.set_ta_state(2, 3, True, 4)
+    cb.set_ta_state(2, 0, False, 5)
+
+    # 3 is empty
+    cb.set_ta_state(4, 2, True, 3)    
+    cb.set_ta_state(4, 3, True, 4)
+            
+    ib.prepare_example(0)
+    gtc.time_train_set_clause_output_and_set_votes(cb)
+
+    counts = cb.get_copy_literal_counts()
+    assert counts[0] == 2 # positive
+    assert counts[1] > 1000 # negated only, so since we are using PB - this will be a high number.
+    assert counts[2] == 3 # pos+neg
+    assert counts[3] == 0 # empty
+    cb.cleanup()
+
+
 def test_SetClauseOutputNV_literal_counts():
     n_literals = 4
     n_classes = 1
@@ -545,7 +595,8 @@ if __name__ == "__main__":
     # test_xor_train_to_100_nv()
 
     #test_Type1a_feedback_increase_states()
-    weight_updates_correctly()
+    # weight_updates_correctly()
+    test_SetClauseOutputNV_literal_counts_AND_force_one_true_literal_is_ON()
     
     print("<tests - clause_block_nv - done>")
 

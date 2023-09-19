@@ -11,6 +11,7 @@
 #include <gt_common.hpp>
 
 
+
 namespace green_tsetlin
 {
     void int8_print(const int8_t* c, int n)
@@ -42,6 +43,7 @@ namespace green_tsetlin
         public:
             constexpr const static int literals_per_vector = 32;
             constexpr const static int outputs_per_vector = 256 / sizeof(WeightInt);
+            constexpr const static uint32_t high_number_if_no_positive_literal_is_present = 65000;
 
             double s = -42.0;
             int num_clauses = 0;
@@ -341,7 +343,7 @@ namespace green_tsetlin
 
 
 
-    template <typename _State, bool do_literal_budget>
+    template <typename _State, bool do_literal_budget, bool force_at_least_one_positive_literal>
     class SetClauseOutputAVX2
     {
         public:
@@ -356,7 +358,9 @@ namespace green_tsetlin
 
                 for(int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
-                    state.literal_counts[clause_k] = 0;
+                    uint32_t pos_literal_count = 0;
+                    uint32_t neg_literal_count = 0;
+
                     state.clause_outputs[clause_k] = 1;
 
                     const int8_t* clause_row =  &clauses[clause_k * (state.num_literals_mem * 2)];
@@ -368,7 +372,7 @@ namespace green_tsetlin
                         __m256i _not_active = _mm256_cmpgt_epi8(_zeros, _clauses);
                         
                         if(do_literal_budget)
-                            state.literal_counts[clause_k] += __builtin_popcount(_mm256_movemask_epi8(~_not_active));
+                            pos_literal_count += __builtin_popcount(_mm256_movemask_epi8(~_not_active));
 
                         __m256i clause_imply_literal = _mm256_or_si256(_not_active, _literals);                        
                         __m256i _is_false = _mm256_cmpeq_epi8(clause_imply_literal, _zeros);
@@ -384,7 +388,7 @@ namespace green_tsetlin
                         _not_active = _mm256_cmpgt_epi8(_zeros, _clauses);
                         
                         if(do_literal_budget)
-                            state.literal_counts[clause_k] += __builtin_popcount(_mm256_movemask_epi8(~_not_active));
+                            neg_literal_count += __builtin_popcount(_mm256_movemask_epi8(~_not_active));
 
                         clause_imply_literal = _mm256_or_si256(_not_active, _neg_literals);
                         
@@ -405,7 +409,7 @@ namespace green_tsetlin
 
                         __m256i _active_masked =  _mm256_and_si256(~_not_active, _reminder_mask);
                         if(do_literal_budget)
-                            state.literal_counts[clause_k] += __builtin_popcount(_mm256_movemask_epi8(_active_masked));
+                            pos_literal_count += __builtin_popcount(_mm256_movemask_epi8(_active_masked));
                             
                         __m256i _clause_imply_literal = _mm256_or_si256(~_active_masked, _literals);                                                                                                                                    
                         __m256i _is_false = _mm256_cmpeq_epi8(_clause_imply_literal, _zeros);
@@ -422,7 +426,7 @@ namespace green_tsetlin
                         _not_active = _mm256_cmpgt_epi8(_zeros, _clauses);
                         _active_masked =  _mm256_and_si256(~_not_active, _reminder_mask);
                         if(do_literal_budget)
-                            state.literal_counts[clause_k] += __builtin_popcount(_mm256_movemask_epi8(_active_masked));
+                            neg_literal_count += __builtin_popcount(_mm256_movemask_epi8(_active_masked));
 
                         //_clause_imply_literal = _mm256_or_si256(_not_active, _neg_literals);
                         _clause_imply_literal = _mm256_or_si256(~_active_masked, _neg_literals);                                                                                                                                    
@@ -436,7 +440,26 @@ namespace green_tsetlin
                         }
                     }
                     
-                    endclause:;
+                    endclause:
+                        if(do_literal_budget)
+                        {
+                            if(force_at_least_one_positive_literal)
+                            {                                
+
+                                if(neg_literal_count == 0 || pos_literal_count > 0)
+                                {
+                                    state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
+                                }
+                                else
+                                {
+                                    state.literal_counts[clause_k] = state.high_number_if_no_positive_literal_is_present;
+                                }                                    
+                            }
+                            else
+                                state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
+                        }
+                        // else
+                        //     state.literal_counts[clause_k] = 0;
                 }
             }
     };

@@ -179,7 +179,8 @@ class RulePredictor:
     def get_active_rules(self) -> np.array:
         return self._inference.get_active_clauses()
             
-        
+    def get_votes(self) -> np.array:
+        return self._inference.get_votes()
         
     def get_global_importance(self, target_class, normalize:bool=True, literal_importance:bool=False):
         if literal_importance is False:

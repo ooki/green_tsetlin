@@ -14,6 +14,9 @@ namespace green_tsetlin
     class CoaleasedTsetlinStateNV
     {
         public:
+            constexpr const static uint32_t high_number_if_no_positive_literal_is_present = 65000;
+
+
             double s = -42.0;
             int num_clauses = 0;
             int num_classes = 0;
@@ -195,7 +198,7 @@ namespace green_tsetlin
 
     
 
-    template <typename _State, bool do_literal_budget>
+    template <typename _State, bool do_literal_budget, bool force_at_least_one_positive_literal>
     class SetClauseOutputNV
     {
         public: 
@@ -203,9 +206,10 @@ namespace green_tsetlin
             {
                 for(int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
+                    uint32_t pos_literal_count = 0;
+                    uint32_t neg_literal_count = 0;
+
                     state.clause_outputs[clause_k] = 1;
-                    if(do_literal_budget)
-                        state.literal_counts[clause_k] = 0;
                         
                     int8_t* pl_pos = &state.clauses[clause_k * (state.num_literals*2)];
                     int8_t* pl_neg = &state.clauses[(clause_k * (state.num_literals*2)) + state.num_literals];
@@ -222,7 +226,7 @@ namespace green_tsetlin
                             }
 
                             if(do_literal_budget)
-                                state.literal_counts[clause_k]++;
+                               pos_literal_count++;
                         }
                         pl_pos++;
 
@@ -235,9 +239,27 @@ namespace green_tsetlin
                             }
 
                             if(do_literal_budget)
-                                state.literal_counts[clause_k]++;
+                                neg_literal_count++;
                         }
                         pl_neg++;                                                                     
+                    }
+                        
+                    if(do_literal_budget)
+                    {
+                        if(force_at_least_one_positive_literal)
+                        {                                
+
+                            if(neg_literal_count == 0 || pos_literal_count > 0)
+                            {
+                                state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
+                            }
+                            else
+                            {
+                                state.literal_counts[clause_k] = state.high_number_if_no_positive_literal_is_present;
+                            }                                    
+                        }
+                        else
+                            state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
                     }
                 }
             }

@@ -32,6 +32,7 @@ def test_multi_label_xor_trainer():
     d = tm.get_state()
 
     assert d["w"].shape[0] == n_clauses and d["w"].shape[1] == (n_classes*2) # 0/1 per class
+    print("best:",  r["best_test_score"])
     assert r["best_test_score"] > 0.9
 
 
