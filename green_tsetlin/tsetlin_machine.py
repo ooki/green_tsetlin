@@ -55,10 +55,9 @@ class TsetlinMachine:
         if self._is_multi_label:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
-
         self.n_literals_budget = n_literal_budget
         if self.n_literals_budget < 1:
-            self.n_literals_budget = self.n_literals             
+            self.n_literals_budget = self.n_literals
         
         self.positive_budget = positive_budget
         self._tm_cls = _tm_cls
@@ -282,6 +281,8 @@ class TsetlinMachine:
             
         
         
+
+
 
 
 if __name__ == "__main__":
