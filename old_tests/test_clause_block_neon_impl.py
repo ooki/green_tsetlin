@@ -552,7 +552,7 @@ if __name__ == "__main__":
     #test_Type2_feedback_inc_negative_states_with_0_literal()
 
     # test_Type1a_feedback_increase_states()
-    #test_tmp_debug()
+    #test_tmp_debug() 
     #gtc.test_neon()
 
     test_xor_train_to_100_neon()
