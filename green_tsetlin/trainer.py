@@ -53,41 +53,53 @@ class Trainer:
             self.n_jobs = n_jobs
 
 
-    def set_data(self, x_train:np.array, y_train:np.array, x_test:np.array=None, y_test:np.array=None):
-
-        if x_test is not None and y_test is None:
-            raise ValueError("y_test must be provided if x_test is provided")
+    def set_train_data(self, x_train:np.array, y_train:np.array):
+        
+        y_train = np.atleast_1d(y_train)
+        if x_train.shape[0] != y_train.shape[0]:
+            raise ValueError("Data x_train and y_train must have the same number of examples: {} != {}".format(x_train.shape[0], y_train.shape[0]))
 
         if self.copy_training_data:
             x_train = x_train.copy()
             y_train = y_train.copy()
-
-            if x_test is not None:
-                x_test = x_test.copy()
-                y_test = y_test.copy()
-        
+           
         if x_train.dtype != np.uint8:
             raise ValueError("Data x_train must be of type np.uint8, was: {}".format(x_train.dtype))
         
-        if x_test is not None and x_test.dtype != np.uint8:
-            raise ValueError("Data x_test must be of type np.uint8, was: {}".format(x_test.dtype))
-
         if y_train.dtype != np.uint32:
             raise ValueError("Data y_train must be of type np.uint32, was: {}".format(y_train.dtype))
-
-        if y_test is not None and y_test.dtype != np.uint32:
-            raise ValueError("Data y_test must be of type np.uint32, was: {}".format(y_test.dtype))
 
         if x_train.shape[1] != self.tm.n_literals:
             raise ValueError("Data x_train does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_train.shape[1], self.tm.n_literals))
 
-        if x_test is not None and x_test.shape[1] != self.tm.n_literals:
-            raise ValueError("Data x_test does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_test.shape[1], self.tm.n_literals))
 
         self.x_train = x_train
-        self.y_train = y_train
+        self.y_train = y_train        
+
+    def set_test_data(self, x_test:np.array, y_test:np.array):
+        
+        y_test = np.atleast_1d(y_test)
+        if x_test.shape[0] != y_test.shape[0]:
+            raise ValueError("Data x_test and y_test must have the same number of examples: {} != {}".format(x_test.shape[0], y_test.shape[0]))
+             
+        if x_test is not None:
+            x_test = x_test.copy()
+            y_test = y_test.copy()
+
+        if x_test.dtype != np.uint8:
+            raise ValueError("Data x_test must be of type np.uint8, was: {}".format(x_test.dtype))
+        
+        if y_test.dtype != np.uint32:
+            raise ValueError("Data y_test must be of type np.uint32, was: {}".format(y_test.dtype))
+        
+        if x_test.shape[1] != self.tm.n_literals:
+            raise ValueError("Data x_test does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_test.shape[1], self.tm.n_literals))
+        
         self.x_test = x_test
         self.y_test = y_test
+
+            
+
 
 
 
