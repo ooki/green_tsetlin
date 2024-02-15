@@ -10,9 +10,11 @@ import tqdm
 
 #import green_tsetlin_core as gtc
 from green_tsetlin import TsetlinMachine
+from green_tsetlin import py_gtc
 
 def empty_epoch_callback(epoch, train_acc, test_score):
     pass
+
 
 
 class Trainer:
@@ -52,6 +54,12 @@ class Trainer:
         else:
             self.n_jobs = n_jobs
 
+        # backend setup
+        self._cls_dense_ib = py_gtc.DenseInputBlock        
+        self._cls_feedback_block = py_gtc.FeedbackBlock
+        self._cls_feedback_block_multi_label = py_gtc.FeedbackBlockMultiLabel
+        self._cls_exec_singlethread = py_gtc.SingleThreadExecutor
+        self._cls_exec_multithread = py_gtc.MultiThreadExecutor
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
         
@@ -98,10 +106,88 @@ class Trainer:
         self.x_test = x_test
         self.y_test = y_test
 
+
+    def _get_feedback_block(self, n_classes, threshold):
+        if self.feedback_type == "focused_negative_sampling":
+            if self.tm._is_multi_label is False:
+                return self._cls_feedback_block(n_classes, threshold, self.seed)
             
-
-
-
-
-    def train(self):
-        pass
+                #return gtc.FeedbackBlock(n_classes, threshold, self.seed)
+            else:
+                # since we have actual classes as 2*classes since we use 0/1 per class
+                return self._cls_feedback_block_multi_label(n_classes // 2, threshold, self.seed)
+            
+        
+        else:
+            raise ValueError("Unknown feedback type: {}".format(self.feedback_type))
+        
+        
+    def _calculate_blocks_for_tm(self):
+        return self.n_jobs
+    
+    def train(self):                
+        
+        ib = self._cls_dense_ib(self.tm.n_literals)
+        ib.set_data(self.x_train, self.y_train)
+        feedback_block = self._get_feedback_block(self.n_classes, self.threshold)
+        
+        n_blocks = self._calculate_blocks_for_tm()
+        cbs = self.tm.construct_clause_blocks(n_blocks)
+        
+        
+        if self.n_epochs < 1:            
+            for cb in cbs:
+                cb.cleanup()
+            return
+        
+        if self.n_jobs == 1:
+            exec = self._cls_exec_singlethread(ib, cbs, feedback_block, self.seed)
+        else:
+            exec = self._cls_exec_multithread(ib, cbs, feedback_block, self.n_jobs, self.seed)
+        
+        
+        
+        # main loop
+        n_epochs_trained = 0
+        best_test_score = -1.0
+        best_test_epoch = -1
+        train_acc = -1.0
+        
+        train_log = []
+        test_log = []
+        did_early_exit = False
+        
+        hide_progress_bar = self.progress_bar is False  
+        with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
+            progress_bar.set_description("Processing epoch 1 of {}, train acc: N\A, best test score: N\A".format(self.n_epochs))
+    
+            for epoch in range(self.n_epochs):                                            
+                train_acc = exec.train_epoch()
+                train_log.append(train_acc)                
+                n_epochs_trained += 1
+                
+                ib.set_data(self.x_test, self.y_test)
+                
+                if self._is_multi_label is False:
+                    y_hat = exec.eval_predict()                            
+                else:
+                    y_hat = exec.eval_predict_multi()
+                    
+                test_score = self.fn_test_score(self.y_test, np.array(y_hat))
+                test_log.append(test_score)
+                
+                
+                
+                
+                
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    

@@ -4,7 +4,7 @@
 
 
 import numpy as np
-
+from green_tsetlin import py_gtc
 
 class TsetlinStateStorage:
     """
@@ -15,9 +15,7 @@ class TsetlinStateStorage:
     def __init__(self, w:np.array, c:np.array):
         self.w = w
         self.c = c
-
     
-
 
 
 class TsetlinMachine:
@@ -26,6 +24,7 @@ class TsetlinMachine:
         self.n_literals = n_literals
         self.n_clauses = n_clauses
         self.n_classes = n_classes
+        self.cbs : list = None
 
         self.s = s
         if s < 1.0:
@@ -39,8 +38,8 @@ class TsetlinMachine:
         if self._is_multi_label:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
-        _tm_backend = None  # TODO: insert correct tm backend here
-        self._backend = _tm_backend
+        
+        self._backend = py_gtc.ClauseBlock
 
 
     def get_state(self, copy:bool=True) -> TsetlinStateStorage:
@@ -61,6 +60,25 @@ class TsetlinMachine:
         raise NotImplementedError("Not Impl.")
     
 
+    def construct_clause_blocks(self, n_blocks):
+        n_clause_per_block = self.n_clauses // n_blocks
+        n_add = self.n_clauses % n_blocks
+        
+        assert (n_clause_per_block * n_blocks) + n_add == self.n_clauses
+        
+        self._cbs = []
+        for k in range(n_blocks):
+            if k > 0:
+                n_add = 0
+            
+            cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
+            cb.set_s(self.s)
+            cb.set_literal_budget(self.n_literals_budget)
+            
+            self._cbs.append(cb)
+        
+        return self._cbs
+        
 
 
 
