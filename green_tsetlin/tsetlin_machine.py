@@ -42,13 +42,9 @@ class TsetlinMachine:
         self._backend = py_gtc.ClauseBlock
 
 
-    def get_state(self, copy:bool=True) -> TsetlinStateStorage:
-        """ Return a copy of the state
-
-        Args:
-            copy (bool, optional): If True return a copy of the state, else return the internal memory. Defaults to True.
+    def get_state_copy(self) -> TsetlinStateStorage:
+        """ Return a copy of the state        
         """
-
         raise NotImplementedError("Not Impl.")
     
     def set_state(self, state:TsetlinStateStorage, copy:bool=True):
