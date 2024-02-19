@@ -212,28 +212,14 @@ namespace green_tsetlin
                 f(m_state, m_literals, positive_class, prob_positive, negative_class, prob_negative);
             }
 
-            int8_t get_ta_state(int clause_k, int ta_i, bool ta_polarity)
-            {
-                return m_state.get_ta_state(clause_k, ta_i, ta_polarity);
+            virtual void get_clause_outputs_npy(pybind11::array out_array)
+            {                
+                pybind11::buffer_info buffer_info = out_array.request();                            
+                uint8_t* p = static_cast<uint8_t*>(buffer_info.ptr);                
+                m_state.get_clause_weights(p, clause_offset);
             }
 
-            void set_ta_state(int clause_k, int ta_i, bool ta_polarity, int8_t new_state)
-            {
-                m_state.set_ta_state(clause_k, ta_i, ta_polarity, new_state);
-            }
-
-            int16_t get_clause_weight(int clause_index, int target_class)
-            {
-                //std::cout << "get_clause_weight(cbT):" << clause_index << ", " << target_class << std::endl;
-                return m_state.get_clause_weight(clause_index, target_class);
-            }
-
-            void set_clause_weight(int clause_index, int target_class, int16_t new_weigth)
-            {
-                m_state.set_clause_weight(clause_index, target_class, new_weigth);
-            }
-
-
+            // --------------- OLD PARTS ----------------------------------
 
             // TODO: make functor or state member
             virtual std::vector<int8_t> get_copy_clause_outputs() const
