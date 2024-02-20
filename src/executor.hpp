@@ -47,7 +47,6 @@ namespace green_tsetin
                 m_input_block = input_block;
                 m_clause_blocks = clause_blocks;
                 m_feedback_block = feedback_block;
-                m_label_input = nullptr;
                 m_num_threads = num_threads;
 
                 int n_labels_per_example = m_label_input->get_num_labels_per_example();
@@ -165,6 +164,7 @@ namespace green_tsetin
                 return output;
             }
 
+            
             std::vector<std::vector<int>> eval_predict_multi()
             {
                 int n_examples = get_number_of_examples_ready();                
@@ -180,7 +180,6 @@ namespace green_tsetin
                     for(auto cb : m_clause_blocks)
                         cb->eval_example();
                     
-                    //output[i] = m_feedback_block->predict();
                     output[i] = m_feedback_block->predict_multi();
                 }
                 return output;

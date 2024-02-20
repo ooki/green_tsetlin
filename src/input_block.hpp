@@ -1,9 +1,12 @@
 #ifndef __INPUT_BLOCK_HPP_
 #define __INPUT_BLOCK_HPP_
-    
+
+
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 #include <stdint.h>
 
-namespace green_tsetin
+namespace green_tsetlin
 {
 
 
@@ -151,8 +154,6 @@ namespace green_tsetin
 
             example_type*               m_current_example = nullptr;
             uint32_t*                   m_current_label;
-
-            
     };
 
 }; // namespace green_tsetin

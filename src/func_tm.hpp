@@ -1,121 +1,12 @@
-#ifndef _FUNC_UPDATE_HPP_
-#define _FUNC_UPDATE_HPP_
+#ifndef _FUNC_TM_HPP_
+#define _FUNC_TM_HPP_
 
 
-
-#include <random>
-#include <vector>
-
-#include <gt_common.hpp>
-
-
-namespace green_tsetlin
+namespace green_tsetin
 {
-    class CoaleasedTsetlinStateNV
-    {
-        public:
-            constexpr const static uint32_t high_number_if_no_positive_literal_is_present = 65000;
-
-
-            double s = -42.0;
-            int num_clauses = 0;
-            int num_classes = 0;
-            int num_literals = 0;
-            int num_literals_mem = 0; 
-
-            std::default_random_engine rng;
-            int8_t* clauses = nullptr;
-            ClauseOutputUint* clause_outputs = nullptr;
-            WeightInt* class_votes = nullptr;
-            WeightInt* clause_weights = nullptr;
-
-            uint32_t* literal_counts = nullptr;
-            uint32_t literal_budget = 0xFFFF;
-
-            inline void set_s(double s_param) { s = s_param; }
-            inline double get_s() const { return s; }
-
-            inline int8_t get_ta_state(int clause_k, int ta_i, bool ta_polarity)
-            {
-                if(ta_polarity)
-                    return clauses[(clause_k * num_literals * 2) + ta_i];
-                else
-                    return clauses[(clause_k * num_literals * 2) + num_literals + ta_i];
-            }
-
-            inline void set_ta_state(int clause_k, int ta_i, bool ta_polarity, int8_t new_state)
-            {
-                if(ta_polarity)
-                    clauses[(clause_k * num_literals * 2) + ta_i] = new_state;
-                else
-                    clauses[(clause_k * num_literals * 2) + num_literals + ta_i] = new_state;
-            }
-
-            inline WeightInt get_clause_weight(int clause_index, int target_class)
-            {
-                //std::cout << "get_clause_weight(NV):" << clause_index << ", " << target_class << std::endl;
-                //int index = (clause_index * num_classes) + target_class;
-                //std::cout << "@:" << index << std::endl;
-                //clause_index << ", " << target_class << " num_classes:" << num_classes << std::endl;
-                return clause_weights[(clause_index * num_classes) + target_class];
-            }
-
-            inline void set_clause_weight(int clause_index, int target_class, int32_t new_weight)
-            {
-                clause_weights[(clause_index * num_classes) + target_class] = new_weight;
-            }
-
-            inline WeightInt* get_class_votes() const
-            {
-                return class_votes;
-            }
-
-            inline std::vector<int8_t> get_copy_clauses() const
-            {                
-                std::size_t n_total_literals = num_clauses * (num_literals*2);                
-                std::vector<int8_t>  states(clauses, clauses + n_total_literals);
-               return states;
-            }
-
-            inline std::vector<uint32_t> get_copy_literal_counts() const 
-            {          
-                std::vector<uint32_t>  counts(literal_counts, literal_counts + num_clauses);
-                return counts;
-            }
-
-            inline void get_clause_state(int8_t* dst, int clause_offset)
-            {
-                const size_t state_size = num_clauses * (num_literals * 2);
-                const size_t dst_offset = clause_offset * (num_literals * 2);
-
-                memcpy(&dst[dst_offset], clauses, state_size);
-            }
-
-            inline void set_clause_state(int8_t* src, int clause_offset)
-            {
-                const size_t state_size = num_clauses * num_literals * 2;
-                const size_t src_offset = clause_offset * (num_literals * 2);
-                memcpy(clauses, &src[src_offset], state_size);
-            }
-
-            inline void get_clause_weights(WeightInt* dst, int clause_offset) 
-            {
-                const size_t weight_mem = num_clauses * num_classes * sizeof(WeightInt);
-                const size_t dst_offset = (clause_offset * num_classes);
-                memcpy(&dst[dst_offset], clause_weights, weight_mem);
-            }
-
-            inline void set_clause_weights(WeightInt* src, int clause_offset)
-            {
-                const size_t weight_mem = num_clauses * num_classes * sizeof(WeightInt);
-                const size_t src_offset = (clause_offset * num_classes);
-
-                memcpy(clause_weights, &src[src_offset], weight_mem);
-            }
-    };
 
     template <typename _State, bool do_literal_budget>
-    class InitializeNV
+    class InitializeTM
     {
         public:                        
             bool operator()(_State& state, unsigned int seed)
@@ -170,10 +61,11 @@ namespace green_tsetlin
 
                 }
             }        
-    };
+    }; 
+
 
     template <typename _State, bool do_literal_budget>
-    class CleanupNV
+    class CleanupTM
     {
         public:                        
             void operator()(_State& state)
@@ -196,10 +88,8 @@ namespace green_tsetlin
     };
 
 
-    
-
     template <typename _State, bool do_literal_budget, bool force_at_least_one_positive_literal>
-    class SetClauseOutputNV
+    class SetClauseOutputTM
     {
         public: 
             void operator()(_State& state, uint8_t* literals)
@@ -265,8 +155,9 @@ namespace green_tsetlin
             }
     };
 
+
     template <typename _State>
-    class EvalClauseOutputNV
+    class EvalClauseOutputTM
     {
         public:
             void operator()(_State& state, uint8_t* literals)
@@ -311,14 +202,14 @@ namespace green_tsetlin
     };
 
     template <typename _State>
-    class EmptyCountVotesNV
+    class EmptyCountVotesTM
     {
         public:
             void operator()(_State& state) {}
     };
 
     template <typename _State>
-    class CountVotesNV
+    class CountVotesTM
     {
         public:
             void operator()(_State& state)
@@ -339,7 +230,7 @@ namespace green_tsetlin
     };
 
     template <typename _State, typename _ClauseUpdate, bool do_literal_budget>
-    class TrainUpdateNV
+    class TrainUpdateTM
     {
         public:
             void operator()(_State& state, uint8_t* literals, int positive_class, double prob_positive, int negative_class, double prob_negative)
@@ -371,11 +262,10 @@ namespace green_tsetlin
                     }
                 }
             }
-
     };
 
     template <typename _State, typename _T1aFeedback, typename _T1bFeedback, typename _T2Feedback>
-    class ClauseUpdateNV
+    class ClauseUpdateTM
     {
         public:
             void operator()(_State& state, int8_t* clause_row, WeightInt* clause_weight, int target, uint8_t* literals, ClauseOutputUint clause_output)
@@ -408,7 +298,7 @@ namespace green_tsetlin
     };
 
     template <typename _State>
-    class Type1aFeedbackNV
+    class Type1aFeedbackTM
     {
         public:
             void operator()(_State& state, int8_t* clause_row, uint8_t* literals)
@@ -474,7 +364,7 @@ namespace green_tsetlin
     };
 
     template <typename _State>
-    class Type1bFeedbackNV
+    class Type1bFeedbackTM
     {
         public:
             void operator()(_State& state, int8_t* clause_row, uint8_t* literals)
@@ -509,7 +399,7 @@ namespace green_tsetlin
 
 
     template <typename _State>
-    class Type2FeedbackNV
+    class Type2FeedbackTM
     {
         public:
             // Assume that clause_output == 1
@@ -533,11 +423,10 @@ namespace green_tsetlin
             }
     };
 
-    
-}; // namespace name
+}; // namespace green_tsetin
 
 
 
 
 
-#endif // #ifndef _FUNC_UPDATE_HPP_
+#endif // #ifndef _FUNC_TM_HPP_
