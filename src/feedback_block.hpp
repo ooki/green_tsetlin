@@ -9,6 +9,9 @@
 #include <mutex>
 #include <algorithm>
 
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
 #include <gt_common.hpp>
 
 namespace green_tsetlin
@@ -28,10 +31,6 @@ namespace green_tsetlin
                     seed = std::random_device()();                
                 m_rng.seed(seed);
             }
-
-            FeedbackBlock(int num_classes, double threshold)
-                : FeedbackBlock(num_classes, threshold, 0)
-            {}
 
             virtual ~FeedbackBlock() {}
 
@@ -113,7 +112,7 @@ namespace green_tsetlin
 
                 // get the positive update prob
                 double v_clamped_pos = std::clamp(static_cast<double>(m_votes[m_positive_class]), -m_threshold, m_threshold);
-                m_update_prob_positive =  (m_threshold - v_clamped_pos) / (2*m_threshold);
+                m_update_prob_positive = (m_threshold - v_clamped_pos) / (2*m_threshold);
 
                 
                 //std::cout << "\t update prob of class " << m_positive_class << " is: " << m_update_probability[m_positive_class] << " from:" << m_votes[m_positive_class] << std::endl;
@@ -166,7 +165,15 @@ namespace green_tsetlin
             {
                 //std::fill(m_votes.begin(), m_votes.end(), 1.0);
                 std::scoped_lock lock(m_votes_lock);
-                return m_update_probability;
+                return m_update_probability; // TODO: remove this alloc
+            }
+
+            void register_votes_npy(pybind11::array_t<WeightInt> in_array)
+            {
+                pybind11::buffer_info buffer_info = in_array.request();                            
+                WeightInt* votes = static_cast<WeightInt*>(buffer_info.ptr);
+                
+                register_votes(votes);
             }
 
             void register_votes(WeightInt* votes)
@@ -179,6 +186,12 @@ namespace green_tsetlin
                     //std::cout << "register vote: " << i << " adding:" <<  votes[i] << std::endl;
                     m_votes[i] += votes[i];
                 }
+            }
+
+            pybind11::array_t<WeightInt> get_votes_npy() const
+            {
+                std::scoped_lock lock(m_votes_lock);
+                return pybind11::array_t<WeightInt>(m_votes.size(), m_votes.data());
             }
 
             void reset()

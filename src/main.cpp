@@ -11,12 +11,11 @@
 // #include <clause_block.hpp>
 // #include <executor.hpp>
 #include <input_block.hpp>
+#include <feedback_block.hpp>
 
 
 namespace py = pybind11;
 namespace gt = green_tsetlin;
-
-
 
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
 
@@ -58,7 +57,13 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_data", &DenseInputBlock8u::set_data)
     ;
     
-
+    py::class_<gt::FeedbackBlock>(m, "FeedbackBlock")
+        .def(py::init<int, double, int>())
+        .def("reset_votes", &gt::FeedbackBlock::reset)
+        .def("register_votes", &gt::FeedbackBlock::register_votes_npy)
+        .def("get_votes", &gt::FeedbackBlock::get_votes_npy)
+        .def("get_number_of_classes", &gt::FeedbackBlock::get_number_of_classes)        
+    ;
 
 
     #ifdef VERSION_INFO
