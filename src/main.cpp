@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
-// #include <pybind11/stl.h>
-// #include <pybind11/stl_bind.h>
+#include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 
 
 
@@ -15,27 +15,18 @@
 #include <clause_block.hpp>
 #include <aligned_tsetlin_state.hpp>
 #include <func_tm.hpp>
+#include <executor.hpp>
 
 namespace py = pybind11;
 namespace gt = green_tsetlin;
 
+
+//-------------------- Input Blocks ---------------------
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
 
-
-template<typename _T>
-void define_clause_block(py::module& m, const char* name)
-{
-    py::class_<_T, gt::ClauseBlock>(m, name)
-        .def(py::init<int, int, int>())
-        .def("set_input_block", &_T::set_input_block)
-        
-        .def("get_clause_output", &_T::get_clause_output_npy)
-
-        .def("set_clause_state", &_T::set_clause_state_npy)
-        .def("get_clause_state", &_T::get_clause_state_npy)
-        .def("set_clause_weights", &_T::set_clause_weights_npy)
-        .def("get_clause_weights", &_T::get_clause_weights_npy);
-}
+//-------------------- Executors ---------------------
+typedef gt::Executor<false, gt::DummyThreadPool> SingleThreadExecutor;
+typedef gt::Executor<true, BS::thread_pool> MultiThreadExecutor;
 
 
 //-------------------- Vanilla TM ---------------------
@@ -66,6 +57,22 @@ typedef typename gt::ClauseBlockT<
                                     DenseInputBlock8u
                                 >
                                 ClauseBlockTMImpl;
+
+
+template<typename _T>
+void define_clause_block(py::module& m, const char* name)
+{
+    py::class_<_T, gt::ClauseBlock>(m, name)
+        .def(py::init<int, int, int>())
+        .def("set_input_block", &_T::set_input_block)
+        
+        .def("get_clause_output", &_T::get_clause_output_npy)
+
+        .def("set_clause_state", &_T::set_clause_state_npy)
+        .def("get_clause_state", &_T::get_clause_state_npy)
+        .def("set_clause_weights", &_T::set_clause_weights_npy)
+        .def("get_clause_weights", &_T::get_clause_weights_npy);
+}
 
 PYBIND11_MODULE(green_tsetlin_core, m) {
 
@@ -108,6 +115,25 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def(py::init<int, double, int>())
     ;
 
+    py::class_<SingleThreadExecutor>(m, "SingleThreadExecutor")
+        .def(py::init<gt::InputBlock*, std::vector<gt::ClauseBlock*>, gt::FeedbackBlock*, int, int>())        
+        .def("get_number_of_examples_ready", &SingleThreadExecutor::get_number_of_examples_ready)        
+        .def("train_epoch", &SingleThreadExecutor::train_epoch)        
+        .def("train_slice", &SingleThreadExecutor::train_slice)
+        .def("eval_predict", &SingleThreadExecutor::eval_predict)
+        .def("eval_predict_multi", &SingleThreadExecutor::eval_predict_multi)    
+    ;
+
+    py::class_<MultiThreadExecutor>(m, "MultiThreadExecutor")
+        .def(py::init<gt::InputBlock*, std::vector<gt::ClauseBlock*>, gt::FeedbackBlock*, int, int>())        
+        .def("get_number_of_examples_ready", &MultiThreadExecutor::get_number_of_examples_ready)        
+        .def("train_epoch", &MultiThreadExecutor::train_epoch)        
+        .def("train_slice", &MultiThreadExecutor::train_slice)
+        .def("eval_predict", &MultiThreadExecutor::eval_predict)
+        .def("eval_predict_multi", &MultiThreadExecutor::eval_predict_multi)
+    ;
+
+
     py::class_<gt::ClauseBlock>(m, "ClauseBlock")
         .def("get_number_of_literals", &gt::ClauseBlock::get_number_of_literals)
         .def("get_number_of_clauses", &gt::ClauseBlock::get_number_of_clauses)
@@ -125,9 +151,11 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_feedback", &gt::ClauseBlock::set_feedback);
     ;
 
+    
+
     // Clause Block Impl's
     define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
-    
+
 
     #ifdef VERSION_INFO
         m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

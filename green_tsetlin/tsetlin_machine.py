@@ -1,6 +1,6 @@
 
-
-
+from typing import Union
+import itertools
 
 import numpy as np
 import green_tsetlin.py_gtc as py_gtc
@@ -18,16 +18,20 @@ class TsetlinStateStorage:
 
 
 class TsetlinMachine:
-    def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : float, threshold: int, multi_label:bool=False):
+    def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int, multi_label:bool=False):
 
         self.n_literals = n_literals
         self.n_clauses = n_clauses
         self.n_classes = n_classes
         self.cbs : list = None
 
+        if isinstance(s, float):
+            s = [s]
+        
         self.s = s
-        if s < 1.0:
-            raise ValueError("Cannot have a s value under 1.0 (currently: {}))".format(s))
+        for s_i in self.s:
+            if s_i < 1.0:
+                raise ValueError("Cannot have a s value under 1.0 (currently: {}))".format(s_i))
         
         self.threshold = threshold
         if threshold < 1:
@@ -62,12 +66,12 @@ class TsetlinMachine:
         assert (n_clause_per_block * n_blocks) + n_add == self.n_clauses
         
         self._cbs = []
-        for k in range(n_blocks):
+        for s_k, k in zip(itertools.cycle(self.s), range(n_blocks)):
             if k > 0:
                 n_add = 0
             
             cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
-            cb.set_s(self.s)
+            cb.set_s(s_k)
             cb.set_literal_budget(self.n_literals_budget)
             
             self._cbs.append(cb)

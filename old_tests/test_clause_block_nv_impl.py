@@ -552,7 +552,7 @@ def weight_updates_correctly():
 
     x = np.array([[1], [0]], dtype=np.uint8)
     y = np.array([1, 0], dtype=np.uint32)
-    ib.set_data(x, y)
+    ib.set_data(x, y)   
 
     exec = gtc.SingleThreadExecutor([ib], [cb], feedback_block, 42)
     for _ in range(2):

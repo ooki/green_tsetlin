@@ -6,7 +6,7 @@
 #include <BS_thread_pool.hpp>
 
 
-namespace green_tsetin
+namespace green_tsetlin
 {
     class InputBlock;
     class ClauseBlock;
@@ -29,14 +29,17 @@ namespace green_tsetin
     class Executor    
     {
         public:
-            Executor(InputBlock* input_block, std::vector<ClauseBlock*> clause_blocks, FeedbackBlock* feedback_block, int seed)
-                : Executor(input_block, clause_blocks, feedback_block, 0, seed) {}
-
             Executor(InputBlock* input_block, std::vector<ClauseBlock*> clause_blocks, FeedbackBlock* feedback_block, int num_threads, int seed)
                 : m_pool(num_threads)
-          {
-                if(input_blocks.size() < 1)
-                    throw std::runtime_error("Cannot create executor with 0 input blocks.");
+            {
+                if(!enable_multithread)
+                {
+                    if(num_threads != 1)
+                        throw std::runtime_error("Can only create a Single Thread Executor with num_threads set to 1.");                        
+                }
+
+                if(input_block == nullptr)
+                    throw std::runtime_error("Cannot create executor with nullptr input block.");
 
                 if(clause_blocks.size() < 1)
                     throw std::runtime_error("Cannot create executor with 0 clause blocks.");
@@ -49,8 +52,8 @@ namespace green_tsetin
                 m_feedback_block = feedback_block;
                 m_num_threads = num_threads;
 
-                int n_labels_per_example = m_label_input->get_num_labels_per_example();
-                if(m_label_input->is_multi_label())
+                int n_labels_per_example = m_input_block->get_num_labels_per_example();
+                if(m_input_block->is_multi_label())
                 {
                     // std::cout << "exec:" << "n_labels_per_example: " << n_labels_per_example << " " << "#classes:" << feedback_block->get_number_of_classes() << std::endl;
                     if(n_labels_per_example != feedback_block->get_number_of_classes())
@@ -86,7 +89,6 @@ namespace green_tsetin
             void train_slice(int start_index, int end_index)
             {                                
                 int n_examples = get_number_of_examples_ready();
-                //bool m_label_input->is_multi_label();
                 
                 if(start_index == 0)
                 {                                       
@@ -211,7 +213,7 @@ namespace green_tsetin
         return std::thread::hardware_concurrency() - 1;
     }
     
-}; // namespace green_tsetin
+}; // namespace green_tsetlin
 
 
 
