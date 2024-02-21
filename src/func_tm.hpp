@@ -1,8 +1,13 @@
 #ifndef _FUNC_TM_HPP_
 #define _FUNC_TM_HPP_
 
+#include <random>
+#include <vector>
 
-namespace green_tsetin
+#include <gt_common.hpp>
+
+
+namespace green_tsetlin
 {
 
     template <typename _State, bool do_literal_budget>
@@ -62,7 +67,6 @@ namespace green_tsetin
                 }
             }        
     }; 
-
 
     template <typename _State, bool do_literal_budget>
     class CleanupTM
@@ -423,7 +427,8 @@ namespace green_tsetin
             }
     };
 
-}; // namespace green_tsetin
+
+}; // namespace green_tsetlin
 
 
 

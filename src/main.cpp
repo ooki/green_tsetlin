@@ -8,11 +8,13 @@
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 
-// #include <clause_block.hpp>
+
 // #include <executor.hpp>
 #include <input_block.hpp>
 #include <feedback_block.hpp>
-
+#include <clause_block.hpp>
+#include <aligned_tsetlin_state.hpp>
+#include <func_tm.hpp>
 
 namespace py = pybind11;
 namespace gt = green_tsetlin;
@@ -20,10 +22,39 @@ namespace gt = green_tsetlin;
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
 
 
-int get_hello_word()
+template<typename _T>
+void define_clause_block(py::module& m, const char* name)
 {
-    return 42;
+    py::class_<_T, gt::ClauseBlock>(m, name)
+        .def(py::init<int, int, int>())
+        .def("set_input_block", &_T::set_input_block)
+        
+        .def("get_clause_output", &_T::get_clause_output_npy)
+
+        .def("set_clause_state", &_T::set_clause_state_npy)
+        .def("get_clause_state", &_T::get_clause_state_npy)
+        .def("set_clause_weights", &_T::set_clause_weights_npy)
+        .def("get_clause_weights", &_T::get_clause_weights_npy);
 }
+
+
+//-------------------- Vanilla TM ---------------------
+
+typedef typename gt::AlignedTsetlinState VanillaTsetlinState;
+
+typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
+                                    gt::Type1aFeedbackTM<VanillaTsetlinState>,
+                                    gt::Type1bFeedbackTM<VanillaTsetlinState>,
+                                    gt::Type2FeedbackTM<VanillaTsetlinState>>
+                                ClauseUpdateTMImpl;
+
+// typedef typename gt::ClauseUpdateNV<gt::CoaleasedTsetlinStateNV,
+//                                     gt::Type1aFeedbackNV<gt::CoaleasedTsetlinStateNV>,
+//                                     gt::Type1bFeedbackNV<gt::CoaleasedTsetlinStateNV>,
+//                                     gt::Type2FeedbackNV<gt::CoaleasedTsetlinStateNV>>
+//                             ClauseUpdateNVImpl;
+
+
 
 
 PYBIND11_MODULE(green_tsetlin_core, m) {
@@ -42,8 +73,6 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
     // hw info
     // m.def("get_recommended_number_of_threads", &gt::get_recommended_number_of_threads);
-    m.def("get_hello_word", get_hello_word);
-
     
     py::class_<gt::InputBlock>(m, "InputBlock")
         .def("prepare_example", &gt::InputBlock::prepare_example)
@@ -67,6 +96,22 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
     py::class_<gt::FeedbackBlockMultiLabel, gt::FeedbackBlock>(m, "FeedbackBlockMultiLabel")
         .def(py::init<int, double, int>())
+    ;
+
+    py::class_<gt::ClauseBlock>(m, "ClauseBlock")
+        .def("get_number_of_literals", &gt::ClauseBlock::get_number_of_literals)
+        .def("get_number_of_clauses", &gt::ClauseBlock::get_number_of_clauses)
+        .def("get_number_of_classes", &gt::ClauseBlock::get_number_of_classes)
+        .def("get_s", &gt::ClauseBlock::get_s)
+        .def("set_s", &gt::ClauseBlock::set_s)
+
+        .def("get_literal_budget", &gt::ClauseBlock::get_literal_budget)
+        .def("set_literal_budget", &gt::ClauseBlock::set_literal_budget)
+        
+        .def("initialize", &gt::ClauseBlock::initialize, py::arg("seed") = 42)
+        .def("cleanup", &gt::ClauseBlock::cleanup)           
+
+        .def("set_feedback", &gt::ClauseBlock::set_feedback);
     ;
 
 

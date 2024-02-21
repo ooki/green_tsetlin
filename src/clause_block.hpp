@@ -81,8 +81,8 @@ namespace green_tsetlin
             FeedbackBlock* m_feedback_block = nullptr;
     };
 
-
-        template <typename _State,
+    
+    template <typename _State,
               typename _Initializer,
               typename _Cleanup,
               typename _TrainSetClauseOutput,
@@ -101,14 +101,11 @@ namespace green_tsetlin
                 m_state.num_clauses = num_clauses;
                 m_state.num_classes = num_classes;                    
             }
+            
 
             virtual int get_number_of_literals() const { return m_state.num_literals; }
             virtual int get_number_of_clauses() const { return m_state.num_clauses; }
             virtual int get_number_of_classes() const { return m_state.num_classes; }
-
-            virtual double get_s() const { return m_state.get_s(); }
-            virtual void set_s(double s) { m_state.set_s(s); }
-
 
             virtual double get_s() const { return m_state.get_s(); }
             virtual void set_s(double s) { m_state.set_s(s); }
@@ -202,10 +199,10 @@ namespace green_tsetlin
                 f(m_state, m_literals, positive_class, prob_positive, negative_class, prob_negative);
             }
 
-            void get_clause_output_npy(pybind11::array_t<uint8_t> in_array)
+            void get_clause_output_npy(pybind11::array_t<uint8_t> out_array)
             {
-                pybind11::buffer_info buffer_info = in_array.request();                            
-                uint8_t* p = static_cast<uint8_t*>(buffer_info.ptr);                
+                pybind11::buffer_info buffer_info = out_array.request();                            
+                uint8_t* out = static_cast<uint8_t*>(buffer_info.ptr);                
                 for(int i = 0; i < m_state.num_clauses; ++i)
                     out[i] = m_state.clause_outputs[i];
             }
@@ -221,7 +218,9 @@ namespace green_tsetlin
             typename _InputBlock::example_type* m_literals = nullptr;
 
             _State  m_state;
+         
     };
+   
 
 
 }; // namespace green_tsetlin

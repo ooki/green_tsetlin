@@ -10,9 +10,8 @@
 #include <gt_common.hpp>
 
 
-namespace green_tsetin
+namespace green_tsetlin
 {
-    template<int literals_per_vector, int outputs_per_vector>
     class AlignedTsetlinState
     {
         public:
@@ -33,6 +32,8 @@ namespace green_tsetin
             uint32_t* literal_counts = nullptr;
             uint32_t literal_budget = 0xFFFF;
 
+            int8_t* reminder_mask = nullptr;
+            int8_t gtcmp_for_s = 0;
 
             std::default_random_engine rng;
 
@@ -111,7 +112,7 @@ namespace green_tsetin
                 }
             }
     };  
-}; // namespace green_tsetin
+}; // namespace green_tsetlin
 
 
 
