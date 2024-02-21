@@ -228,6 +228,79 @@ namespace green_tsetlin
 
             mutable std::mutex m_votes_lock;
     };  
+
+    class FeedbackBlockMultiLabel : public FeedbackBlock
+    {
+        public:
+            FeedbackBlockMultiLabel(int num_classes, double threshold, int seed)                
+                : FeedbackBlock(num_classes, threshold, seed)
+            {                
+
+                m_votes.resize(num_classes * 2, 0);    // since we now have both + and - of each class.                         
+                                                       // layout: [0 - n_classes] : ON
+                                                       //         [n_classes - (n_clases*2)]  : OFF
+            }
+
+
+            virtual void process(const uint32_t* labels)
+            {
+                std::scoped_lock lock(m_votes_lock);
+
+
+                std::uniform_int_distribution<int>  c_gen(0, m_num_classes - 1);                
+                m_positive_class = c_gen(m_rng);               
+                m_negative_class = c_gen(m_rng);               
+                while(m_negative_class == m_positive_class)
+                    m_negative_class = c_gen(m_rng);
+
+                if(labels[m_positive_class] == 0)
+                    m_positive_class += m_num_classes;
+
+                if(labels[m_negative_class] == 1)
+                    m_negative_class += m_num_classes;
+                                    
+
+                WeightInt votes = m_votes[m_positive_class];
+                double v_clamped_pos = std::clamp(static_cast<double>(m_votes[m_positive_class]), -m_threshold, m_threshold);
+                m_update_prob_positive =  (m_threshold - v_clamped_pos) / (2*m_threshold);
+
+
+                votes = m_votes[m_negative_class];                
+                double v_clamped = std::clamp(static_cast<double>(votes), -m_threshold, m_threshold);
+                m_update_prob_negative = ( (m_threshold + v_clamped) / (2*m_threshold) );
+
+
+                for(int class_k = 0; class_k < m_num_classes; class_k++)
+                {
+                    m_total_train_predict += 1.0;
+
+                    if(labels[class_k] == 1)
+                    {
+                       if(m_votes[class_k] >= m_votes[class_k + m_num_classes])
+                            m_correct_train_predict += 1.0;
+                    }
+                    else // label is 0 
+                    {
+                        if(m_votes[class_k] < m_votes[class_k + m_num_classes])
+                            m_correct_train_predict += 1.0;
+                    }
+                }
+
+            }
+
+            virtual std::vector<int> predict_multi() const
+            {               
+                std::vector<int> preds(m_num_classes, 0);
+                for(int i = 0; i < m_num_classes; ++i)
+                {                    
+                    if(m_votes[i] >= m_votes[i+m_num_classes])
+                        preds[i] = 1;                          
+                }
+
+                return preds;
+            }      
+    };
+    
 }; // namespace green_tsetlin
 
 

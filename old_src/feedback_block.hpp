@@ -151,23 +151,8 @@ namespace green_tsetlin
 
             virtual std::vector<int> predict_multi() const
             {
-                int best_k = 0;
-                int best_v = m_votes[0];
-                
-                std::vector<int> o;
-                o.resize(m_num_classes, 0);
-
-                for(int i = 1; i < m_num_classes; ++i)
-                {
-                    if(m_votes[i] > best_v)
-                    {
-                        best_k = i;
-                        best_v = m_votes[i];
-                    }
-                }
-                
-                o[best_k] = 1;
-                return o;
+                throw std::runtime_error("Cannot use predict_multi with a non-multi Feedback Block");
+                return std::vector<int>();
             }
 
             std::vector<double> get_update_probabilities() const
@@ -283,6 +268,12 @@ namespace green_tsetlin
                 }
 
             }
+
+            virtual int predict() const
+            {
+                throw std::runtime_error("Cannot use predict with a multi-label Feedback Block");
+                return -1;
+            }            
 
             virtual std::vector<int> predict_multi() const
             {               

@@ -65,6 +65,10 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("get_number_of_classes", &gt::FeedbackBlock::get_number_of_classes)        
     ;
 
+    py::class_<gt::FeedbackBlockMultiLabel, gt::FeedbackBlock>(m, "FeedbackBlockMultiLabel")
+        .def(py::init<int, double, int>())
+    ;
+
 
     #ifdef VERSION_INFO
         m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
