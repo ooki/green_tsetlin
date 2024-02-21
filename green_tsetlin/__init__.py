@@ -6,7 +6,7 @@
 
 
 
-from green_tsetlin.tsetlin_machine import TsetlinMachine
+from green_tsetlin.tsetlin_machine import TsetlinMachine, TsetlinStateStorage
 from green_tsetlin.trainer import Trainer
 # from green_tsetlin.rules import RulePredictor
 

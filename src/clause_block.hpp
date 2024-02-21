@@ -156,6 +156,7 @@ namespace green_tsetlin
             {
                 _Cleanup f;
                 f(m_state);
+                m_is_init = false;
             }
 
             void set_input_block(_InputBlock* ib)

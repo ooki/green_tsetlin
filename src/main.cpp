@@ -48,14 +48,24 @@ typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
                                     gt::Type2FeedbackTM<VanillaTsetlinState>>
                                 ClauseUpdateTMImpl;
 
-// typedef typename gt::ClauseUpdateNV<gt::CoaleasedTsetlinStateNV,
-//                                     gt::Type1aFeedbackNV<gt::CoaleasedTsetlinStateNV>,
-//                                     gt::Type1bFeedbackNV<gt::CoaleasedTsetlinStateNV>,
-//                                     gt::Type2FeedbackNV<gt::CoaleasedTsetlinStateNV>>
-//                             ClauseUpdateNVImpl;
+
+typedef typename gt::TrainUpdateTM<VanillaTsetlinState,
+                                   ClauseUpdateTMImpl,
+                                   true > // do_literal_budget = true
+                                TrainUpdateTMImpl;
 
 
-
+typedef typename gt::ClauseBlockT<
+                                    VanillaTsetlinState,
+                                    gt::InitializeTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::CleanupTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::EvalClauseOutputTM<VanillaTsetlinState>,
+                                    gt::CountVotesTM<VanillaTsetlinState>,
+                                    TrainUpdateTMImpl,
+                                    DenseInputBlock8u
+                                >
+                                ClauseBlockTMImpl;
 
 PYBIND11_MODULE(green_tsetlin_core, m) {
 
@@ -109,11 +119,15 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_literal_budget", &gt::ClauseBlock::set_literal_budget)
         
         .def("initialize", &gt::ClauseBlock::initialize, py::arg("seed") = 42)
+        .def("is_initialized", &gt::ClauseBlock::is_init)           
         .def("cleanup", &gt::ClauseBlock::cleanup)           
 
         .def("set_feedback", &gt::ClauseBlock::set_feedback);
     ;
 
+    // Clause Block Impl's
+    define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
+    
 
     #ifdef VERSION_INFO
         m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

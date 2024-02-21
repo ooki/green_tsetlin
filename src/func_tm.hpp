@@ -25,6 +25,7 @@ namespace green_tsetlin
                 memset(state.clause_outputs, 0, sizeof(ClauseOutputUint) * state.num_clauses);
                 
                 state.clause_weights = new WeightInt[state.num_clauses * state.num_classes];
+                state.num_class_weights_mem = state.num_classes;
 
                 state.class_votes = new WeightInt[state.num_classes];
                 memset(state.class_votes, 0, sizeof(WeightInt) * state.num_classes);
@@ -92,7 +93,7 @@ namespace green_tsetlin
     };
 
 
-    template <typename _State, bool do_literal_budget, bool force_at_least_one_positive_literal>
+    template <typename _State, bool do_literal_budget>
     class SetClauseOutputTM
     {
         public: 
@@ -139,22 +140,8 @@ namespace green_tsetlin
                     }
                         
                     if(do_literal_budget)
-                    {
-                        if(force_at_least_one_positive_literal)
-                        {                                
-
-                            if(neg_literal_count == 0 || pos_literal_count > 0)
-                            {
-                                state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
-                            }
-                            else
-                            {
-                                state.literal_counts[clause_k] = state.high_number_if_no_positive_literal_is_present;
-                            }                                    
-                        }
-                        else
-                            state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
-                    }
+                        state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
+                    
                 }
             }
     };

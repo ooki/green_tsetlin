@@ -2,9 +2,8 @@
 
 
 
-
 import numpy as np
-from green_tsetlin import py_gtc
+import green_tsetlin.py_gtc as py_gtc
 
 class TsetlinStateStorage:
     """

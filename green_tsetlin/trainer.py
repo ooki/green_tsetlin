@@ -167,7 +167,7 @@ class Trainer:
         
         hide_progress_bar = self.progress_bar is False  
         with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
-            progress_bar.set_description("Processing epoch 1 of {}, train acc: N\A, best test score: N\A".format(self.n_epochs))
+            progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
     
             for epoch in range(self.n_epochs):                                            
                 train_acc = exec.train_epoch()
