@@ -8,8 +8,9 @@ from sklearn.metrics import accuracy_score
 import tqdm
 
 
+
 #import green_tsetlin_core as gtc
-from green_tsetlin import TsetlinMachine, TMState
+from green_tsetlin import TsetlinMachine, TMState, allocate_clause_blocks
 from green_tsetlin import py_gtc
 
 def empty_epoch_callback(epoch, train_acc, test_score):
@@ -143,8 +144,6 @@ class Trainer:
         
         
         if self.n_epochs < 1:            
-            for cb in cbs:
-                cb.cleanup()
             return
         
         if self.n_jobs == 1:
@@ -164,54 +163,54 @@ class Trainer:
         train_log = []
         test_log = []
         did_early_exit = False
+
+
+        with allocate_clause_blocks(cbs, seed=self.seed):        
+            hide_progress_bar = self.progress_bar is False  
+            with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
+                progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
         
-        hide_progress_bar = self.progress_bar is False  
-        with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
-            progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
-    
-            for epoch in range(self.n_epochs):                                            
-                train_acc = exec.train_epoch()
-                train_log.append(train_acc)                
-                n_epochs_trained += 1
-                
-                ib.set_data(self.x_test, self.y_test)
-                
-                if self._is_multi_label is False:
-                    y_hat = exec.eval_predict()                            
-                else:
-                    y_hat = exec.eval_predict_multi()
+                for epoch in range(self.n_epochs):                                            
+                    train_acc = exec.train_epoch()
+                    train_log.append(train_acc)                
+                    n_epochs_trained += 1
                     
-                test_score = self.fn_test_score(self.y_test, np.array(y_hat))
-                test_log.append(test_score)                
-
-                self.fn_epoch_callback(epoch, train_acc, test_score)            
-                if test_score > best_test_score:
-                    best_test_score = test_score
-                    best_test_epoch = epoch
-                    if self.load_best_state:
-                        self._best_tm_state = self.tm.get_state_copy()                        
-                
-                
-                if test_score >= self.early_exit_acc:                                    
-                    did_early_exit = True
-                    break
-
-                progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best test score: {:.3f} (epoch: {})".format(epoch+1,
-                                                                                                                            self.n_epochs,
-                                                                                                                            train_acc,
-                                                                                                                            best_test_score,
-                                                                                                                            best_test_epoch))
-                progress_bar.update(1)
-                
-                if epoch < (self.n_epochs - 1):                   
-                    ib.set_data(self.x_train, self.y_train)
-
-                
-        if self.load_best_state is True:
-            self.tm.set_state(self._best_tm_state, copy=False) # copy False since we already created a copy in train().
+                    ib.set_data(self.x_test, self.y_test)
                     
-        for cb in cbs:
-            cb.cleanup()
+                    if self._is_multi_label is False:
+                        y_hat = exec.eval_predict()                            
+                    else:
+                        y_hat = exec.eval_predict_multi()
+                        
+                    test_score = self.fn_test_score(self.y_test, np.array(y_hat))
+                    test_log.append(test_score)                
+
+                    self.fn_epoch_callback(epoch, train_acc, test_score)            
+                    if test_score > best_test_score:
+                        best_test_score = test_score
+                        best_test_epoch = epoch
+                        if self.load_best_state:
+                            self._best_tm_state = self.tm.get_state_copy()                        
+                    
+                    
+                    if test_score >= self.early_exit_acc:                                    
+                        did_early_exit = True
+                        break
+
+                    progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best test score: {:.3f} (epoch: {})".format(epoch+1,
+                                                                                                                                self.n_epochs,
+                                                                                                                                train_acc,
+                                                                                                                                best_test_score,
+                                                                                                                                best_test_epoch))
+                    progress_bar.update(1)
+                    
+                    if epoch < (self.n_epochs - 1):                   
+                        ib.set_data(self.x_train, self.y_train)
+
+                    
+            if self.load_best_state is True:
+                self.tm.set_state(self._best_tm_state, copy=False) # copy False since we already created a copy in train().
+
         
         return {
             "best_test_score": best_test_score,
