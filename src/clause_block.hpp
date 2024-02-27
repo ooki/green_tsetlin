@@ -22,6 +22,8 @@ namespace green_tsetlin
             virtual int get_number_of_clauses() const { return -42; }
             virtual int get_number_of_classes() const { return -42; }
 
+            virtual int get_number_of_patches_per_example() const { return -42; }
+
             void set_trainable(bool is_trainable) { m_is_trainable = is_trainable; }
             bool is_trainable() const { return m_is_trainable; }
 
@@ -107,10 +109,12 @@ namespace green_tsetlin
                 m_state.num_classes = num_classes;                    
             }
             
-
             virtual int get_number_of_literals() const { return m_state.num_literals; }
             virtual int get_number_of_clauses() const { return m_state.num_clauses; }
             virtual int get_number_of_classes() const { return m_state.num_classes; }
+
+            virtual int get_number_of_patches_per_example() const { return m_state.get_number_of_patches_per_example(); }
+            virtual void set_number_of_patches_per_example(int num_patches_per_example){ m_state.set_number_of_patches_per_example(num_patches_per_example); }
 
             virtual double get_s() const { return m_state.get_s(); }
             virtual void set_s(double s) { m_state.set_s(s); }
@@ -123,7 +127,7 @@ namespace green_tsetlin
                 pybind11::buffer_info buffer_info = out_array.request();                            
                 std::vector<ssize_t> shape = buffer_info.shape;
 
-                int8_t* p = static_cast<int8_t*>(buffer_info.ptr);                
+                int8_t* p = static_cast<int8_t*>(buffer_info.ptr); 
                 m_state.get_clause_state(p, clause_offset);
             }
 

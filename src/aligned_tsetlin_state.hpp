@@ -19,6 +19,7 @@ namespace green_tsetlin
             int num_clauses = 0;
             int num_classes = 0;
             int num_class_weights_mem = 0;
+            int m_num_patches_per_example = -1;
 
             int num_literals = 0;
             int num_literals_mem = 0;
@@ -48,6 +49,9 @@ namespace green_tsetlin
                 gtcmp_for_s = (int8_t)std::clamp(tmp, -127, 126);
             }
             inline double get_s() const { return s; }
+
+            inline int get_number_of_patches_per_example() const { return m_num_patches_per_example; }
+            inline void set_number_of_patches_per_example(int num_patches_per_example) { m_num_patches_per_example = num_patches_per_example; }
 
             inline WeightInt* get_class_votes() const
             {

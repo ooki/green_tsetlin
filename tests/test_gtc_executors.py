@@ -15,8 +15,10 @@ def test_single_exec_throws_if_threads_is_not_1():
     ib = gtc.DenseInputBlock(n_literals)        
     cb = gtc.ClauseBlockTM(n_literals, n_clauses, n_classes)
     cb.initialize(seed)
-    
+        
     feedback_block = gtc.FeedbackBlock(n_classes, threshold, seed)
+    cb.set_feedback(feedback_block)     
+    cb.set_input_block(ib)
     
     n_threads_correct = 1
     n_threads_incorrect = 10
