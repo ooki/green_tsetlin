@@ -72,6 +72,9 @@ namespace green_tsetlin
                 {
                     if(!cb->is_init())                   
                         throw std::runtime_error("All ClauseBlocks must be init() before constructing an Executor()");
+
+                    if(cb->is_trainable())
+                        m_trainable_clause_blocks.push_back(cb);
                 }
 
                 m_rng.seed(seed);                        
@@ -130,9 +133,12 @@ namespace green_tsetlin
                     uint32_t negative_class = m_feedback_block->get_negative_class();
                     double pup = m_feedback_block->get_positive_update_probability();                    
                     double nup = m_feedback_block->get_negative_update_probability();
-                                                                                
-                    for(auto cb : m_clause_blocks)
-                    {      
+                    
+                    for(auto cb : m_trainable_clause_blocks)
+                    {   
+                        if(!cb->is_trainable())
+                            continue;
+
                         if(enable_multithread)
                             m_pool.push_task(&ClauseBlock::train_update, cb, positive_class, pup, negative_class, nup);
                         else                        
@@ -195,6 +201,7 @@ namespace green_tsetlin
         private:        
             InputBlock*                m_input_block;
             std::vector<ClauseBlock*>  m_clause_blocks;
+            std::vector<ClauseBlock*>  m_trainable_clause_blocks;
             FeedbackBlock* m_feedback_block;
             std::vector<int> m_index_set;
 

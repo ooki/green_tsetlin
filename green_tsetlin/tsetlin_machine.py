@@ -72,9 +72,10 @@ class TsetlinMachine:
         self.n_classes = n_classes
         self._cbs : list = None
         self._state : TMState = None
-        self.n_literals_budget = 32_700 # high value, should really be set.
+        self.literal_budgets = [32_700] # high value, should really be set.
 
-        self.clause_block_sizes:list = None
+        self._clause_block_sizes:list = None
+        self._trainable_flags:list = None
 
         if isinstance(s, float):
             s = [s]
@@ -106,14 +107,35 @@ class TsetlinMachine:
             ValueError: If the clause block sizes have not been set before setting the trainable flags, or if the number of trainable flags does not match the number of clause blocks.
         """
 
-        if self.clause_block_sizes is None:
+        if self._clause_block_sizes is None:
             raise ValueError("Cannot set the trainable flags before setting the clause blocks sizes (or number of blocks) first")
 
-        if len(trainable_flags) != len(self.clause_block_sizes):
+        if len(trainable_flags) != len(self._clause_block_sizes):
             raise ValueError("The number of trainable flags must match the number of clause blocks")
 
         self._trainable_flags = trainable_flags
         raise NotImplementedError("Not impl trainable flags in the backend yet!")
+    
+
+    def set_literal_budget(self, literal_budget_or_budgets_list: Union[int, list]):
+        """Sets the number of literals to be used in the backend for this Tsetlin Machine.
+
+        Args:
+            literal_budget_or_budgets_list (Union[int, list]): The max number of ON literals in a clause.
+                                                      If a list then len(literal_budget_or_budgets_list) number of budgets will be used, each with the size as specified in literal_budget_or_budgets_list.
+                                                      So if literal_budget_or_budgets_list = [10, 20, 30] it will create 3 budgets with sizes 10, 20 and 30.
+                                                      If the len of literal_budget_or_budgets_list is not equal to the number of blocks then the budget list will repeat (same as with s).
+                                                      So if literal_budget_or_budgets_list = [10, 20, 30] and we have 5 clause blocks then the budgets used will be [10, 20, 30, 10, 20].
+
+        """
+        if isinstance(literal_budget_or_budgets_list, int):
+            self.literal_budgets = [literal_budget_or_budgets_list]
+        else:
+            self.n_literals_budget = literal_budget_or_budgets_list
+
+        for budget in self.literal_budgets:
+            if budget < 1:
+                raise ValueError("Cannot have a non-positive budget ({})".format(budget))                                                        
 
 
     def set_num_clause_blocks(self, n_blocks_or_cb_sizes: Union[int, list]):
@@ -132,17 +154,17 @@ class TsetlinMachine:
             n_clause_per_block = self.n_clauses // n_blocks
             n_add = self.n_clauses % n_blocks
 
-            self.clause_block_sizes = [n_clause_per_block for _ in range(n_blocks)]
-            self.clause_block_sizes[0] += n_add
+            self._clause_block_sizes = [n_clause_per_block for _ in range(n_blocks)]
+            self._clause_block_sizes[0] += n_add
 
         else:            
             if sum(n_blocks_or_cb_sizes) != self.n_clauses:
                 raise ValueError("The sum of the clause block sizes ({}) does not match the number of clauses in the Tsetlin Machine {}".format(sum(n_blocks_or_cb_sizes), self.n_clauses))
             
-            self.clause_block_sizes = n_blocks_or_cb_sizes
+            self._clause_block_sizes = n_blocks_or_cb_sizes
         
-        if any(cb_size < 1 for cb_size in self.clause_block_sizes):
-            raise ValueError("Cannot have a clause block size under 1 (currently: {}))".format(self.clause_block_sizes))
+        if any(cb_size < 1 for cb_size in self._clause_block_sizes):
+            raise ValueError("Cannot have a clause block size under 1 (currently: {}))".format(self._clause_block_sizes))
         
 
     def _load_state_from_backend(self):
@@ -222,12 +244,18 @@ class TsetlinMachine:
             list: A list of clause_blocks of type self._backend_clause_block_cls, the list is a copy while the members are shared.
         """
 
+        trainable_flags = self._trainable_flags
+        if trainable_flags is None:
+            trainable_flags = [True] * len(self._clause_block_sizes)
+            
 
         self._cbs = []
-        for s_k, n_clauses_in_block in zip(itertools.cycle(self.s), self.clause_block_sizes):            
+        for s_k, literal_budget, n_clauses_in_block, is_trainable in zip(itertools.cycle(self.s), itertools.cycle(self.literal_budgets), self._clause_block_sizes, trainable_flags):            
             cb = self._backend_clause_block_cls(self.n_literals, n_clauses_in_block, self.n_classes)
             cb.set_s(s_k)
-            cb.set_literal_budget(self.n_literals_budget)            
+            cb.set_literal_budget(literal_budget)
+            
+            # cb.set_trainable(is_trainable) # TODO: add in backend
             self._cbs.append(cb)
         
         return copy.copy(self._cbs)

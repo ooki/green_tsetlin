@@ -21,6 +21,9 @@ namespace green_tsetlin
             virtual int get_number_of_clauses() const { return -42; }
             virtual int get_number_of_classes() const { return -42; }
 
+            void set_trainable(bool is_trainable) { m_is_trainable = is_trainable; }
+            bool is_trainable() const { return m_is_trainable; }
+
             bool is_init() const { return m_is_init; }
 
             virtual double  get_s() const { return -42.0; }
@@ -77,6 +80,7 @@ namespace green_tsetlin
             virtual void train_update(int positive_class, double prob_positive, int negative_class, double prob_negative) {}
 
         protected:
+            bool m_is_trainable = true;
             bool m_is_init = false;
             FeedbackBlock* m_feedback_block = nullptr;
     };

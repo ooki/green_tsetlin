@@ -141,6 +141,9 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("get_s", &gt::ClauseBlock::get_s)
         .def("set_s", &gt::ClauseBlock::set_s)
 
+        .def("set_trainable", &gt::ClauseBlock::set_trainable)
+        .def("is_trainable", &gt::ClauseBlock::is_trainable)
+        
         .def("get_literal_budget", &gt::ClauseBlock::get_literal_budget)
         .def("set_literal_budget", &gt::ClauseBlock::set_literal_budget)
         
