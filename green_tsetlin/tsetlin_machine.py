@@ -1,5 +1,5 @@
 
-from typing import Union, Optional
+from typing import Union, Optional, List
 import itertools
 from contextlib import contextmanager
 import copy
@@ -74,6 +74,8 @@ class TsetlinMachine:
         self._state : TMState = None
         self.n_literals_budget = 32_700 # high value, should really be set.
 
+        self.clause_block_sizes:list = None
+
         if isinstance(s, float):
             s = [s]
         
@@ -93,6 +95,55 @@ class TsetlinMachine:
         
         self._backend_clause_block_cls = py_gtc.ClauseBlock
 
+    def set_trainable_flags(self, trainable_flags:List[bool]):
+        """
+        Set the trainable flags for the blocks of the clause.
+        
+        Args:
+            trainable_flags (List[bool]): A list of boolean values indicating whether each clause block is trainable or not.
+
+        Raises:
+            ValueError: If the clause block sizes have not been set before setting the trainable flags, or if the number of trainable flags does not match the number of clause blocks.
+        """
+
+        if self.clause_block_sizes is None:
+            raise ValueError("Cannot set the trainable flags before setting the clause blocks sizes (or number of blocks) first")
+
+        if len(trainable_flags) != len(self.clause_block_sizes):
+            raise ValueError("The number of trainable flags must match the number of clause blocks")
+
+        self._trainable_flags = trainable_flags
+        raise NotImplementedError("Not impl trainable flags in the backend yet!")
+
+
+    def set_num_clause_blocks(self, n_blocks_or_cb_sizes: Union[int, list]):
+        """Sets the number of blocks to be used in the backend for this Tsetlin Machine.
+
+        Args:
+            n_blocks_or_cb_sizes (Union[int, list]): n_blocks_or_cb_sizes (int or list): The number of blocks to create. If the reminder is not zero it will be added to the first block.
+                                                      If a list then len(n_blocks_or_cb_sizes) number of blocks will be created, each with the size as specified in clause_block_sizes.
+                                                      So if n_blocks_or_cb_sizes = [10, 20, 30] it will create 3 blocks with sizes 10, 20 and 30.
+                                                      The total number of clauses will have to match the number of clauses in the Tsetlin Machine.
+
+        """
+        if isinstance(n_blocks_or_cb_sizes, int):
+            n_blocks = n_blocks_or_cb_sizes
+
+            n_clause_per_block = self.n_clauses // n_blocks
+            n_add = self.n_clauses % n_blocks
+
+            self.clause_block_sizes = [n_clause_per_block for _ in range(n_blocks)]
+            self.clause_block_sizes[0] += n_add
+
+        else:            
+            if sum(n_blocks_or_cb_sizes) != self.n_clauses:
+                raise ValueError("The sum of the clause block sizes ({}) does not match the number of clauses in the Tsetlin Machine {}".format(sum(n_blocks_or_cb_sizes), self.n_clauses))
+            
+            self.clause_block_sizes = n_blocks_or_cb_sizes
+        
+        if any(cb_size < 1 for cb_size in self.clause_block_sizes):
+            raise ValueError("Cannot have a clause block size under 1 (currently: {}))".format(self.clause_block_sizes))
+        
 
     def _load_state_from_backend(self):
         """ Collects the state from the backend and store it in the state_ variable.         
@@ -124,6 +175,15 @@ class TsetlinMachine:
 
 
     def load_state(self, path_or_state: Union[str, TMState]):
+        """
+        Load the state from the given path or state object.
+
+        Parameters:
+            path_or_state (Union[str, TMState]): The path to the state file or the TMState object.
+
+        Returns:
+            None
+        """
         if isinstance(path_or_state, str):
             self._state = TMState.load_from_file(path_or_state)
         else:
@@ -131,6 +191,15 @@ class TsetlinMachine:
 
 
     def save_state(self, path:str):
+        """
+        Save the state of the Tsetlin Machine to the specified file path.
+
+        Parameters:
+            path (str): The file path to save the state to.
+
+        Returns:
+            None
+        """        
         if self._state is None:
 
             if self._cbs is not None:
@@ -143,30 +212,22 @@ class TsetlinMachine:
     
     
 
-    def construct_clause_blocks(self, n_blocks:int) -> list:
+    def construct_clause_blocks(self) -> list:
         """ Creates the backend clause blocks, will not allocate them (use allocate_clause_blocks Context Manager).
         The clause blocks are found in the _cbs attribute, and a copy of this list returned (sharing the cb's, but not the list).
 
         Args:
-            n_blocks (int): The number of blocks to create. If the reminder is not zero it will be added to the last block.
-
+            
         Returns:
             list: A list of clause_blocks of type self._backend_clause_block_cls, the list is a copy while the members are shared.
         """
-        n_clause_per_block = self.n_clauses // n_blocks
-        n_add = self.n_clauses % n_blocks
-        
-        assert (n_clause_per_block * n_blocks) + n_add == self.n_clauses
-        
+
+
         self._cbs = []
-        for s_k, k in zip(itertools.cycle(self.s), range(n_blocks)):
-            if k > 0:
-                n_add = 0
-            
-            cb = self._backend_clause_block_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
+        for s_k, n_clauses_in_block in zip(itertools.cycle(self.s), self.clause_block_sizes):            
+            cb = self._backend_clause_block_cls(self.n_literals, n_clauses_in_block, self.n_classes)
             cb.set_s(s_k)
-            cb.set_literal_budget(self.n_literals_budget)
-            
+            cb.set_literal_budget(self.n_literals_budget)            
             self._cbs.append(cb)
         
         return copy.copy(self._cbs)
