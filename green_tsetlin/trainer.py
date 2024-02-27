@@ -63,6 +63,21 @@ class Trainer:
         else:
             self.n_jobs = n_jobs
 
+        self._setup_backend_gtc()
+
+    def _setup_backend_gtc(self):
+        # backend setup
+        import green_tsetlin_core as gtc
+        
+        self._cls_dense_ib = gtc.DenseInputBlock        
+        self._cls_feedback_block = gtc.FeedbackBlock
+        self._cls_feedback_block_multi_label = gtc.FeedbackBlockMultiLabel
+        self._cls_exec_singlethread = gtc.SingleThreadExecutor
+        self._cls_exec_multithread = gtc.MultiThreadExecutor
+
+
+
+    def _setup_backend_python(self):
         # backend setup
         self._cls_dense_ib = py_gtc.DenseInputBlock        
         self._cls_feedback_block = py_gtc.FeedbackBlock
@@ -130,68 +145,73 @@ class Trainer:
             raise ValueError("Unknown feedback type: {}".format(self.feedback_type))
         
         
-    def _calculate_blocks_for_tm(self):
+    def _calculate_blocks_for_tm(self):            
         return self.n_jobs
     
     def train(self):                
+                
+        input_block = self._cls_dense_ib(self.tm.n_literals)
+        input_block.set_data(self.x_train, self.y_train)
+        feedback_block = self._get_feedback_block(self.tm.n_classes, self.tm.threshold)        
         
-        ib = self._cls_dense_ib(self.tm.n_literals)
-        ib.set_data(self.x_train, self.y_train)
-        feedback_block = self._get_feedback_block(self.n_classes, self.threshold)
-        
-        n_blocks = self._calculate_blocks_for_tm()
-        cbs = self.tm.construct_clause_blocks(n_blocks)
-        
+        if self.tm._clause_block_sizes is None:
+            n_blocks = self._calculate_blocks_for_tm()
+            self.tm.set_num_clause_blocks(n_blocks)
+                
+        cbs = self.tm.construct_clause_blocks()   
+        for cb in cbs:
+            cb.set_feedback(feedback_block)     
+            cb.set_input_block(input_block)
         
         if self.n_epochs < 1:            
             return
         
-        if self.n_jobs == 1:
-            exec = self._cls_exec_singlethread(ib, cbs, feedback_block, self.seed)
-        else:
-            exec = self._cls_exec_multithread(ib, cbs, feedback_block, self.n_jobs, self.seed)
+        with allocate_clause_blocks(cbs, seed=self.seed):    
         
-        
-        
-        # main loop
-        n_epochs_trained = 0
-        best_test_score = -1.0
-        best_test_epoch = -1
-        train_acc = -1.0
-        
-        
-        train_log = []
-        test_log = []
-        did_early_exit = False
+            if self.n_jobs == 1:
+                exec = self._cls_exec_singlethread(input_block, cbs, feedback_block, 1, self.seed)
+            else:
+                exec = self._cls_exec_multithread(input_block, cbs, feedback_block, self.n_jobs, self.seed)
+            
+            
+            
+            # main loop
+            n_epochs_trained = 0
+            best_test_score = -1.0
+            best_test_epoch = -1
+            train_acc = -1.0
+            
+            
+            train_log = []
+            test_log = []
+            did_early_exit = False
 
-
-        with allocate_clause_blocks(cbs, seed=self.seed):        
             hide_progress_bar = self.progress_bar is False  
             with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
                 progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
         
                 for epoch in range(self.n_epochs):                                            
                     train_acc = exec.train_epoch()
+                                        
                     train_log.append(train_acc)                
                     n_epochs_trained += 1
-                    
-                    ib.set_data(self.x_test, self.y_test)
-                    
-                    if self._is_multi_label is False:
+
+                    input_block.set_data(self.x_test, self.y_test)
+                     
+                    if self.tm._is_multi_label is False:
                         y_hat = exec.eval_predict()                            
                     else:
-                        y_hat = exec.eval_predict_multi()
-                        
+                        y_hat = exec.eval_predict_multi()        
+                            
                     test_score = self.fn_test_score(self.y_test, np.array(y_hat))
                     test_log.append(test_score)                
-
+                    
                     self.fn_epoch_callback(epoch, train_acc, test_score)            
                     if test_score > best_test_score:
                         best_test_score = test_score
                         best_test_epoch = epoch
                         if self.load_best_state:
-                            self._best_tm_state = self.tm.get_state_copy()                        
-                    
+                            self._best_tm_state = self.tm._load_state_from_backend(only_return_copy=True)                                                
                     
                     if test_score >= self.early_exit_acc:                                    
                         did_early_exit = True
@@ -205,12 +225,11 @@ class Trainer:
                     progress_bar.update(1)
                     
                     if epoch < (self.n_epochs - 1):                   
-                        ib.set_data(self.x_train, self.y_train)
+                        input_block.set_data(self.x_train, self.y_train)
 
                     
             if self.load_best_state is True:
-                self.tm.set_state(self._best_tm_state, copy=False) # copy False since we already created a copy in train().
-
+                self.tm._state = self._best_tm_state
         
         return {
             "best_test_score": best_test_score,

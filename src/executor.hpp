@@ -73,6 +73,12 @@ namespace green_tsetlin
                     if(!cb->is_init())                   
                         throw std::runtime_error("All ClauseBlocks must be init() before constructing an Executor()");
 
+                    if(cb->get_input_block() == nullptr)
+                        throw std::runtime_error("All ClauseBlocks must be have a InputBlock before constructing an Executor()");
+
+                    if(cb->get_feedback() == nullptr)
+                        throw std::runtime_error("All ClauseBlocks must be have a FeedbackBlock before constructing an Executor()");
+
                     if(cb->is_trainable())
                         m_trainable_clause_blocks.push_back(cb);
                 }
@@ -81,8 +87,9 @@ namespace green_tsetlin
             }            
 
             double train_epoch()
-            {                
-                m_feedback_block->reset_train_predict_counter();                
+            {            
+                m_feedback_block->reset_train_predict_counter();             
+
                 int n_examples = get_number_of_examples_ready();
                 train_slice(0, n_examples);
 
@@ -90,7 +97,7 @@ namespace green_tsetlin
             }
 
             void train_slice(int start_index, int end_index)
-            {                                
+            {                            
                 int n_examples = get_number_of_examples_ready();
                 
                 if(start_index == 0)
@@ -100,7 +107,6 @@ namespace green_tsetlin
                     std::iota (std::begin(m_index_set), std::end(m_index_set), 0); // fill 0 -> n_examples
                     std::shuffle(std::begin(m_index_set), std::end(m_index_set), m_rng);
                 }
-
                 
                 for(int i = start_index; i < end_index; ++i)
                 {
@@ -119,13 +125,11 @@ namespace green_tsetlin
                         else
                         {
                             cb->train_example();
-                        }
-                                       
+                        }                                       
                     }
 
                     if(enable_multithread)
                         m_pool.wait_for_tasks();
-
 
                     m_feedback_block->process(m_input_block->pull_current_label());
 

@@ -7,6 +7,9 @@ class ClauseBlock:
     def __init__(self, n_literals, n_clauses, n_classes):
         pass
     
+    def initialize(self, seed):
+        pass
+    
     def cleanup(self):
         pass
     

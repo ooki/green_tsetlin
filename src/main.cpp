@@ -148,9 +148,9 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_literal_budget", &gt::ClauseBlock::set_literal_budget)
         
         .def("initialize", &gt::ClauseBlock::initialize, py::arg("seed") = 42)
-        .def("is_initialized", &gt::ClauseBlock::is_init)           
-        .def("cleanup", &gt::ClauseBlock::cleanup)           
-
+        .def("is_initialized", &gt::ClauseBlock::is_init)        
+        .def("cleanup", &gt::ClauseBlock::cleanup)       
+        
         .def("set_feedback", &gt::ClauseBlock::set_feedback);
     ;
 

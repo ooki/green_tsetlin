@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <iostream>
 
 namespace green_tsetlin
 {

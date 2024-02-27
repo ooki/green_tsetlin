@@ -65,14 +65,24 @@ class TMState:
 
 
 class TsetlinMachine:
-    def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int, multi_label:bool=False):
+    def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
+                 literal_budget:Optional[int]=None, multi_label:bool=False):
 
         self.n_literals = n_literals
         self.n_clauses = n_clauses
         self.n_classes = n_classes
         self._cbs : list = None
         self._state : TMState = None
-        self.literal_budgets = [32_700] # high value, should really be set.
+                
+                            
+        if literal_budget is None:
+            literal_budget = 32700        
+            
+        elif isinstance(literal_budget, list):
+            raise ValueError("Cannot set a list-version of literal_budgets in the constructor. Use set_literal_budget() instead.")
+                
+        self.literal_budgets = [literal_budget] # high value, should really be set.
+            
 
         self._clause_block_sizes:list = None
         self._trainable_flags:list = None
@@ -167,18 +177,28 @@ class TsetlinMachine:
             raise ValueError("Cannot have a clause block size under 1 (currently: {}))".format(self._clause_block_sizes))
         
 
-    def _load_state_from_backend(self):
-        """ Collects the state from the backend and store it in the state_ variable.         
+    def _load_state_from_backend(self, only_return_copy:bool=False):
+        """ Collects the state from the backend.
+        if only_return_copy is True => just return the state, else set it to state_ in the TM                        
         """
-        if self._state is None: # allocate state
-            self._state = TMState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
+        
+        state = self._state
+        if only_return_copy:
+            state = None
+        
+        if state is None: # allocate state
+            state = TMState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
         
         clause_offset = 0 
         for cb in self._cbs:
-            cb.get_clause_state(self._state.c, clause_offset)
-            cb.get_clause_weights(self._state.w, clause_offset)
+            cb.get_clause_state(state.c, clause_offset)
+            cb.get_clause_weights(state.w, clause_offset)
             clause_offset += cb.get_number_of_clauses()
 
+        if only_return_copy:
+            return state
+        else:
+            self._state = state
     
     def _save_state_in_backend(self):
         """ Set the internal state

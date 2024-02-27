@@ -10,7 +10,7 @@ from green_tsetlin.tsetlin_machine import TsetlinMachine, TMState, allocate_clau
 from green_tsetlin.trainer import Trainer
 # from green_tsetlin.rules import RulePredictor
 
-# import green_tsetlin.dataset_generator as dataset_generator
+import green_tsetlin.dataset_generator as dataset_generator
 
 
 
