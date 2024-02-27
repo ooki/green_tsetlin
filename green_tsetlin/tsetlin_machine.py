@@ -181,8 +181,11 @@ def allocate_clause_blocks(cbs_or_tm: Union[list, TsetlinMachine] , seed: int):
         cbs = cbs_or_tm
 
 
+    running_seed = seed
     for cb in cbs:
-        cb.initialize(seed=seed)
+        cb.initialize(seed=running_seed)
+        running_seed += 1
+
     yield
 
     for cb in cbs:
