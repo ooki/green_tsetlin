@@ -1,20 +1,54 @@
 
-from typing import Union
+from typing import Union, Optional
 import itertools
 
 import numpy as np
 import green_tsetlin.py_gtc as py_gtc
 
-class TsetlinStateStorage:
+class TMState:
     """
     A storage object for a Tsetlin Machine state.
     w : is the class Weights
     c : is the Clauses
+
+    Will not create any copy of the underlying array, but will create a reference.
+    So the user is responsible for not changing the state after it has been loaded OR provide a copy.
     """
-    def __init__(self, w:np.array, c:np.array):
-        self.w = w
-        self.c = c
+    def __init__(self, n_literals:Optional[int]=None, n_clauses:Optional[int]=None, n_classes:Optional[int]=None):
+        if n_literals is not None:
+            self.w = np.zeros(shape=(n_clauses, n_classes), dtype=np.int16)
+            self.c = np.zeros(shape=(n_clauses, n_literals*2), dtype=np.int8)
+        else:
+            self.w:np.array = None
+            self.c:np.array = None        
+
+    @staticmethod
+    def load_from_file(file_path) -> "TMState":
+        if not file_path.endswith(".npz"):
+            raise ValueError("State object must be a .npz file")
+        d = np.load(file_path)
+        tms = TMState()
+
+        if tms["w"].shape[0] != d["c"].shape[0]:
+            raise ValueError("Cannot load state. w and c must have the same number of clauses")        
+
+        if tms["w"].dtype != np.int16:
+            raise ValueError("Clause Weights much be np.int16 is {}".format(tms["w"].dtype))
+        
+        if tms["c"].dtype != np.int8:
+            raise ValueError("Clause State much be np.int8 is {}".format(tms["c"].dtype))
+
+        tms.w = d["w"]
+        tms.c = d["c"]
+        return tms
     
+
+    def save_to_file(self, file_path) -> None:
+        if not file_path.endswith(".npz"):
+            raise ValueError("State object must be a .npz file")
+        
+        np.savez(file_path, w=self.w, c=self.c)
+
 
 
 class TsetlinMachine:
@@ -23,7 +57,8 @@ class TsetlinMachine:
         self.n_literals = n_literals
         self.n_clauses = n_clauses
         self.n_classes = n_classes
-        self.cbs : list = None
+        self._cbs : list = None
+        self._state : TMState = None
 
         if isinstance(s, float):
             s = [s]
@@ -42,21 +77,56 @@ class TsetlinMachine:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
         
-        self._backend = py_gtc.ClauseBlock
+        self._backend_clause_block_cls = py_gtc.ClauseBlock
 
 
-    def get_state_copy(self) -> TsetlinStateStorage:
-        """ Return a copy of the state        
+    def _load_state_from_backend(self):
+        """ Collects the state from the backend and store it in the state_ variable.         
         """
-        raise NotImplementedError("Not Impl.")
+        if self._state is None: # allocate state
+            self._state = TMState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
+        
+        clause_offset = 0 
+        for cb in self._cbs:
+            cb.get_clause_state(self._state.c, clause_offset)
+            cb.get_clause_weights(self._state.w, clause_offset)
+            clause_offset += cb.get_number_of_clauses()
+
     
-    def set_state(self, state:TsetlinStateStorage, copy:bool=True):
+    def _save_state_in_backend(self):
         """ Set the internal state
-
-        Args:
-            copy (bool, optional): If True, set a copy of the state. Else directly set the state (shared-memory).
         """
-        raise NotImplementedError("Not Impl.")
+        if self._cbs is None:
+            raise ValueError("There is no clauseblocks in the backend, cannot save state")
+        
+        if self._state is None:
+            raise ValueError("Cannot save a empty Tsetlin Machine into the backend. Please load a state first.")
+        
+        clause_offset = 0 
+        for cb in self._cbs:
+            cb.set_clause_state(self._state.c, clause_offset)
+            cb.set_clause_weights(self._state.w, clause_offset)
+            clause_offset += cb.get_number_of_clauses()
+
+
+    def load_state(self, path_or_state: Union[str, TMState]):
+        if isinstance(path_or_state, str):
+            self._state = TMState.load_from_file(path_or_state)
+        else:
+            self._state = path_or_state
+
+
+    def save_state(self, path:str):
+        if self._state is None:
+
+            if self._cbs is not None:
+                self._load_state_from_backend()
+            else:
+                raise ValueError("Cannot save a empty Tsetlin Machine without a stored state. Is the Tsetlin Machine trained?")
+                    
+        self._state.save_to_file(path)
+
+    
     
 
     def construct_clause_blocks(self, n_blocks):

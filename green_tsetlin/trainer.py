@@ -9,7 +9,7 @@ import tqdm
 
 
 #import green_tsetlin_core as gtc
-from green_tsetlin import TsetlinMachine, TsetlinStateStorage
+from green_tsetlin import TsetlinMachine, TMState
 from green_tsetlin import py_gtc
 
 def empty_epoch_callback(epoch, train_acc, test_score):
@@ -44,7 +44,7 @@ class Trainer:
 
         self.copy_training_data = copy_training_data
 
-        self._best_tm_state : TsetlinStateStorage = None
+        self._best_tm_state : TMState = None
 
 
         if fn_test_score == "accuracy":
