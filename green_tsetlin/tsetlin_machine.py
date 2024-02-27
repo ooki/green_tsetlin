@@ -144,7 +144,8 @@ class TsetlinMachine:
     
 
     def construct_clause_blocks(self, n_blocks:int) -> list:
-        """_summary_
+        """ Creates the backend clause blocks, will not allocate them (use allocate_clause_blocks Context Manager).
+        The clause blocks are found in the _cbs attribute, and a copy of this list returned (sharing the cb's, but not the list).
 
         Args:
             n_blocks (int): The number of blocks to create. If the reminder is not zero it will be added to the last block.
@@ -173,12 +174,23 @@ class TsetlinMachine:
 
 @contextmanager
 def allocate_clause_blocks(cbs_or_tm: Union[list, TsetlinMachine] , seed: int):
+    """ Allocate the clause blocks on entry, will deallocate the blocks on exit.
+
+    Args:
+        cbs_or_tm (Union[list, TsetlinMachine]): Either a list of clause blocks or a TsetlinMachine.
+        seed (int): Seed for the clause blocks, each clause block will get a unique seed starting from seed to seed+len(cbs).
+
+    Raises:
+        ValueError: If a TsetlinMachine has no clause blocks or the list is empty.
+    """
     if isinstance(cbs_or_tm, TsetlinMachine):
         cbs = cbs_or_tm._cbs
         if cbs is None:
-            raise ValueError("The Tsetlin Machine has no clause blocks. Did you call constrcut_clause_blocks() first?")
+            raise ValueError("The Tsetlin Machine has no clause blocks. Did you call constrcut_clause_blocks() first?")        
     else:
         cbs = cbs_or_tm
+        if len(cbs) == 0:
+            raise ValueError("The provided clause block list is empty, cannot initialize a empty list.")
 
 
     running_seed = seed
