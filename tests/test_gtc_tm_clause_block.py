@@ -101,8 +101,8 @@ def test_getset_state_and_weights():
     
     
 if __name__ == "__main__":
-    #test_getset()
-    #test_initialize_cleanup_flags()
+    test_getset()
+    test_initialize_cleanup_flags()
     test_getset_state_and_weights()
     
-    print("<done>")
+    print("<done:", __file__, ">")

@@ -1,6 +1,9 @@
 
 from typing import Union, Optional
 import itertools
+from contextlib import contextmanager
+import copy
+
 
 import numpy as np
 import green_tsetlin.py_gtc as py_gtc
@@ -21,6 +24,13 @@ class TMState:
         else:
             self.w:np.array = None
             self.c:np.array = None        
+
+
+    def copy(self) -> "TMState":
+        tm = TMState()
+        tm.w = self.w.copy()
+        tm.c = self.c.copy()
+        return tm
 
     @staticmethod
     def load_from_file(file_path) -> "TMState":
@@ -51,6 +61,9 @@ class TMState:
 
 
 
+
+
+
 class TsetlinMachine:
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int, multi_label:bool=False):
 
@@ -59,6 +72,7 @@ class TsetlinMachine:
         self.n_classes = n_classes
         self._cbs : list = None
         self._state : TMState = None
+        self.n_literals_budget = 32_700 # high value, should really be set.
 
         if isinstance(s, float):
             s = [s]
@@ -129,7 +143,15 @@ class TsetlinMachine:
     
     
 
-    def construct_clause_blocks(self, n_blocks):
+    def construct_clause_blocks(self, n_blocks:int) -> list:
+        """_summary_
+
+        Args:
+            n_blocks (int): The number of blocks to create. If the reminder is not zero it will be added to the last block.
+
+        Returns:
+            list: A list of clause_blocks of type self._backend_clause_block_cls, the list is a copy while the members are shared.
+        """
         n_clause_per_block = self.n_clauses // n_blocks
         n_add = self.n_clauses % n_blocks
         
@@ -140,14 +162,28 @@ class TsetlinMachine:
             if k > 0:
                 n_add = 0
             
-            cb = self._tm_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
+            cb = self._backend_clause_block_cls(self.n_literals, n_clause_per_block + n_add, self.n_classes)
             cb.set_s(s_k)
             cb.set_literal_budget(self.n_literals_budget)
             
             self._cbs.append(cb)
         
-        return self._cbs
+        return copy.copy(self._cbs)
         
 
+@contextmanager
+def allocate_clause_blocks(cbs_or_tm: Union[list, TsetlinMachine] , seed: int):
+    if isinstance(cbs_or_tm, TsetlinMachine):
+        cbs = cbs_or_tm._cbs
+        if cbs is None:
+            raise ValueError("The Tsetlin Machine has no clause blocks. Did you call constrcut_clause_blocks() first?")
+    else:
+        cbs = cbs_or_tm
 
 
+    for cb in cbs:
+        cb.initialize(seed=seed)
+    yield
+
+    for cb in cbs:
+        cb.cleanup()
