@@ -18,8 +18,7 @@ namespace green_tsetlin
             int num_clauses = 0;
             int num_classes = 0;
             int num_class_weights_mem = 0;
-            int m_num_patches_per_example = -1;
-
+            
             int num_literals = 0;
             int num_literals_mem = 0;
             int num_reminder = 0;
@@ -34,8 +33,10 @@ namespace green_tsetlin
             uint32_t literal_budget = 0xFFFF;
 
             // conv states
-            uint32_t* m_active_patches = nullptr;
-            std::vector<uint32_t> m_active_patches_storage;
+            int       num_patches_per_example= -1;
+            uint32_t* active_patches = nullptr;
+            uint32_t* literal_counts_per_patch = nullptr;
+            std::vector<uint32_t> active_patches_storage;
 
             int8_t* reminder_mask = nullptr;
             int8_t gtcmp_for_s = 0;
@@ -54,8 +55,8 @@ namespace green_tsetlin
             }
             inline double get_s() const { return s; }
 
-            inline int get_number_of_patches_per_example() const { return m_num_patches_per_example; }
-            inline void set_number_of_patches_per_example(int num_patches_per_example) { m_num_patches_per_example = num_patches_per_example; }
+            inline int get_number_of_patches_per_example() const { return num_patches_per_example; }
+            inline void set_number_of_patches_per_example(int a_num_patches_per_example) { num_patches_per_example = a_num_patches_per_example; }
 
             inline WeightInt* get_class_votes() const
             {

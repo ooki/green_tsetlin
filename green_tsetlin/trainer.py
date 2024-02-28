@@ -167,6 +167,8 @@ class Trainer:
             return
         
         with allocate_clause_blocks(cbs, seed=self.seed):    
+            if self.tm._state is not None:
+                self.tm._save_state_in_backend()
         
             if self.n_jobs == 1:
                 exec = self._cls_exec_singlethread(input_block, cbs, feedback_block, 1, self.seed)

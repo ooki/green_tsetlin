@@ -23,6 +23,7 @@ namespace green_tsetlin
             virtual int get_number_of_classes() const { return -42; }
 
             virtual int get_number_of_patches_per_example() const { return -42; }
+            virtual void set_number_of_patches_per_example(int num_patches_per_example) {}
 
             void set_trainable(bool is_trainable) { m_is_trainable = is_trainable; }
             bool is_trainable() const { return m_is_trainable; }

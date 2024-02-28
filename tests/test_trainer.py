@@ -86,10 +86,28 @@ def test_train_simple_xor():
     r = trainer.train()    
     print(r)
     
+def test_train_set_best_state_afterwards():    
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42    
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
+    assert tm._state is None
+    
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, load_best_state=True, progress_bar=False, n_epochs=3)
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+    trainer.train()    
+
+    assert tm._state is not None
+    
 
 if __name__ == "__main__":
-    test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
-    test_train_simple_xor()
-    
+    #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
+    #test_train_simple_xor()
+    test_train_set_best_state_afterwards()
     print("<done: ", __file__, ">")

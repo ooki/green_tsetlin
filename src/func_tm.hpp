@@ -101,9 +101,7 @@ namespace green_tsetlin
             {
                 for(int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
-                    uint32_t pos_literal_count = 0;
-                    uint32_t neg_literal_count = 0;
-
+                    uint32_t literal_count = 0;
                     state.clause_outputs[clause_k] = 1;
                         
                     int8_t* pl_pos = &state.clauses[clause_k * (state.num_literals*2)];
@@ -121,7 +119,7 @@ namespace green_tsetlin
                             }
 
                             if(do_literal_budget)
-                               pos_literal_count++;
+                               literal_count++;
                         }
                         pl_pos++;
 
@@ -134,13 +132,13 @@ namespace green_tsetlin
                             }
 
                             if(do_literal_budget)
-                                neg_literal_count++;
+                                literal_count++;
                         }
                         pl_neg++;                                                                     
                     }
                         
                     if(do_literal_budget)
-                        state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
+                        state.literal_counts[clause_k] = literal_count;
                     
                 }
             }

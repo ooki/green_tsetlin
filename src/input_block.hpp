@@ -156,6 +156,97 @@ namespace green_tsetlin
             uint32_t*                   m_current_label;
     };
 
+    inline uint8_t* cumlative_encode(uint8_t* out, uint32_t number, uint32_t size)
+    {
+        std::memset(out, 0, size);
+        for(uint32_t i = 0; i < number; ++i)      
+            out[i] = 1;        
+        
+        return out + size;
+    }
+
+    pybind11::array_t<uint8_t> tsetlin_im2col(pybind11::array_t<uint8_t> numpy_examples, int patch_width, int patch_height)
+    {
+        /**
+         * A function for converting input image patches to a column matrix for the (Convolutional) Tsetlin Machine.
+         *
+         * @param numpy_examples input examples in a NumPy array
+         * @param patch_width width of the image patch
+         * @param patch_height height of the image patch         
+         *
+         * @return a NumPy array representing the column matrix
+         *
+         * @throws None
+         */
+        
+        //data 
+        pybind11::buffer_info buffer_info = numpy_examples.request();                            
+        std::vector<ssize_t> shape = buffer_info.shape;
+        
+        const int n_examples = shape[0];
+        const int width = shape[1];
+        const int height = shape[2];
+        const int channels = shape[3];
+        uint8_t* src = static_cast<uint8_t*>(buffer_info.ptr);
+
+        // no padding : stride is 1
+        const int n_patches_y = (height - patch_height + 1);
+        const int n_patches_x = (width - patch_width + 1);
+        const int n_patches = n_patches_x * n_patches_y;
+
+        const int literals_features_per_patch = (patch_width * patch_height) * channels;
+        const int position_emb_x_size = (width - patch_width);
+        const int position_emb_y_size = (height - patch_height);
+
+        const int literals_per_patch = literals_features_per_patch + position_emb_x_size + position_emb_y_size;
+
+        int total_mem = n_examples * n_patches * literals_per_patch * sizeof(uint8_t);
+        uint8_t* dst_root = (uint8_t*)aligned_alloc(32, total_mem);
+
+        
+        for(int example_index = 0; example_index < n_examples; ++ example_index)
+        {
+            uint8_t* example = &src[ example_index * (width * height * channels)];
+            uint8_t* dst = &dst_root[ example_index * (n_patches * literals_per_patch) ];
+
+            int patch_index = 0;
+            for(int py = 0; py < n_patches_y; ++py)
+            {
+                for(int px = 0; px < n_patches_x; ++px)
+                {                                        
+                    uint8_t* patch_dst = dst + (patch_index * literals_per_patch);
+
+                    cumlative_encode(patch_dst, py, position_emb_y_size);
+                    patch_dst += position_emb_y_size;
+                    
+                    cumlative_encode(patch_dst, px, position_emb_x_size);                
+                    patch_dst += position_emb_x_size;
+
+                    
+                    for(int y = 0; y < patch_height; ++y)
+                    {
+                        uint8_t* patch_row_start = example + ((py+y)*width*channels) + (px * channels);
+                        std::memcpy(patch_dst, patch_row_start, patch_width * channels);
+                        patch_dst += patch_width * channels;
+                    }
+                    patch_index += 1;
+                }
+            }
+        }
+
+        // wrapper for return 
+        pybind11::capsule free_when_done(dst_root, [](void *f) {
+            uint8_t* array_mem = reinterpret_cast<uint8_t *>(f);
+            free(array_mem);
+        });
+
+        return pybind11::array_t<uint8_t>(
+            {n_examples, n_patches, literals_per_patch}, // shape
+            dst_root, // the data pointer
+            free_when_done);
+    }
+
+
 }; // namespace green_tsetin
 
 #endif // #define __INPUT_BLOCK_HPP_

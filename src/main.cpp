@@ -15,6 +15,7 @@
 #include <clause_block.hpp>
 #include <aligned_tsetlin_state.hpp>
 #include <func_tm.hpp>
+#include <func_conv_tm.hpp>
 #include <executor.hpp>
 
 namespace py = pybind11;
@@ -57,6 +58,25 @@ typedef typename gt::ClauseBlockT<
                                     DenseInputBlock8u
                                 >
                                 ClauseBlockTMImpl;
+
+
+
+typedef typename gt::TrainUpdateConvTM<VanillaTsetlinState,
+                                   ClauseUpdateTMImpl,
+                                   true > // do_literal_budget = true
+                                TrainUpdateConvTMImpl;
+
+typedef typename gt::ClauseBlockT<
+                                    VanillaTsetlinState,
+                                    gt::InitializeConvTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::CleanupConvTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputConvTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::EvalClauseOutputConvTM<VanillaTsetlinState>,
+                                    gt::CountVotesTM<VanillaTsetlinState>,
+                                    TrainUpdateConvTMImpl,
+                                    DenseInputBlock8u
+                                >
+                                ClauseBlockConvTMImpl;
 
 
 template<typename _T>
@@ -102,6 +122,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def(py::init<int>())
         .def("set_data", &DenseInputBlock8u::set_data)
     ;
+
+    m.def("im2col", &gt::tsetlin_im2col);
     
     py::class_<gt::FeedbackBlock>(m, "FeedbackBlock")
         .def(py::init<int, double, int>())
@@ -162,6 +184,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
     // Clause Block Impl's
     define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
+    define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla TM with Convolutional TM
+
 
 
     #ifdef VERSION_INFO

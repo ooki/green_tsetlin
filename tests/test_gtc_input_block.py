@@ -40,6 +40,30 @@ def test_throws_on_wrong_size_arrays():
         ib_single.set_data(x_half, y)
     
 
+def test_im2col_give_correct_shapes():
+
+    n_examples = 1
+    width = 4
+    height = 4
+    channels = 1
+    image = np.arange(0, 16).reshape(n_examples, width, height, channels)
+    image = image.astype(np.uint8)
+
+    col = gtc.im2col(image, 2, 2)
+    assert np.array_equal(col.shape, [1, 9, 8])
+
+    col = gtc.im2col(image, 3, 3)
+    assert np.array_equal(col.shape, [1, 4, 11])
+
+    col = gtc.im2col(image, 3, 4)
+    assert np.array_equal(col.shape, [1, 2, 13])
+
+    col = gtc.im2col(image, 4, 4)
+    assert np.array_equal(col.shape, [1, 1, 16])
+
 if __name__ == "__main__":
     test_DenseInputBlock_check_multi_flag()
     test_throws_on_wrong_size_arrays()
+    test_im2col_give_correct_shapes()
+
+    print("<done tests:", __file__, ">")
