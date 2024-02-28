@@ -138,8 +138,12 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("get_number_of_literals", &gt::ClauseBlock::get_number_of_literals)
         .def("get_number_of_clauses", &gt::ClauseBlock::get_number_of_clauses)
         .def("get_number_of_classes", &gt::ClauseBlock::get_number_of_classes)
+
         .def("get_s", &gt::ClauseBlock::get_s)
         .def("set_s", &gt::ClauseBlock::set_s)
+
+        .def("get_number_of_patches_per_example", &gt::ClauseBlock::get_number_of_patches_per_example)
+        .def("set_number_of_patches_per_example", &gt::ClauseBlock::set_number_of_patches_per_example)
 
         .def("set_trainable", &gt::ClauseBlock::set_trainable)
         .def("is_trainable", &gt::ClauseBlock::is_trainable)

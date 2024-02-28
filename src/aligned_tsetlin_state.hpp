@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include <algorithm>
-
-
+#include <vector>
 
 #include <gt_common.hpp>
 
@@ -30,8 +29,13 @@ namespace green_tsetlin
             WeightInt* class_votes = nullptr;
             WeightInt* clause_weights = nullptr;
 
+            // literal budget
             uint32_t* literal_counts = nullptr;
             uint32_t literal_budget = 0xFFFF;
+
+            // conv states
+            uint32_t* m_active_patches = nullptr;
+            std::vector<uint32_t> m_active_patches_storage;
 
             int8_t* reminder_mask = nullptr;
             int8_t gtcmp_for_s = 0;
