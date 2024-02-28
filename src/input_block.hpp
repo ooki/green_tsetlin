@@ -62,7 +62,6 @@ namespace green_tsetlin
 
                 for(int i = 0; i  < one_example_mem; ++i)
                     m_current_example[i] = 0;
-
             }
 
             virtual ~DenseInputBlock()
