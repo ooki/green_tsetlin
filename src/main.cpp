@@ -7,7 +7,15 @@
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
+bool has_avx2()
+{
+    return false;
+}
 
+bool has_neon()
+{
+    return false;
+}
 
 // #include <executor.hpp>
 #include <input_block.hpp>
@@ -110,6 +118,9 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
     // hw info
     // m.def("get_recommended_number_of_threads", &gt::get_recommended_number_of_threads);
+
+    m.def("has_avx2", has_avx2);
+    m.def("has_neon", has_neon);
     
     py::class_<gt::InputBlock>(m, "InputBlock")
         .def("prepare_example", &gt::InputBlock::prepare_example)

@@ -64,7 +64,6 @@ namespace green_tsetlin
         public: 
             void operator()(_State& state, uint8_t* literals)
             {
-
                 for(int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
                     state.clause_outputs[clause_k] = 0;

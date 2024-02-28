@@ -4,9 +4,26 @@ import itertools
 from contextlib import contextmanager
 import copy
 
-
 import numpy as np
 import green_tsetlin.py_gtc as py_gtc
+
+
+# import tests
+_backend_impl = "python"
+try:
+    import green_tsetlin_core as gtc
+    
+    try:
+        try:
+            gtc.ClauseBlockNeon
+        except AttributeError:
+            pass
+        
+except ImportError:
+    UserWarning("C++ backend (green_tsetlin_core) cannot be imported. Running in pure python mode.")
+    
+
+
 
 class TMState:
     """
@@ -76,7 +93,7 @@ class TsetlinMachine:
                 
                             
         if literal_budget is None:
-            literal_budget = 32700        
+            literal_budget = 32700
             
         elif isinstance(literal_budget, list):
             raise ValueError("Cannot set a list-version of literal_budgets in the constructor. Use set_literal_budget() instead.")
@@ -279,6 +296,23 @@ class TsetlinMachine:
             self._cbs.append(cb)
         
         return copy.copy(self._cbs)
+    
+    
+
+class ConvolutionalTsetlinMachine(TsetlinMachine):
+    def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
+                 patch_width:int, patch_height:int,
+                 literal_budget:Optional[int]=None, multi_label:bool=False):
+        
+        super().__init__(n_literals, n_clauses, n_classes, s, threshold, literal_budget, multi_label)
+        
+        self.patch_width = patch_width
+        self.patch_height = patch_height
+        
+        
+    
+        
+
         
 
 @contextmanager
