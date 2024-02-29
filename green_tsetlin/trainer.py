@@ -11,7 +11,7 @@ import tqdm
 
 #import green_tsetlin_core as gtc
 from green_tsetlin import TsetlinMachine, TMState, allocate_clause_blocks
-from green_tsetlin import py_gtc
+from green_tsetlin.backend import impl as _backend_impl
 
 def empty_epoch_callback(epoch, train_acc, test_score):
     pass
@@ -63,27 +63,13 @@ class Trainer:
         else:
             self.n_jobs = n_jobs
 
-        self._setup_backend_gtc()
-
-    def _setup_backend_gtc(self):
-        # backend setup
-        import green_tsetlin_core as gtc
-        
-        self._cls_dense_ib = gtc.DenseInputBlock        
-        self._cls_feedback_block = gtc.FeedbackBlock
-        self._cls_feedback_block_multi_label = gtc.FeedbackBlockMultiLabel
-        self._cls_exec_singlethread = gtc.SingleThreadExecutor
-        self._cls_exec_multithread = gtc.MultiThreadExecutor
+        self._cls_dense_ib = _backend_impl["dense_input"]
+        self._cls_feedback_block = _backend_impl["feedback"]
+        self._cls_feedback_block_multi_label = _backend_impl["feedback_multi"]
+        self._cls_exec_singlethread = _backend_impl["single_executor"]
+        self._cls_exec_multithread = _backend_impl["thread_executor"]
 
 
-
-    def _setup_backend_python(self):
-        # backend setup
-        self._cls_dense_ib = py_gtc.DenseInputBlock        
-        self._cls_feedback_block = py_gtc.FeedbackBlock
-        self._cls_feedback_block_multi_label = py_gtc.FeedbackBlockMultiLabel
-        self._cls_exec_singlethread = py_gtc.SingleThreadExecutor
-        self._cls_exec_multithread = py_gtc.MultiThreadExecutor
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
         

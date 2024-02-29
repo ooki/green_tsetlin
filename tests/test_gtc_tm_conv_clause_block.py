@@ -8,7 +8,7 @@ import green_tsetlin as gt
 def test_set_init_fails_with_no_patch_size_set():
     n_literals = 12
     n_clauses = 42 
-    n_classes = 3   
+    n_classes = 3       
 
     cb_no_patch = gtc.ClauseBlockConvTM(n_literals, n_clauses, n_classes)    
     assert cb_no_patch.initialize(seed=42) == False

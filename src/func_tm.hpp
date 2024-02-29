@@ -34,6 +34,7 @@ namespace green_tsetlin
                     state.literal_counts = new uint32_t[state.num_clauses];
 
                 state.rng.seed(seed);
+                state.fast_rng.seed(seed);
 
                 init_clauses(state);
                 init_clause_weights(state);
@@ -226,8 +227,6 @@ namespace green_tsetlin
         public:
             void operator()(_State& state, uint8_t* literals, int positive_class, double prob_positive, int negative_class, double prob_negative)
             {
-                std::uniform_real_distribution<double> u(0.0,1.0);
-
                 const int n_features = state.num_literals * 2;
                 for(int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
@@ -240,13 +239,13 @@ namespace green_tsetlin
                             state.clause_outputs[clause_k] = 0;
                     }
 
-                    if( u(state.rng) < prob_positive)
+                    if(state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
                         clause_update(state, clause_row, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);                    
                     }
       
-                    if( u(state.rng) < prob_negative)
+                    if(state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate update_clause;
                         update_clause(state, clause_row, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);

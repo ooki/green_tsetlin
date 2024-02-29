@@ -1,6 +1,6 @@
 import warnings
 
-import py_gtc
+import green_tsetlin.py_gtc as py_gtc
 
 impl = {
     "cb" : py_gtc.ClauseBlock,

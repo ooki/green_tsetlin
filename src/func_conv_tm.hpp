@@ -157,7 +157,7 @@ namespace green_tsetlin
                             if(*pl_pos >= 0)
                             {
                                 is_empty_clause = false;
-                                if(literals[literal_k] == 0)
+                                if(curr_literal[literal_k] == 0)
                                 {
                                     patch_output = false;
                                     break;
@@ -168,7 +168,7 @@ namespace green_tsetlin
                             if(*pl_neg >= 0)
                             {
                                 is_empty_clause = false;
-                                if(literals[literal_k] == 1) 
+                                if(curr_literal[literal_k] == 1) 
                                 {
                                     patch_output = false;
                                     break;
@@ -217,13 +217,13 @@ namespace green_tsetlin
                             state.clause_outputs[clause_k] = 0;
                     }
 
-                    if( u(state.rng) < prob_positive)
+                    if(state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
                         clause_update(state, clause_row, clause_weights + positive_class, 1, patch_literals, state.clause_outputs[clause_k]);                    
                     }
       
-                    if( u(state.rng) < prob_negative)
+                    if(state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate update_clause;
                         update_clause(state, clause_row, clause_weights + negative_class, -1, patch_literals, state.clause_outputs[clause_k]);

@@ -5,23 +5,9 @@ from contextlib import contextmanager
 import copy
 
 import numpy as np
-import green_tsetlin.py_gtc as py_gtc
 
 
-# import tests
-_backend_impl = "python"
-try:
-    import green_tsetlin_core as gtc
-    
-    try:
-        try:
-            gtc.ClauseBlockNeon
-        except AttributeError:
-            pass
-        
-except ImportError:
-    UserWarning("C++ backend (green_tsetlin_core) cannot be imported. Running in pure python mode.")
-    
+from green_tsetlin.backend import impl as _backend_impl
 
 
 
@@ -68,7 +54,6 @@ class TMState:
         tms.w = d["w"]
         tms.c = d["c"]
         return tms
-    
 
     def save_to_file(self, file_path) -> None:
         if not file_path.endswith(".npz"):
@@ -121,7 +106,7 @@ class TsetlinMachine:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
         
-        self._backend_clause_block_cls = py_gtc.ClauseBlock
+        self._backend_clause_block_cls = _backend_impl["cb"]
 
     def set_trainable_flags(self, trainable_flags:List[bool]):
         """

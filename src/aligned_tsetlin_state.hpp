@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <gt_common.hpp>
-
+#include <random_generator.hpp>
 
 namespace green_tsetlin
 {
@@ -42,6 +42,8 @@ namespace green_tsetlin
             int8_t gtcmp_for_s = 0;
 
             std::default_random_engine rng;
+            Wyhash64                   fast_rng;
+            
 
 
             inline void set_s(double s_param)
