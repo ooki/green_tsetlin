@@ -31,7 +31,7 @@ try:
     
     if gtc.has_avx2():
         impl["cb"] = gtc.ClauseBlockAVX2
-        impl["conv_cb"] = gtc.ClauseBlockConvAVX2
+        # impl["conv_cb"] = gtc.ClauseBlockConvAVX2 # fallback
         
     if gtc.has_neon():
         impl["cb"] = gtc.ClauseBlockNeon

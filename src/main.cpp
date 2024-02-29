@@ -9,7 +9,11 @@
 
 bool has_avx2()
 {
-    return false;
+    #ifdef USE_AVX2
+        return true;
+    #else
+        return false;
+    #endif
 }
 
 bool has_neon()
@@ -17,7 +21,7 @@ bool has_neon()
     return false;
 }
 
-// #include <executor.hpp>
+#include <random_generator.hpp>
 #include <input_block.hpp>
 #include <feedback_block.hpp>
 #include <clause_block.hpp>
@@ -40,7 +44,7 @@ typedef gt::Executor<true, BS::thread_pool> MultiThreadExecutor;
 
 //-------------------- Vanilla TM ---------------------
 
-typedef typename gt::AlignedTsetlinState VanillaTsetlinState;
+typedef typename gt::AlignedTsetlinState<-1,-1> VanillaTsetlinState;
 
 typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
                                     gt::Type1aFeedbackTM<VanillaTsetlinState>,
@@ -67,6 +71,7 @@ typedef typename gt::ClauseBlockT<
                                 >
                                 ClauseBlockTMImpl;
 
+//-------------------- Vanilla Conv TM ---------------------
 
 
 typedef typename gt::TrainUpdateConvTM<VanillaTsetlinState,
@@ -86,6 +91,43 @@ typedef typename gt::ClauseBlockT<
                                 >
                                 ClauseBlockConvTMImpl;
 
+
+//-------------------- AVX 2 TM ---------------------
+
+#ifdef USE_AVX2
+#include <func_avx2.hpp>
+
+
+typedef typename gt::AlignedTsetlinState<32, 256 / sizeof(gt::WeightInt)> TsetlinStateAVX2;
+
+typedef typename gt::ClauseUpdateAVX2<TsetlinStateAVX2,
+                                    gt::Type1aFeedbackAVX2<TsetlinStateAVX2>,
+                                    gt::Type1bFeedbackAVX2<TsetlinStateAVX2>,
+                                    gt::Type2FeedbackAVX2<TsetlinStateAVX2>>
+                                ClauseUpdateAVX2Impl;
+
+typedef typename gt::TrainUpdateAVX2<TsetlinStateAVX2,
+                                   ClauseUpdateAVX2Impl,
+                                   true > // do_literal_budget = true
+                                TrainUpdateAVX2Impl;
+
+
+typedef typename gt::ClauseBlockT<
+                                    TsetlinStateAVX2,
+                                    gt::InitializeAVX2<TsetlinStateAVX2, true, true>, // do_literal_budget = true, pad_class (weights) = true
+                                    gt::CleanupAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
+                                    gt::EvalClauseOutputAVX2<TsetlinStateAVX2>,
+                                    gt::CountVotesAVX2<TsetlinStateAVX2>,
+                                    TrainUpdateAVX2Impl,
+                                    DenseInputBlock8u
+                                >
+                                ClauseBlockAVX2Impl;
+
+
+
+
+#endif // USE_AVX2
 
 template<typename _T>
 void define_clause_block(py::module& m, const char* name)
@@ -196,6 +238,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     // Clause Block Impl's
     define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
     define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla TM with Convolutional TM
+    
+    define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
 
 
 

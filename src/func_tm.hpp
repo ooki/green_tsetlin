@@ -61,7 +61,7 @@ namespace green_tsetlin
                 const int num_weights_total = state.num_clauses * state.num_classes;
                 for(int k = 0; k < num_weights_total; ++k)
                 {
-                    if(dist(state.rng))
+                    if(state.fast_rng.next_u() > 0.5)
                         state.clause_weights[k] = 1;
                     else
                         state.clause_weights[k] = -1;

@@ -11,9 +11,14 @@
 
 namespace green_tsetlin
 {
+
+    template<int _literals_per_vector, int _outputs_per_vector>
     class AlignedTsetlinState
     {
         public:
+            constexpr const static int literals_per_vector = _literals_per_vector;
+            constexpr const static int outputs_per_vector = _outputs_per_vector;
+
             double s = -42.0;
             int num_clauses = 0;
             int num_classes = 0;
@@ -43,9 +48,11 @@ namespace green_tsetlin
 
             std::default_random_engine rng;
             Wyhash64                   fast_rng;
+
+            #ifdef USE_AVX2
+            XorShift128plus4G           avx2_rng;
+            #endif 
             
-
-
             inline void set_s(double s_param)
             {
                 s = s_param;
