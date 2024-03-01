@@ -16,6 +16,9 @@ namespace green_tsetlin
         public:                        
             bool operator()(_State& state, unsigned int seed)
             {
+                if(seed == 0)
+                    return false;
+                    
                 int clause_mem = state.num_clauses * state.num_literals * 2;
                 state.clauses = new int8_t[clause_mem];
 

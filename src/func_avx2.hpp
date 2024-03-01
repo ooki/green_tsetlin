@@ -22,6 +22,9 @@ namespace green_tsetlin
         public:                        
             bool operator()(_State& state, unsigned int seed)
             {            
+                if(seed == 0)
+                    return false;
+
                 state.avx2_rng.seed(seed);
                 state.fast_rng.seed(seed);
                 state.rng.seed(seed);
@@ -624,8 +627,7 @@ namespace green_tsetlin
                     _clause = _mm256_adds_epi8(_clause, _inc);
                     _mm256_store_si256((__m256i*)&clause_row[state.num_literals_mem + (n_chunks * 32)], _clause);
                 }
-                */
-                
+                */                
             }
     };
 

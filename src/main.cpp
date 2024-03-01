@@ -96,7 +96,7 @@ typedef typename gt::ClauseBlockT<
 
 #ifdef USE_AVX2
 #include <func_avx2.hpp>
-
+#include <func_conv_avx2.hpp>
 
 typedef typename gt::AlignedTsetlinState<32, 256 / sizeof(gt::WeightInt)> TsetlinStateAVX2;
 
@@ -114,7 +114,7 @@ typedef typename gt::TrainUpdateAVX2<TsetlinStateAVX2,
 
 typedef typename gt::ClauseBlockT<
                                     TsetlinStateAVX2,
-                                    gt::InitializeAVX2<TsetlinStateAVX2, true, true>, // do_literal_budget = true, pad_class (weights) = true
+                                    gt::InitializeAVX2<TsetlinStateAVX2, true, true>, // pad_class (weights) = true, do_literal_budget = true
                                     gt::CleanupAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
                                     gt::SetClauseOutputAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
                                     gt::EvalClauseOutputAVX2<TsetlinStateAVX2>,
@@ -125,6 +125,22 @@ typedef typename gt::ClauseBlockT<
                                 ClauseBlockAVX2Impl;
 
 
+typedef typename gt::TrainUpdateConvAVX2<TsetlinStateAVX2,
+                                   ClauseUpdateAVX2Impl,
+                                   true > // do_literal_budget = true
+                                TrainUpdateConvAVX2Impl;
+
+typedef typename gt::ClauseBlockT<
+                                    TsetlinStateAVX2,
+                                    gt::InitializeConvAVX2<TsetlinStateAVX2, true, true>, // pad_class (weights) = true, do_literal_budget = true
+                                    gt::CleanupConvAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
+                                    gt::SetClauseOutputConvAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
+                                    gt::EvalClauseOutputConvAVX2<TsetlinStateAVX2>,
+                                    gt::CountVotesAVX2<TsetlinStateAVX2>,
+                                    TrainUpdateConvAVX2Impl,
+                                    DenseInputBlock8u
+                                >
+                                ClauseBlockConvAVX2Impl;
 
 
 #endif // USE_AVX2
@@ -240,6 +256,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla TM with Convolutional TM
     
     define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
+    define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
 
 

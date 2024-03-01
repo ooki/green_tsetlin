@@ -22,6 +22,7 @@ namespace green_tsetlin
                     if(!f(state, seed))
                         return false;
                 }
+
                 state.active_patches = new uint32_t[state.num_clauses];
                 if(state.num_patches_per_example > 0)                
                     state.literal_counts_per_patch = new uint32_t[state.num_patches_per_example];     
