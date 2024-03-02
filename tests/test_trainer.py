@@ -6,6 +6,7 @@ import numpy as np
 
 import green_tsetlin as gt
 import green_tsetlin_core as gtc
+import green_tsetlin.py_gtc as py_gtc
 
 
 def test_trainer_throws_if_data_is_wrong_dtype():
@@ -125,10 +126,33 @@ def test_train_set_best_state_afterwards():
 
     assert tm._state is not None
     
+def test_pygtc_backend_set():
+    
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42    
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    
+    tm._backend_clause_block_cls = py_gtc.ClauseBlock
+    trainer._cls_feedback_block = py_gtc.FeedbackBlock
+    trainer._cls_dense_ib = py_gtc.DenseInputBlock
+    trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
+
+
+    print("BACKEND:")
+    print(tm._backend_clause_block_cls)
+    print(trainer._cls_feedback_block)
+    print(trainer._cls_dense_ib)
+    print(trainer._cls_exec_singlethread)
+
+    
 
 if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     #test_train_simple_xor()
     #test_train_set_best_state_afterwards()
-    test_train_simple_xor_backend()
+    test_pygtc_backend_set()
     print("<done: ", __file__, ">")

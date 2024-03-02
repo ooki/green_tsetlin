@@ -3,7 +3,7 @@
 
 
 class SingleThreadExecutor:
-    def __init__(self, ib, cbs, feedback_block, seed):
+    def __init__(self, ib, cbs, feedback_block, n_threads, seed):
         pass
     
     def train_epoch(self):
