@@ -1,5 +1,5 @@
-
-
+import numpy as np
+from sklearn.utils import shuffle
 
 
 class SingleThreadExecutor:
@@ -15,7 +15,35 @@ class SingleThreadExecutor:
         n_examples = self.get_number_of_examples_ready()
 
         # train.slice() is next
+        self.train_slice(0, n_examples)
     
+
+    def train_slice(self, start_index, end_index):
+        n_examples = self.get_number_of_examples_ready()
+
+        if (start_index == 0):
+            m_index_set = np.arange(n_examples)
+
+            # remember seed
+            np.random.shuffle(m_index_set)
+
+        for i in range(end_index):
+            self.m_feedback_block.reset()
+
+            example_index = m_index_set[i]
+
+            self.m_input_block.prepare_example(example_index)
+
+            for cb in self.m_clause_blocks:
+
+                if (0): # enable multithread
+                    pass
+                else:   
+                    cb.train_example()
+
+            assert False
+
+
     def eval_predict(self):
         pass
     

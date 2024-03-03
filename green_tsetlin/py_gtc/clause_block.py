@@ -39,3 +39,12 @@ class ClauseBlock:
         else:
             raise ValueError("DenseInputBlock object expected.")
 
+    def train_example(self):
+
+        self.pull_example()
+        # train_set_clause_output()
+        # set_votes()
+
+    def pull_example(self):
+        self.m_literals = self.m_input_block.pull_current_example()
+        
