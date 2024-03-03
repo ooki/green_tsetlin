@@ -148,7 +148,7 @@ def test_pygtc_backend_set():
     print(trainer._cls_dense_ib)
     print(trainer._cls_exec_singlethread)
 
-    
+    # TO DO: executor train_epoch -> train_slice
 
 if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
