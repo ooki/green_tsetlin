@@ -134,13 +134,15 @@ def test_pygtc_backend_set():
     s = 3.0
     threshold = 42    
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     
     tm._backend_clause_block_cls = py_gtc.ClauseBlock
+
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+
     trainer._cls_feedback_block = py_gtc.FeedbackBlock
     trainer._cls_dense_ib = py_gtc.DenseInputBlock
     trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
-
+    
 
     print("BACKEND:")
     print(tm._backend_clause_block_cls)
@@ -149,6 +151,11 @@ def test_pygtc_backend_set():
     print(trainer._cls_exec_singlethread)
 
     # TO DO: executor train_epoch -> train_slice
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+    r = trainer.train()    
+    print(r)
 
 if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()

@@ -1,14 +1,29 @@
 import numpy 
 from green_tsetlin.py_gtc.feedback_block import FeedbackBlock
 from green_tsetlin.py_gtc.dense_input_block import DenseInputBlock
-
+from green_tsetlin.py_gtc.py_tsetlin_machine import pyTsetlin
+import numpy as np 
 
 class ClauseBlock:
     def __init__(self, n_literals, n_clauses, n_classes):
-        pass
+        self.m_is_init = False
+        self.n_literals = n_literals
+        self.n_clauses = n_clauses
+        self.n_classes = n_classes
+
+        # this is not clear
+        self.state = pyTsetlin(n_literals,
+                               n_clauses,
+                               n_classes)
+    
     
     def initialize(self, seed):
-        pass
+        self.m_is_init = True
+        self.state.initialize(0)
+
+
+    def is_init(self):
+        return self.m_is_init
     
     def cleanup(self):
         pass
@@ -42,9 +57,16 @@ class ClauseBlock:
     def train_example(self):
 
         self.pull_example()
-        # train_set_clause_output()
-        # set_votes()
+        self.train_set_clause_output()
+        self.set_votes()
 
+    
     def pull_example(self):
         self.m_literals = self.m_input_block.pull_current_example()
-        
+    
+    def train_set_clause_output(self):
+        self.clause_outputs = self.state.set_clause_output(self.m_literals, 0)
+
+    def set_votes(self):
+        self.clause_votes = self.state.vote_counter(self.clause_outputs)
+        self.m_feedback_block.register_votes(self.clause_outputs)

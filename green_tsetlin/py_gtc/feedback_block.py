@@ -17,7 +17,13 @@ class FeedbackBlock:
         self.m_votes.fill(0)
 
 
+    def register_votes(self, class_votes):
+        self.m_votes = class_votes
     
+
+    def process(self):
+        pass
+
 
 class FeedbackBlockMultiLabel:
     def __init__(self, n_classes, threshold, seed):

@@ -38,10 +38,14 @@ class SingleThreadExecutor:
 
                 if (0): # enable multithread
                     pass
+
                 else:   
                     cb.train_example()
 
-            assert False
+            if (0): # enable multithread
+                pass
+
+            self.m_feedback_block.process()
 
 
     def eval_predict(self):

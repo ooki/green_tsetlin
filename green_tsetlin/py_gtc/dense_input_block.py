@@ -54,3 +54,7 @@ class DenseInputBlock:
 
     def pull_current_example(self):
         return self.m_current_example
+    
+
+    def initialize(self, seed):
+        pass
