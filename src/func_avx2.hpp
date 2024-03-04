@@ -434,6 +434,7 @@ namespace green_tsetlin
         public:
             void operator()(_State& state, int8_t* clause_row, WeightInt* clause_weight, int target, uint8_t* literals, ClauseOutputUint clause_output)
             {
+                
                 WeightInt sign = (*clause_weight) >= 0 ? +1 : -1;                
                 
                 if( (target * sign) > 0)
@@ -448,7 +449,7 @@ namespace green_tsetlin
                     else
                     {
                         _T1bFeedback t1b;
-                        t1b(state, clause_row, literals);      
+                        t1b(state, clause_row);
                     }
                 }
 
@@ -530,17 +531,22 @@ namespace green_tsetlin
     class Type1bFeedbackAVX2
     {
         public:
-            void operator()(_State& state, int8_t* clause_row, const uint8_t* literals_in)
+            void operator()(_State& state, int8_t* clause_row)
             {
-                 int8_t* clause = (int8_t*)__builtin_assume_aligned(clause_row, 32);
+
+                int8_t* clause = (int8_t*)__builtin_assume_aligned(clause_row, 32);
+
+  
 
                 __m256i _minus_one = _mm256_set1_epi8(-1);                
                 __m256i _cmp_s = _mm256_set1_epi8(state.gtcmp_for_s);
 
                 const int n_chunks = (state.num_literals_mem / state.literals_per_vector);
-                                
+
+                                         
                 for(int chunk_i = 0; chunk_i < n_chunks; ++chunk_i)
                 {
+                    //__m256i _clause = _mm256_load_si256((__m256i const*)&clause[chunk_i * state.literals_per_vector]);
                     __m256i _clause = _mm256_load_si256((__m256i const*)&clause[chunk_i * state.literals_per_vector]);
                     __m256i _rand = state.avx2_rng.next();
 

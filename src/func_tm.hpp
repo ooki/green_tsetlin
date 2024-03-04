@@ -277,7 +277,7 @@ namespace green_tsetlin
                     else
                     {
                         _T1bFeedback    t1b;
-                        t1b(state, clause_row, literals);
+                        t1b(state, clause_row);
                     }
                 }
                 else if((target * sign) < 0 && clause_output == 1)
@@ -360,7 +360,7 @@ namespace green_tsetlin
     class Type1bFeedbackTM
     {
         public:
-            void operator()(_State& state, int8_t* clause_row, uint8_t* literals)
+            void operator()(_State& state, int8_t* clause_row)
             {
                 std::uniform_real_distribution<double> u(0.0,1.0);
                 
