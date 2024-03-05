@@ -46,7 +46,8 @@ class SingleThreadExecutor:
             if (0): # enable multithread
                 pass
 
-            self.m_feedback_block.process()
+            # NEXT HERE, do training!
+            self.m_feedback_block.process(self.m_input_block.pull_current_label())
 
 
     def eval_predict(self):
