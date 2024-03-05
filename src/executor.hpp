@@ -110,7 +110,6 @@ namespace green_tsetlin
                 
                 for(int i = start_index; i < end_index; ++i)
                 {
-                    
                     m_feedback_block->reset();
                     int example_index = m_index_set[i];
 

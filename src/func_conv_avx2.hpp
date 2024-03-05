@@ -301,7 +301,7 @@ namespace green_tsetlin
             {
                 std::uniform_real_distribution<double> u(0.0,1.0);
 
-                const int n_features = state.num_literals * 2;
+                const int n_features = state.num_literals_mem * 2;
                 for(int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
                     int8_t* clause_row = &state.clauses[clause_k * n_features];
@@ -318,7 +318,7 @@ namespace green_tsetlin
                     if(state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, clause_row, clause_weights + positive_class, 1, patch_literals, state.clause_outputs[clause_k]);                    
+                        clause_update(state, clause_row, clause_weights + positive_class, 1, patch_literals, state.clause_outputs[clause_k]);                                            
                     }
       
                     if(state.fast_rng.next_u() < prob_negative)
