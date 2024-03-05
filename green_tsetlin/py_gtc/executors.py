@@ -16,7 +16,8 @@ class SingleThreadExecutor:
 
         # train.slice() is next
         self.train_slice(0, n_examples)
-    
+
+        return self.m_feedback_block.get_train_accuracy()
 
     def train_slice(self, start_index, end_index):
         n_examples = self.get_number_of_examples_ready()
@@ -49,7 +50,20 @@ class SingleThreadExecutor:
 
 
     def eval_predict(self):
-        pass
+        n_examples = self.get_number_of_examples_ready()
+        
+        outputs = np.zeros(n_examples, dtype=np.int32)
+
+        for i in range(n_examples):
+
+            self.m_feedback_block.reset()
+            self.m_input_block.prepare_example(i)
+
+            for cb in self.m_clause_blocks:
+                cb.eval_example()
+
+
+        return outputs
     
     def eval_predict_multi(self):
         pass

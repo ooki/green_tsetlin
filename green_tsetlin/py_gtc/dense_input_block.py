@@ -51,6 +51,7 @@ class DenseInputBlock:
             self.m_current_label = self.m_labels[index*self.m_num_labels_per_example] # unsure about this, stems to id.set_data() m_lable and m_data
 
         self.m_current_example = self.m_data[index*self.m_num_labels_per_example] # unsure about this, stems to id.set_data() m_lable and m_data
+        
 
     def pull_current_example(self):
         return self.m_current_example

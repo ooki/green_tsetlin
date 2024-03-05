@@ -19,7 +19,7 @@ class ClauseBlock:
     
     def initialize(self, seed):
         self.m_is_init = True
-        self.state.initialize(0)
+        self.state.initialize(seed=0)
 
 
     def is_init(self):
@@ -34,6 +34,7 @@ class ClauseBlock:
     def set_literal_budget(self, budget):
         pass
 
+    
 
     def set_feedback(self, feedback_block):
 
@@ -60,6 +61,11 @@ class ClauseBlock:
         self.train_set_clause_output()
         self.set_votes()
 
+    def eval_example(self):
+        self.pull_example()
+        self.eval_set_clause_output()
+        self.set_votes()
+
     
     def pull_example(self):
         self.m_literals = self.m_input_block.pull_current_example()
@@ -67,6 +73,19 @@ class ClauseBlock:
     def train_set_clause_output(self):
         self.clause_outputs = self.state.set_clause_output(self.m_literals, 0)
 
+    def eval_set_clause_output(self):
+        self.clause_outputs = self.state.eval_clause_output(self.m_literals, 0)
+        
+
     def set_votes(self):
         self.clause_votes = self.state.vote_counter(self.clause_outputs)
         self.m_feedback_block.register_votes(self.clause_outputs)
+
+    def get_clause_state(self, c_copy, clause_offset):
+        np.copyto(c_copy, self.state.get_clause_state())
+
+    def get_clause_weights(self, w_copy, clause_offset):
+        np.copyto(w_copy, self.state.get_clause_weights())
+
+    def get_number_of_clauses(self):
+        return self.state.n_clauses

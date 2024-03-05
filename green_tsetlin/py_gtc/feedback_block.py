@@ -23,7 +23,12 @@ class FeedbackBlock:
 
     def process(self):
         pass
-
+    
+    def get_train_accuracy(self):
+        if(self.m_total_train_predict > 0.0):
+            return self.m_correct_train_predict / self.m_total_train_predict
+        
+        return 0.0
 
 class FeedbackBlockMultiLabel:
     def __init__(self, n_classes, threshold, seed):
