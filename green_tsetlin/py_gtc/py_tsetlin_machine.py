@@ -12,6 +12,7 @@ class pyTsetlin:
         self.clauses = None
         self.clause_weights = None
 
+        self.literal_counts = np.zeros(self.n_clauses, dtype=np.int32)
 
     def initialize(self, seed):
         
@@ -22,8 +23,40 @@ class pyTsetlin:
 
     def set_clause_output(self, m_literals, seed):
 
-        # temp
-        return np.zeros(self.n_clauses, dtype=np.uint8)
+        clause_outputs = np.zeros(self.n_clauses, dtype=np.uint8)
+        
+        for clause_k in range(self.n_clauses):
+
+            pos_literal_count = 0
+            neg_literal_count = 0
+            
+            clause_outputs[clause_k] = 1
+
+
+            for idx in range(self.n_literals):
+                # pos side
+                if(self.clauses[clause_k][idx] > 0):
+                    if(m_literals[idx] == 0):
+                        clause_outputs[clause_k] = 0
+                        break
+
+                    if(0): # do_literal_budget
+                        pos_literal_count += 1
+
+                # neg side
+                if(self.clauses[clause_k][idx + self.n_literals] > 0):
+                    if(m_literals[idx] == 1): 
+                        clause_outputs[clause_k] = 0
+                        break
+
+                    if(0): # do_literal_budget
+                        neg_literal_count += 1
+
+
+            if(0): # do_literal_budget
+                self.literal_counts[clause_k] = pos_literal_count + neg_literal_count
+        # return if clause evaluates to possitie or negative based on literals
+        return clause_outputs
     
 
     def eval_clause_output(self, m_literals, seed):
