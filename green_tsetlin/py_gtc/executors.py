@@ -8,7 +8,23 @@ class SingleThreadExecutor:
         self.m_clause_blocks = cbs
         self.m_feedback_block = feedback_block
         self.m_num_threads = n_threads
-    
+
+        self.m_trainable_clause_blocks = [] 
+
+        for cb in self.m_clause_blocks:
+
+            if(not cb.is_init()):
+                raise RuntimeError("All ClauseBlocks must be init() before constructing an Executor()")
+            if(cb.get_input_block() is None):
+                raise RuntimeError("All ClauseBlocks must be have a InputBlock before constructing an Executor()")
+            if(cb.get_feedback() is None):
+                raise RuntimeError("All ClauseBlocks must be have a FeedbackBlock before constructing an Executor()")
+
+            if(cb.is_trainable()):
+                self.m_trainable_clause_blocks.append(cb) # unsure
+
+
+
 
     def train_epoch(self):
         self.m_feedback_block.reset_train_predict_counter()
@@ -48,7 +64,24 @@ class SingleThreadExecutor:
 
             # NEXT HERE, do training!
             self.m_feedback_block.process(self.m_input_block.pull_current_label())
+            positive_class = self.m_feedback_block.get_positive_class()
+            negative_class = self.m_feedback_block.get_negative_class()
+            pup = self.m_feedback_block.get_positive_update_probability()                  
+            nup = self.m_feedback_block.get_negative_update_probability()
 
+
+            # Do all the rest of cb prep first!
+
+            for cb in self.m_trainable_clause_blocks:
+
+                if(not cb.is_trainable()): # always false?
+                    continue
+
+                if(0): # enable multithread
+                    pass
+
+                else:
+                    cb.train_update(positive_class, pup, negative_class, nup)
 
     def eval_predict(self):
         n_examples = self.get_number_of_examples_ready()
@@ -63,6 +96,7 @@ class SingleThreadExecutor:
             for cb in self.m_clause_blocks:
                 cb.eval_example()
 
+            outputs[i] = self.m_feedback_block.predict()
 
         return outputs
     

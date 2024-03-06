@@ -126,7 +126,7 @@ def test_train_set_best_state_afterwards():
 
     assert tm._state is not None
     
-def test_pygtc_backend_set():
+def test_train_simple_xor_py_gtc():
     
     n_literals = 7
     n_clauses = 5
@@ -143,14 +143,12 @@ def test_pygtc_backend_set():
     trainer._cls_dense_ib = py_gtc.DenseInputBlock
     trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
     
-
     print("BACKEND:")
     print(tm._backend_clause_block_cls)
     print(trainer._cls_feedback_block)
     print(trainer._cls_dense_ib)
     print(trainer._cls_exec_singlethread)
 
-    # TO DO: executor train_epoch -> train_slice
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
@@ -161,5 +159,5 @@ if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     #test_train_simple_xor()
     #test_train_set_best_state_afterwards()
-    test_pygtc_backend_set()
+    test_train_simple_xor_py_gtc()
     print("<done: ", __file__, ">")
