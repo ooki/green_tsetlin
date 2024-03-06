@@ -21,16 +21,22 @@ def test_init():
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
     trainer.train()
-    
-    predictor = gt.Predictor.create(tm)
-    
 
-    
-    
-    
-    
+    # B
+    predictor = tm.get_predictor(explanation="none")
+    #predictor.set_names(["the", "cat", "dog", "likes"])
+    #predictor.set_names(vocabulary.get_feature_names())
+    #predictor.set_target_names(["no", "yes"])
+
+
+    y_hat = predictor.predict([0,1,1,1])
+    print(y_hat)
+
+    #y_hat, expl = predictor.explain([0,1,1,1])
 
 
 
 if __name__ == "__main__":
     test_init()
+    print("<done tests:", __file__, ">")
+

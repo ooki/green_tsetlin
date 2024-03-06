@@ -29,8 +29,8 @@ bool has_neon()
 #include <func_tm.hpp>
 #include <func_conv_tm.hpp>
 #include <executor.hpp>
-
-#include <sparse_tsetlin_state.hpp> // should prob be included via func_sprase
+#include <inference.hpp>
+#include <func_sparse.hpp> 
 
 namespace py = pybind11;
 namespace gt = green_tsetlin;
@@ -163,6 +163,27 @@ void define_clause_block(py::module& m, const char* name)
         .def("get_clause_weights", &_T::get_clause_weights_npy);
 }
 
+
+template<typename _T, bool _feature_importance, bool _literal_importance, bool _exclude_negative_clauses>
+void define_inference(py::module& m, const char* name)
+{
+    py::class_<_T, _feature_importance, _literal_importance, _exclude_negative_clauses>(m, name)
+        .def(py::init<int, int, int, int>())
+        .def("set_rules", &_T::set_rules)
+        .def("set_features", &_T::set_features)
+
+        .def("set_empty_class_output", &_T::set_empty_class_output)
+        .def("get_empty_class_output", &_T::get_empty_class_output)
+
+        .def("predict", &_T::predict_npy)
+
+        .def("get_votes", &_T::get_votes_npy)
+        .def("get_active_clauses", &_T::get_active_clauses_npy)
+        .def("calculate_importance_npy", &_T::calculate_importance_npy)
+}
+
+
+
 PYBIND11_MODULE(green_tsetlin_core, m) {
 
     m.doc() = R"pbdoc(
@@ -260,6 +281,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_feedback", &gt::ClauseBlock::set_feedback);
     ;
 
+
+
     
 
     // Clause Block Impl's
@@ -268,6 +291,10 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     
     define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
+
+
+    //define_inference<gt::Inference<false, false, false>(m, "Inference_F0_L0_W0"); // Feature Importance : 0 , Literal Importance : 0, Exclude Negative Clauses : 0
+
 
 
 

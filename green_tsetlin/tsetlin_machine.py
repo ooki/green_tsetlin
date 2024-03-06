@@ -6,9 +6,8 @@ import copy
 
 import numpy as np
 
-
+import green_tsetlin as gt
 from green_tsetlin.backend import impl as _backend_impl
-
 
 
 class TMState:
@@ -74,8 +73,7 @@ class TsetlinMachine:
         self.n_clauses = n_clauses
         self.n_classes = n_classes
         self._cbs : list = None
-        self._state : TMState = None
-                
+        self._state : TMState = None                
                             
         if literal_budget is None:
             literal_budget = 32700
@@ -281,6 +279,21 @@ class TsetlinMachine:
             self._cbs.append(cb)
         
         return copy.copy(self._cbs)
+    
+
+    def get_predictor(self, explanation: str = "none") -> "gt.Predictor":
+
+        rs = gt.ruleset.RuleSet(is_multi_label=self._is_multi_label)
+        rs.compile_from_dense_state(self._state)
+        
+        predictor = gt.Predictor(self._is_multi_label, explanation=explanation)
+        predictor._ruleset = rs
+
+        return predictor
+
+
+
+
     
     
 

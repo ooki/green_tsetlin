@@ -8,7 +8,7 @@
 
 from green_tsetlin.tsetlin_machine import TsetlinMachine, TMState, allocate_clause_blocks
 from green_tsetlin.trainer import Trainer
-from green_tsetlin.predict import Predictor
+from green_tsetlin.predictor import Predictor
 
 import green_tsetlin.dataset_generator as dataset_generator
 
