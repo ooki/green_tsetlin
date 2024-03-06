@@ -30,12 +30,15 @@ bool has_neon()
 #include <func_conv_tm.hpp>
 #include <executor.hpp>
 
+#include <sparse_tsetlin_state.hpp> // should prob be included via func_sprase
+
 namespace py = pybind11;
 namespace gt = green_tsetlin;
 
 
 //-------------------- Input Blocks ---------------------
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
+typedef typename gt::SparseInputBlock<gt::SparseLiterals>   SparseInputBlock8u;
 
 //-------------------- Executors ---------------------
 typedef gt::Executor<false, gt::DummyThreadPool> SingleThreadExecutor;
@@ -47,7 +50,7 @@ typedef gt::Executor<true, BS::thread_pool> MultiThreadExecutor;
 typedef typename gt::AlignedTsetlinState<-1,-1> VanillaTsetlinState;
 
 typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
-                                    gt::Type1aFeedbackTM<VanillaTsetlinState>,
+                                    gt::Type1aFeedbackTM<VanillaTsetlinState, false>, // boost_true_positive = false
                                     gt::Type1bFeedbackTM<VanillaTsetlinState>,
                                     gt::Type2FeedbackTM<VanillaTsetlinState>>
                                 ClauseUpdateTMImpl;
@@ -187,9 +190,17 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("get_number_of_examples", &gt::InputBlock::get_number_of_examples)
     ;
 
+    
+    
+
     py::class_<DenseInputBlock8u, gt::InputBlock>(m, "DenseInputBlock")
         .def(py::init<int>())
         .def("set_data", &DenseInputBlock8u::set_data)
+    ;
+
+    py::class_<SparseInputBlock8u, gt::InputBlock>(m, "SparseInputBlock")
+        .def(py::init<int>())
+        .def("set_data", &SparseInputBlock8u::set_data)
     ;
 
     m.def("im2col", &gt::tsetlin_im2col);

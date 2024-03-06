@@ -290,14 +290,12 @@ namespace green_tsetlin
             }
     };
 
-    template <typename _State>
+    template <typename _State, bool boost_true_positive>
     class Type1aFeedbackTM
     {
         public:
             void operator()(_State& state, int8_t* clause_row, uint8_t* literals)
             {
-                constexpr bool use_boost_true_positive = false;
-
                 std::uniform_real_distribution<double> u(0.0,1.0);
                 
                 const double s_inv = (1.0 / state.s);
@@ -314,7 +312,7 @@ namespace green_tsetlin
                     {
                         
                         // POS 2
-                        if(use_boost_true_positive)
+                        if(boost_true_positive)
                         {
                             if(clause_row[literal_k] < upper_state)
                                 clause_row[literal_k] += 1;
