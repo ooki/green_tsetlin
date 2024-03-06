@@ -84,8 +84,12 @@ def test_train_simple_xor():
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
-    r = trainer.train()    
-    print(r)
+    trainer.train()    
+    
+    
+    
+    
+    
     
     
 def test_train_simple_xor_backend():
