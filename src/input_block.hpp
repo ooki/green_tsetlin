@@ -80,10 +80,8 @@ namespace green_tsetlin
 
             virtual void prepare_example(int index)
             {
-                if(m_labels != nullptr)
-                {                                            
-                    m_current_label = &m_labels[index*m_num_labels_per_example];
-                }
+                if(m_labels != nullptr)                                      
+                    m_current_label = &m_labels[index*m_num_labels_per_example];                
                     
                 memcpy(m_current_example, &m_data[index * m_num_literals], m_num_literals);
             }
@@ -137,11 +135,6 @@ namespace green_tsetlin
                 }
             }
 
-            virtual bool is_label_block() const
-            {
-                return m_labels != nullptr;
-            }
-
         protected:
             int m_num_literals;
             int m_num_examples;
@@ -154,6 +147,110 @@ namespace green_tsetlin
             example_type*               m_current_example = nullptr;
             uint32_t*                   m_current_label;
     };
+
+
+    template <typename _ExampleType>
+    class SparseInputBlock : public InputBlock
+    {
+        public:
+            typedef _ExampleType example_type;
+
+            SparseInputBlock(int num_literals)
+            {   
+                const int align_to = 32;
+
+                m_num_literals = num_literals;
+                m_align_example_to = align_to;                
+                                             
+                m_num_examples = 0;
+                m_num_labels_per_example = 0;
+                m_labels = nullptr;
+                m_indices = nullptr;
+                m_indptr = nullptr;
+                
+                m_current_example.reserve(num_literals); // TODO: do we need to have memory alloc for a full example here if it is sparse?
+            }
+
+            virtual ~SparseInputBlock()
+            {            
+            }
+
+            virtual int get_number_of_examples() const 
+            {
+                return m_num_examples;
+            }
+
+            virtual void prepare_example(int index)
+            {
+                if(m_labels != nullptr)
+                    m_current_label = &m_labels[index*m_num_labels_per_example];
+
+                m_current_example.clear();
+
+                const int32_t row_end = m_indptr[index+1];
+                for(int32_t row_iter = m_indptr[index]; row_iter < row_end; row_iter++)
+                {
+                    // change here if you change SparseLiteral def (top of sparse_tsetlin_state.hpp)
+                    
+                    m_current_example.push_back(m_indices[row_iter]); // vector 
+                    // m_current_example.insert(m_indices[row_iter]); // unordered_map
+                }
+                    
+            }
+
+            _ExampleType* pull_current_example()
+            {
+                return &m_current_example;
+            }
+
+            virtual const uint32_t* pull_current_label() const
+            {
+                return m_current_label;
+            }
+
+            void set_data(pybind11::array indices, pybind11::array indptr, pybind11::array labels)
+            {
+                // 
+                pybind11::buffer_info indices_info = indices.request();                            
+                m_indices = static_cast<int32_t*>(indices_info.ptr);
+
+                pybind11::buffer_info indptr_info = indptr.request();                            
+                std::vector<ssize_t> shape_indptr = indptr_info.shape;
+
+                m_num_examples = shape_indptr[0] - 1;
+                m_indptr = static_cast<int32_t*>(indptr_info.ptr);
+
+                // labels
+                pybind11::buffer_info buffer_info2 = labels.request();                            
+                std::vector<ssize_t> shape2 = buffer_info2.shape;      
+                
+                if(shape2[0] != m_num_examples)
+                    throw std::runtime_error("Number of examples in labeles does not match number of examples provided in set_data().");
+                
+                //std::cout << "shape2.size(): " << shape2.size() << "  [0] = " << shape2[0] << std::endl;
+                if(shape2.size() == 1)                    
+                    m_num_labels_per_example = 1;                    
+                else                    
+                    m_num_labels_per_example = shape2[1];
+                
+                m_labels = static_cast<uint32_t*>(buffer_info2.ptr);
+            
+            }
+            
+        protected:
+            int m_num_literals;
+            int m_num_examples;
+            int m_align_example_to;            
+            int m_num_labels_per_example;
+
+            int32_t*                    m_indices;
+            int32_t*                    m_indptr;
+            uint32_t*                   m_labels;
+
+            example_type               m_current_example;
+            uint32_t*                  m_current_label;
+    };
+
 
     inline uint8_t* cumlative_encode(uint8_t* out, uint32_t number, uint32_t size)
     {

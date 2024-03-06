@@ -114,7 +114,7 @@ class RulePredictor:
         if self.multi_label is True:
             self.n_classes = self.n_classes // 2
 
-                
+
         if self.empty_class_output is None:
             self.empty_class_output = self._inference.get_empty_class_output()                                        
         else:
