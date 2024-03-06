@@ -23,7 +23,7 @@ class ClauseBlock:
     
     def initialize(self, seed):
         self.m_is_init = True
-        self.state.initialize(seed=0)
+        self.state.initialize(seed=seed)
 
     def is_init(self):
         return self.m_is_init

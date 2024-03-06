@@ -4,6 +4,9 @@ from sklearn.utils import shuffle
 
 class SingleThreadExecutor:
     def __init__(self, ib, cbs, feedback_block, n_threads, seed):
+
+        self.rng = np.random.default_rng(seed)
+
         self.m_input_block = ib
         self.m_clause_blocks = cbs
         self.m_feedback_block = feedback_block
@@ -42,7 +45,7 @@ class SingleThreadExecutor:
             m_index_set = np.arange(n_examples)
 
             # remember seed
-            np.random.shuffle(m_index_set)
+            self.rng.shuffle(m_index_set)
 
         for i in range(end_index):
             self.m_feedback_block.reset()

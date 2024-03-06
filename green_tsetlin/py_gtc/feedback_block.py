@@ -3,12 +3,12 @@ import numpy as np
 class FeedbackBlock:
     def __init__(self, n_classes, threshold, seed):
         
+        self.rng = np.random.default_rng(seed)
 
         self.m_n_classes = n_classes
         self.threshold = threshold
         self.m_update_probability = np.zeros(n_classes, dtype=np.float32);     
         self.m_votes = np.zeros(n_classes, dtype=np.int32)
-
 
     def reset_train_predict_counter(self):
         self.m_correct_train_predict = 0.0
@@ -49,7 +49,7 @@ class FeedbackBlock:
         self.m_update_probability[self.positive_class] = 0.0
 
         # neg class FNS
-        self.negative_class = np.random.choice(self.m_n_classes, p=self.m_update_probability / self.m_update_probability.sum())
+        self.negative_class = self.rng.choice(self.m_n_classes, p=self.m_update_probability / self.m_update_probability.sum())
         self.m_update_prob_negative =  self.m_update_probability[self.negative_class]
 
         # pos class

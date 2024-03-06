@@ -16,8 +16,10 @@ class pyTsetlinState:
 
     def initialize(self, seed):
         
-        self.clauses = np.random.choice(np.array([-1, 0]), size=(self.n_clauses, self.n_literals*2), replace=True).astype(np.int8)
-        self.clause_weights = np.random.choice(np.array([-1, 1]), size=(self.n_clauses, self.n_classes), replace=True).astype(np.int8)
+        self.rng = np.random.default_rng(seed)
+
+        self.clauses = self.rng.choice(np.array([-1, 0]), size=(self.n_clauses, self.n_literals*2), replace=True).astype(np.int8)
+        self.clause_weights = self.rng.choice(np.array([-1, 1]), size=(self.n_clauses, self.n_classes), replace=True).astype(np.int8)
 
 
 
@@ -95,10 +97,10 @@ class pyTsetlinState:
             if(0): # do_literal_budget
                 pass
 
-            if(np.random.random() < prob_positive):                           # * n_classes] + positive_class?
+            if(self.rng.random() < prob_positive):                           # * n_classes] + positive_class?
                 self.update_clause(self.clauses[clause_k], self.clause_weights[clause_k], 1, literals, clause_outputs[clause_k], positive_class)
 
-            if(np.random.random() < prob_negative):                           # * n_classes] + negative_class?
+            if(self.rng.random() < prob_negative):                           # * n_classes] + negative_class?
                 self.update_clause(self.clauses[clause_k], self.clause_weights[clause_k], -1, literals, clause_outputs[clause_k], negative_class)
 
     
@@ -139,23 +141,23 @@ class pyTsetlinState:
                         clause_row[literal_k] += 1
                 # pos 1        
                 else:
-                    if(np.random.random() <= s_min1_inv):
+                    if(self.rng.random() <= s_min1_inv):
                         if(clause_row[literal_k] < upper_state):
                             clause_row[literal_k] += 1
                 
                 # neg 1
-                if(np.random.random() <= s_inv):
+                if(self.rng.random() <= s_inv):
                     if(clause_row[literal_k + self.n_literals] > lower_state):
                         clause_row[literal_k + self.n_literals] -= 1
             
             else:
                 # neg 2
-                if(np.random.random() <= s_inv):
+                if(self.rng.random() <= s_inv):
                     if(clause_row[literal_k] > lower_state):
                         clause_row[literal_k] -= 1
 
                 # pos 2
-                if(np.random.random() <= s_min1_inv):
+                if(self.rng.random() <= s_min1_inv):
                     if(clause_row[literal_k + self.n_literals] < upper_state):
                         clause_row[literal_k + self.n_literals] += 1
 
@@ -168,12 +170,12 @@ class pyTsetlinState:
         for literal_k in range(self.n_literals):
 
             # pos 1
-            if(np.random.random() <= s_inv):
+            if(self.rng.random() <= s_inv):
                 if(clause_row[literal_k] > lower_state):
                     clause_row[literal_k] -= 1
             
             # neg 1 
-            if(np.random.random() <= s_inv):
+            if(self.rng.random() <= s_inv):
                 if(clause_row[literal_k + self.n_literals] > lower_state):
                     clause_row[literal_k + self.n_literals] -= 1
 
