@@ -11,8 +11,8 @@ class pyTsetlinState:
 
         self.clauses = None
         self.clause_weights = None
-
-        self.literal_counts = np.zeros(self.n_clauses, dtype=np.int32)
+        self.literal_budget = None
+        self.do_literal_budget = True
 
     def initialize(self, seed):
         
@@ -20,6 +20,20 @@ class pyTsetlinState:
 
         self.clauses = self.rng.choice(np.array([-1, 0]), size=(self.n_clauses, self.n_literals*2), replace=True).astype(np.int8)
         self.clause_weights = self.rng.choice(np.array([-1, 1]), size=(self.n_clauses, self.n_classes), replace=True).astype(np.int8)
+        
+        self.class_votes = np.zeros(self.n_classes, dtype=np.int32)
+        self.literal_counts = np.zeros(self.n_clauses, dtype=np.int32)
+        
+        if(self.literal_budget is None or self.literal_budget == 32700):
+            self.do_literal_budget = False
+
+    def cleanup(self):
+        self.clauses = None
+        self.clause_weights = None
+        self.class_votes = np.zeros(self.n_classes, dtype=np.int32)
+
+        if(self.do_literal_budget):
+            self.literal_counts = np.zeros(self.n_clauses, dtype=np.int32)
 
 
 
@@ -43,7 +57,7 @@ class pyTsetlinState:
                         clause_outputs[clause_k] = 0
                         break
 
-                    if(0): # do_literal_budget
+                    if(self.do_literal_budget): # do_literal_budget
                         pos_literal_count += 1
 
                 # neg side
@@ -52,11 +66,11 @@ class pyTsetlinState:
                         clause_outputs[clause_k] = 0
                         break
 
-                    if(0): # do_literal_budget
+                    if(self.do_literal_budget): # do_literal_budget
                         neg_literal_count += 1
 
 
-            if(0): # do_literal_budget
+            if(self.do_literal_budget): # do_literal_budget
                 self.literal_counts[clause_k] = pos_literal_count + neg_literal_count
 
         return clause_outputs
@@ -94,8 +108,10 @@ class pyTsetlinState:
 
         for clause_k in range(self.n_clauses):
 
-            if(0): # do_literal_budget
-                pass
+            if(self.do_literal_budget): # do_literal_budget
+                if(self.literal_counts[clause_k] > self.literal_budget):
+                    clause_outputs[clause_k] = 0
+                    
 
             if(self.rng.random() < prob_positive):                           # * n_classes] + positive_class?
                 self.update_clause(self.clauses[clause_k], self.clause_weights[clause_k], 1, literals, clause_outputs[clause_k], positive_class)

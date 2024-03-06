@@ -41,14 +41,15 @@ class ClauseBlock:
         return self.m_is_trainable
 
     def cleanup(self):
-        pass
+        
+        self.state.cleanup()
+        self.m_is_init = False
     
     def set_s(self, s):
         self.state.s = s
-        self.s = s
     
     def set_literal_budget(self, budget):
-        pass
+        self.state.literal_budget = budget
 
     
     def set_feedback(self, feedback_block):
