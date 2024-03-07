@@ -213,7 +213,7 @@ namespace green_tsetlin
                         int active_literals = 0;
                         for(int chunk_i = 0; chunk_i < n_chunks; ++chunk_i)
                         {
-                            __m256i _literals = _mm256_load_si256((__m256i const*)&literals[chunk_i * 32]);                        
+                            __m256i _literals = _mm256_load_si256((__m256i const*)&curr_literal[chunk_i * 32]);                        
                             __m256i _clauses = _mm256_load_si256((__m256i const*)&clause_row[chunk_i * 32]);
                             __m256i _not_active = _mm256_cmpgt_epi8(_zeros, _clauses);
 

@@ -13,7 +13,7 @@ def test_train_simple_xor():
     def inject_conv_tm(a,b,c):
         #cb = gtc.ClauseBlockConvTM(a,b,c)
         cb = gtc.ClauseBlockConvAVX2(a,b,c)
-        cb.set_number_of_patches_per_example(2)
+        cb.set_number_of_patches_per_example(1)
         return cb
 
     n_literals = 7
