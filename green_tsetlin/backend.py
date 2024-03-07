@@ -29,7 +29,6 @@ try:
     impl["sparse_input"] = gtc.SparseInputBlock
 
     impl["Inference8u_Ff_Lf_Wf"] = gtc.Inference8u_Ff_Lf_Wf
-    impl["Inference8u_Ff_Lf_Wt"] = gtc.Inference8u_Ff_Lf_Wt
     impl["Inference8u_Ff_Lt_Wf"] = gtc.Inference8u_Ff_Lt_Wf
     impl["Inference8u_Ff_Lt_Wt"] = gtc.Inference8u_Ff_Lt_Wt
     impl["Inference8u_Ft_Lf_Wf"] = gtc.Inference8u_Ft_Lf_Wf
