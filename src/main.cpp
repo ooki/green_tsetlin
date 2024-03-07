@@ -3,6 +3,10 @@
 #include <pybind11/stl_bind.h>
 
 
+PYBIND11_MAKE_OPAQUE(std::vector<int>);
+PYBIND11_MAKE_OPAQUE(std::vector<double>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<int>>);
+
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -197,6 +201,11 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
            A impl. of the Tsetlin Machine
     )pbdoc";
 
+    py::bind_vector<std::vector<int>>(m, "VectorInt");
+    py::bind_vector<std::vector<std::vector<int>>>(m, "VectorVectorInt");
+    py::bind_vector<std::vector<double>>(m, "VectorDouble");
+
+
     // hw info
     // m.def("get_recommended_number_of_threads", &gt::get_recommended_number_of_threads);
 
@@ -290,7 +299,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
 
     typedef typename gt::Inference<uint8_t, false, false, false>    Inference8u_Ff_Lf_Wf;
-    typedef typename gt::Inference<uint8_t, false, false, true>     Inference8u_Ff_Lf_Wt;
+    // typedef typename gt::Inference<uint8_t, false, false, true>     Inference8u_Ff_Lf_Wt; // does not make sense
     typedef typename gt::Inference<uint8_t, false, true, false>     Inference8u_Ff_Lt_Wf;
     typedef typename gt::Inference<uint8_t, false, true, true>      Inference8u_Ff_Lt_Wt;
     typedef typename gt::Inference<uint8_t, true, false, false>     Inference8u_Ft_Lf_Wf;
@@ -298,7 +307,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     typedef typename gt::Inference<uint8_t, true, true, false>      Inference8u_Ft_Lt_Wf;
     typedef typename gt::Inference<uint8_t, true, true, true>       Inference8u_Ft_Lt_Wt;    
     define_inference_module<Inference8u_Ff_Lf_Wf>(m, "Inference8u_Ff_Lf_Wf"); // Feature Importance : false , Literal Importance : false, Exclude Negative Clauses : false
-    define_inference_module<Inference8u_Ff_Lf_Wt>(m, "Inference8u_Ff_Lf_Wt"); 
+    // define_inference_module<Inference8u_Ff_Lf_Wt>(m, "Inference8u_Ff_Lf_Wt"); 
     define_inference_module<Inference8u_Ff_Lt_Wf>(m, "Inference8u_Ff_Lt_Wf"); 
     define_inference_module<Inference8u_Ff_Lt_Wt>(m, "Inference8u_Ff_Lt_Wt"); 
     define_inference_module<Inference8u_Ft_Lf_Wf>(m, "Inference8u_Ft_Lf_Wf"); 
