@@ -31,6 +31,7 @@ bool has_neon()
 #include <executor.hpp>
 #include <inference.hpp>
 #include <func_sparse.hpp> 
+#include <sparse_tsetlin_state.hpp>
 
 namespace py = pybind11;
 namespace gt = green_tsetlin;
@@ -94,6 +95,35 @@ typedef typename gt::ClauseBlockT<
                                 >
                                 ClauseBlockConvTMImpl;
 
+
+//-------------------- Sparse TM --------------------- tentative
+
+typedef typename gt::SparseTsetlinState SparseTsetlinState;
+
+typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
+                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, false>, // boost_true_positive = false
+                                    gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
+                                    gt::Type2FeedbackSparseTM<SparseTsetlinState>>
+                                ClauseUpdateSparseTMImpl;
+
+
+typedef typename gt::TrainUpdateSparseTM<SparseTsetlinState,
+                                   ClauseUpdateSparseTMImpl,
+                                   true > // do_literal_budget = true
+                                TrainUpdateSparseTMImpl;
+
+typedef typename gt::ClauseBlockT<
+                                    SparseTsetlinState,
+                                    gt::InitializeSparseTM<SparseTsetlinState, true>,       // do_literal_budget = true
+                                    gt::CleanupSparseTM<SparseTsetlinState, true>,          // do_literal_budget = true
+                                    gt::SetClauseOutputSparseTM<SparseTsetlinState, true>,  // do_literal_budget = true
+                                    gt::EvalClauseOutputSparseTM<SparseTsetlinState>,
+                                    gt::CountVotesSparseTM<SparseTsetlinState>,
+                                    TrainUpdateSparseTMImpl,
+                                    SparseInputBlock32u
+                                    >
+                                ClauseBlockSparseImpl;
+ 
 
 //-------------------- AVX 2 TM ---------------------
 
@@ -287,6 +317,9 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     
     define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
+
+    // Sparse TM tentative
+    define_clause_block<ClauseBlockSparseImpl>(m, "ClauseBlockSparse"); // Sparse TM
 
 
     typedef typename gt::Inference<uint8_t, false, false, false>    Inference8u_Ff_Lf_Wf;
