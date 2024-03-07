@@ -150,7 +150,7 @@ namespace green_tsetlin
                 return best_k;
             }
 
-            void calculate_importance(uint32_t y, bool normalize)
+            void calculate_importance(uint32_t y)
             {
                 std::fill(m_importance.begin(), m_importance.end(), 0);
 

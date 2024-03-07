@@ -38,7 +38,7 @@ namespace gt = green_tsetlin;
 
 //-------------------- Input Blocks ---------------------
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
-typedef typename gt::SparseInputBlock<gt::SparseLiterals>   SparseInputBlock8u;
+typedef typename gt::SparseInputBlock<gt::SparseLiterals>   SparseInputBlock32u;
 
 //-------------------- Executors ---------------------
 typedef gt::Executor<false, gt::DummyThreadPool> SingleThreadExecutor;
@@ -164,10 +164,10 @@ void define_clause_block(py::module& m, const char* name)
 }
 
 
-template<typename _T, bool _feature_importance, bool _literal_importance, bool _exclude_negative_clauses>
-void define_inference(py::module& m, const char* name)
+template<typename _T>
+void define_inference_module(py::module& m, const char* name)
 {
-    py::class_<_T, _feature_importance, _literal_importance, _exclude_negative_clauses>(m, name)
+    py::class_<_T>(m, name)
         .def(py::init<int, int, int, int>())
         .def("set_rules", &_T::set_rules)
         .def("set_features", &_T::set_features)
@@ -179,9 +179,8 @@ void define_inference(py::module& m, const char* name)
 
         .def("get_votes", &_T::get_votes_npy)
         .def("get_active_clauses", &_T::get_active_clauses_npy)
-        .def("calculate_importance_npy", &_T::calculate_importance_npy)
+        .def("calculate_importance_npy", &_T::calculate_importance_npy);
 }
-
 
 
 PYBIND11_MODULE(green_tsetlin_core, m) {
@@ -209,19 +208,16 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("is_multi_label", &gt::InputBlock::is_multi_label)        
         .def("get_num_labels_per_example", &gt::InputBlock::get_num_labels_per_example)        
         .def("get_number_of_examples", &gt::InputBlock::get_number_of_examples)
-    ;
-
-    
-    
+    ;        
 
     py::class_<DenseInputBlock8u, gt::InputBlock>(m, "DenseInputBlock")
         .def(py::init<int>())
         .def("set_data", &DenseInputBlock8u::set_data)
     ;
 
-    py::class_<SparseInputBlock8u, gt::InputBlock>(m, "SparseInputBlock")
+    py::class_<SparseInputBlock32u, gt::InputBlock>(m, "SparseInputBlock")
         .def(py::init<int>())
-        .def("set_data", &SparseInputBlock8u::set_data)
+        .def("set_data", &SparseInputBlock32u::set_data)
     ;
 
     m.def("im2col", &gt::tsetlin_im2col);
@@ -278,7 +274,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("is_initialized", &gt::ClauseBlock::is_init)        
         .def("cleanup", &gt::ClauseBlock::cleanup)       
         
-        .def("set_feedback", &gt::ClauseBlock::set_feedback);
+        .def("set_feedback", &gt::ClauseBlock::set_feedback)
     ;
 
 
@@ -293,9 +289,22 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
 
-    //define_inference<gt::Inference<false, false, false>(m, "Inference_F0_L0_W0"); // Feature Importance : 0 , Literal Importance : 0, Exclude Negative Clauses : 0
-
-
+    typedef typename gt::Inference<uint8_t, false, false, false>    Inference8u_Ff_Lf_Wf;
+    typedef typename gt::Inference<uint8_t, false, false, true>     Inference8u_Ff_Lf_Wt;
+    typedef typename gt::Inference<uint8_t, false, true, false>     Inference8u_Ff_Lt_Wf;
+    typedef typename gt::Inference<uint8_t, false, true, true>      Inference8u_Ff_Lt_Wt;
+    typedef typename gt::Inference<uint8_t, true, false, false>     Inference8u_Ft_Lf_Wf;
+    typedef typename gt::Inference<uint8_t, true, false, true>      Inference8u_Ft_Lf_Wt;
+    typedef typename gt::Inference<uint8_t, true, true, false>      Inference8u_Ft_Lt_Wf;
+    typedef typename gt::Inference<uint8_t, true, true, true>       Inference8u_Ft_Lt_Wt;    
+    define_inference_module<Inference8u_Ff_Lf_Wf>(m, "Inference8u_Ff_Lf_Wf"); // Feature Importance : false , Literal Importance : false, Exclude Negative Clauses : false
+    define_inference_module<Inference8u_Ff_Lf_Wt>(m, "Inference8u_Ff_Lf_Wt"); 
+    define_inference_module<Inference8u_Ff_Lt_Wf>(m, "Inference8u_Ff_Lt_Wf"); 
+    define_inference_module<Inference8u_Ff_Lt_Wt>(m, "Inference8u_Ff_Lt_Wt"); 
+    define_inference_module<Inference8u_Ft_Lf_Wf>(m, "Inference8u_Ft_Lf_Wf"); 
+    define_inference_module<Inference8u_Ft_Lf_Wt>(m, "Inference8u_Ft_Lf_Wt"); 
+    define_inference_module<Inference8u_Ft_Lt_Wf>(m, "Inference8u_Ft_Lt_Wf");
+    define_inference_module<Inference8u_Ft_Lt_Wt>(m, "Inference8u_Ft_Lt_Wt"); 
 
 
     #ifdef VERSION_INFO

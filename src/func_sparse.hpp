@@ -16,7 +16,7 @@ namespace  green_tsetlin
     
 
 
-    emplate <typename _State, bool do_literal_budget>
+    template <typename _State, bool do_literal_budget>
     class InitializeSparseTM
     {
         public:                        

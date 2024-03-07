@@ -26,12 +26,21 @@ try:
     impl["single_executor"] = gtc.SingleThreadExecutor
     impl["thread_executor"] =  gtc.MultiThreadExecutor
     impl["dense_input"] = gtc.DenseInputBlock
-    # impl["sparse_input"] = None # fallback
-    
+    impl["sparse_input"] = gtc.SparseInputBlock
+
+    impl["Inference8u_Ff_Lf_Wf"] = gtc.Inference8u_Ff_Lf_Wf
+    impl["Inference8u_Ff_Lf_Wt"] = gtc.Inference8u_Ff_Lf_Wt
+    impl["Inference8u_Ff_Lt_Wf"] = gtc.Inference8u_Ff_Lt_Wf
+    impl["Inference8u_Ff_Lt_Wt"] = gtc.Inference8u_Ff_Lt_Wt
+    impl["Inference8u_Ft_Lf_Wf"] = gtc.Inference8u_Ft_Lf_Wf
+    impl["Inference8u_Ft_Lf_Wt"] = gtc.Inference8u_Ft_Lf_Wt
+    impl["Inference8u_Ft_Lt_Wf"] = gtc.Inference8u_Ft_Lt_Wf
+    impl["Inference8u_Ft_Lt_Wt"] = gtc.Inference8u_Ft_Lt_Wt
+        
     
     if gtc.has_avx2():
         impl["cb"] = gtc.ClauseBlockAVX2
-        # impl["conv_cb"] = gtc.ClauseBlockConvAVX2 # fallback
+        impl["conv_cb"] = gtc.ClauseBlockConvAVX2
         
     if gtc.has_neon():
         impl["cb"] = gtc.ClauseBlockNeon
