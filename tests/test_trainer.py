@@ -4,6 +4,8 @@ import pytest
 
 import numpy as np
 
+from scipy.sparse import csr_matrix
+
 import green_tsetlin as gt
 import green_tsetlin_core as gtc
 import green_tsetlin.py_gtc as py_gtc
@@ -159,9 +161,49 @@ def test_train_simple_xor_py_gtc():
     r = trainer.train()    
     print(r)
 
+def test_train_simple_xor_sparse():
+    print("SPARSE\n")
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42    
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    
+    tm._backend_clause_block_cls = gtc.ClauseBlockSparse
+
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+
+    # trainer._cls_feedback_block = _
+
+    # Should it be _cls_dense_ib set to sparse?
+    trainer._cls_dense_ib = gtc.SparseInputBlock
+    # trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
+    
+    print("BACKEND:")
+    print(tm._backend_clause_block_cls)
+    print(trainer._cls_feedback_block)
+    print(trainer._cls_dense_ib)
+    print(trainer._cls_exec_singlethread)
+
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+
+    # need csr matrix?
+    x = csr_matrix(x)
+    ex = csr_matrix(ex)
+
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+
+    # stops here, wrong input in .set_data, needs to be indicies, indptr and labels.
+    r = trainer.train()    
+    print(r)
+
+
 if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     #test_train_simple_xor()
     #test_train_set_best_state_afterwards()
-    test_train_simple_xor_py_gtc()
+    # test_train_simple_xor_py_gtc()
+    test_train_simple_xor_sparse()
     print("<done: ", __file__, ">")
