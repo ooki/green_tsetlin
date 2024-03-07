@@ -3,6 +3,10 @@
 #include <pybind11/stl_bind.h>
 
 
+PYBIND11_MAKE_OPAQUE(std::vector<int>);
+PYBIND11_MAKE_OPAQUE(std::vector<double>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::vector<int>>);
+
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -29,6 +33,9 @@ bool has_neon()
 #include <func_tm.hpp>
 #include <func_conv_tm.hpp>
 #include <executor.hpp>
+#include <inference.hpp>
+#include <func_sparse.hpp> 
+#include <sparse_tsetlin_state.hpp>
 
 namespace py = pybind11;
 namespace gt = green_tsetlin;
@@ -36,6 +43,7 @@ namespace gt = green_tsetlin;
 
 //-------------------- Input Blocks ---------------------
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
+typedef typename gt::SparseInputBlock<gt::SparseLiterals>   SparseInputBlock32u;
 
 //-------------------- Executors ---------------------
 typedef gt::Executor<false, gt::DummyThreadPool> SingleThreadExecutor;
@@ -47,7 +55,7 @@ typedef gt::Executor<true, BS::thread_pool> MultiThreadExecutor;
 typedef typename gt::AlignedTsetlinState<-1,-1> VanillaTsetlinState;
 
 typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
-                                    gt::Type1aFeedbackTM<VanillaTsetlinState>,
+                                    gt::Type1aFeedbackTM<VanillaTsetlinState, false>, // boost_true_positive = false
                                     gt::Type1bFeedbackTM<VanillaTsetlinState>,
                                     gt::Type2FeedbackTM<VanillaTsetlinState>>
                                 ClauseUpdateTMImpl;
@@ -91,6 +99,35 @@ typedef typename gt::ClauseBlockT<
                                 >
                                 ClauseBlockConvTMImpl;
 
+
+//-------------------- Sparse TM --------------------- tentative
+
+typedef typename gt::SparseTsetlinState SparseTsetlinState;
+
+typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
+                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, false>, // boost_true_positive = false
+                                    gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
+                                    gt::Type2FeedbackSparseTM<SparseTsetlinState>>
+                                ClauseUpdateSparseTMImpl;
+
+
+typedef typename gt::TrainUpdateSparseTM<SparseTsetlinState,
+                                   ClauseUpdateSparseTMImpl,
+                                   true > // do_literal_budget = true
+                                TrainUpdateSparseTMImpl;
+
+typedef typename gt::ClauseBlockT<
+                                    SparseTsetlinState,
+                                    gt::InitializeSparseTM<SparseTsetlinState, true>,       // do_literal_budget = true
+                                    gt::CleanupSparseTM<SparseTsetlinState, true>,          // do_literal_budget = true
+                                    gt::SetClauseOutputSparseTM<SparseTsetlinState, true>,  // do_literal_budget = true
+                                    gt::EvalClauseOutputSparseTM<SparseTsetlinState>,
+                                    gt::CountVotesSparseTM<SparseTsetlinState>,
+                                    TrainUpdateSparseTMImpl,
+                                    SparseInputBlock32u
+                                    >
+                                ClauseBlockSparseImpl;
+ 
 
 //-------------------- AVX 2 TM ---------------------
 
@@ -160,6 +197,26 @@ void define_clause_block(py::module& m, const char* name)
         .def("get_clause_weights", &_T::get_clause_weights_npy);
 }
 
+
+template<typename _T>
+void define_inference_module(py::module& m, const char* name)
+{
+    py::class_<_T>(m, name)
+        .def(py::init<int, int, int, int>())
+        .def("set_rules", &_T::set_rules)
+        .def("set_features", &_T::set_features)
+
+        .def("set_empty_class_output", &_T::set_empty_class_output)
+        .def("get_empty_class_output", &_T::get_empty_class_output)
+
+        .def("predict", &_T::predict_npy)
+
+        .def("get_votes", &_T::get_votes_npy)
+        .def("get_active_clauses", &_T::get_active_clauses_npy)
+        .def("calculate_importance_npy", &_T::calculate_importance_npy);
+}
+
+
 PYBIND11_MODULE(green_tsetlin_core, m) {
 
     m.doc() = R"pbdoc(
@@ -174,6 +231,11 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
            A impl. of the Tsetlin Machine
     )pbdoc";
 
+    py::bind_vector<std::vector<int>>(m, "VectorInt");
+    py::bind_vector<std::vector<std::vector<int>>>(m, "VectorVectorInt");
+    py::bind_vector<std::vector<double>>(m, "VectorDouble");
+
+
     // hw info
     // m.def("get_recommended_number_of_threads", &gt::get_recommended_number_of_threads);
 
@@ -185,11 +247,16 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("is_multi_label", &gt::InputBlock::is_multi_label)        
         .def("get_num_labels_per_example", &gt::InputBlock::get_num_labels_per_example)        
         .def("get_number_of_examples", &gt::InputBlock::get_number_of_examples)
-    ;
+    ;        
 
     py::class_<DenseInputBlock8u, gt::InputBlock>(m, "DenseInputBlock")
         .def(py::init<int>())
         .def("set_data", &DenseInputBlock8u::set_data)
+    ;
+
+    py::class_<SparseInputBlock32u, gt::InputBlock>(m, "SparseInputBlock")
+        .def(py::init<int>())
+        .def("set_data", &SparseInputBlock32u::set_data)
     ;
 
     m.def("im2col", &gt::tsetlin_im2col);
@@ -246,8 +313,10 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("is_initialized", &gt::ClauseBlock::is_init)        
         .def("cleanup", &gt::ClauseBlock::cleanup)       
         
-        .def("set_feedback", &gt::ClauseBlock::set_feedback);
+        .def("set_feedback", &gt::ClauseBlock::set_feedback)
     ;
+
+
 
     
 
@@ -258,6 +327,26 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
+    // Sparse TM tentative
+    define_clause_block<ClauseBlockSparseImpl>(m, "ClauseBlockSparse"); // Sparse TM
+
+
+    typedef typename gt::Inference<uint8_t, false, false, false>    Inference8u_Ff_Lf_Wf;
+    // typedef typename gt::Inference<uint8_t, false, false, true>     Inference8u_Ff_Lf_Wt; // does not make sense
+    typedef typename gt::Inference<uint8_t, false, true, false>     Inference8u_Ff_Lt_Wf;
+    typedef typename gt::Inference<uint8_t, false, true, true>      Inference8u_Ff_Lt_Wt;
+    typedef typename gt::Inference<uint8_t, true, false, false>     Inference8u_Ft_Lf_Wf;
+    typedef typename gt::Inference<uint8_t, true, false, true>      Inference8u_Ft_Lf_Wt;
+    typedef typename gt::Inference<uint8_t, true, true, false>      Inference8u_Ft_Lt_Wf;
+    typedef typename gt::Inference<uint8_t, true, true, true>       Inference8u_Ft_Lt_Wt;    
+    define_inference_module<Inference8u_Ff_Lf_Wf>(m, "Inference8u_Ff_Lf_Wf"); // Feature Importance : false , Literal Importance : false, Exclude Negative Clauses : false
+    // define_inference_module<Inference8u_Ff_Lf_Wt>(m, "Inference8u_Ff_Lf_Wt"); 
+    define_inference_module<Inference8u_Ff_Lt_Wf>(m, "Inference8u_Ff_Lt_Wf"); 
+    define_inference_module<Inference8u_Ff_Lt_Wt>(m, "Inference8u_Ff_Lt_Wt"); 
+    define_inference_module<Inference8u_Ft_Lf_Wf>(m, "Inference8u_Ft_Lf_Wf"); 
+    define_inference_module<Inference8u_Ft_Lf_Wt>(m, "Inference8u_Ft_Lf_Wt"); 
+    define_inference_module<Inference8u_Ft_Lt_Wf>(m, "Inference8u_Ft_Lt_Wf");
+    define_inference_module<Inference8u_Ft_Lt_Wt>(m, "Inference8u_Ft_Lt_Wt"); 
 
 
     #ifdef VERSION_INFO

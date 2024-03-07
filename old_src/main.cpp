@@ -3,6 +3,10 @@
 #include <pybind11/stl_bind.h>
 
 
+PYBIND11_MAKE_OPAQUE(std::vector<int>);
+PYBIND11_MAKE_OPAQUE(std::vector<double>);
+
+
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
@@ -26,7 +30,6 @@
 
 #include <func_sparse.hpp>
     
-
 
 
 
@@ -207,8 +210,7 @@ void define_clause_block(py::module& m, const char* name)
 
 
 
-PYBIND11_MAKE_OPAQUE(std::vector<int>);
-PYBIND11_MAKE_OPAQUE(std::vector<double>);
+
 
 PYBIND11_MODULE(green_tsetlin_core, m) {
 

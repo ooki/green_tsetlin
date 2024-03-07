@@ -202,11 +202,11 @@ class Trainer:
                         best_test_epoch = epoch
                         if self.load_best_state:
                             self._best_tm_state = self.tm._load_state_from_backend(only_return_copy=True)                                                
-                    
+
                     if test_score >= self.early_exit_acc:                                    
                         did_early_exit = True
                         break
-
+                    
                     progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best test score: {:.3f} (epoch: {})".format(epoch+1,
                                                                                                                                 self.n_epochs,
                                                                                                                                 train_acc,

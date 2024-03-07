@@ -244,7 +244,7 @@ namespace green_tsetlin
                         
                         if(state.reminder_mask != nullptr)
                         {
-                            __m256i _literals = _mm256_load_si256((__m256i const*)&literals[n_chunks * 32]);                        
+                            __m256i _literals = _mm256_load_si256((__m256i const*)&curr_literal[n_chunks * 32]);                        
                             __m256i _clauses = _mm256_load_si256((__m256i const*)&clause_row[n_chunks * 32]);
                             __m256i _not_active = _mm256_cmpgt_epi8(_zeros, _clauses);
 
