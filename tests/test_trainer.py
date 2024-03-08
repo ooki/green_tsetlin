@@ -132,16 +132,16 @@ def test_train_set_best_state_afterwards():
     
 def test_train_simple_xor_py_gtc():
     
-    n_literals = 70
-    n_clauses = 100
+    n_literals = 7
+    n_clauses = 5
     n_classes = 2
     s = 3.0
-    threshold = 100   
+    threshold = 42   
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
     tm._backend_clause_block_cls = py_gtc.ClauseBlock
 
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, early_exit_acc=2.0)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1 )
 
     trainer._cls_feedback_block = py_gtc.FeedbackBlock
     trainer._cls_dense_ib = py_gtc.DenseInputBlock
