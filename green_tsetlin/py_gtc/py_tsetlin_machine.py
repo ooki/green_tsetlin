@@ -216,8 +216,11 @@ class pyTsetlinState:
         # TODO Multi lable structure 
         return np.dot(clause_outputs, self.clause_weights)
 
-    def get_clause_state(self):
-        return self.clauses
+    def get_clause_state(self, src, clause_offset):
+        src[clause_offset:self.n_clauses+clause_offset] = self.clauses
+        return src
     
-    def get_clause_weights(self):
-        return self.clause_weights
+
+    def get_clause_weights(self, src, clause_offset):
+        src[clause_offset:self.n_clauses+clause_offset] = self.clause_weights
+        return src

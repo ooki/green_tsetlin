@@ -155,13 +155,15 @@ class Trainer:
         with allocate_clause_blocks(cbs, seed=self.seed):    
             if self.tm._state is not None:
                 self.tm._save_state_in_backend()
-        
+
+
             if self.n_jobs == 1:
                 exec = self._cls_exec_singlethread(input_block, cbs, feedback_block, 1, self.seed)
             else:
                 exec = self._cls_exec_multithread(input_block, cbs, feedback_block, self.n_jobs, self.seed)
             
-            
+
+
             
             # main loop
             n_epochs_trained = 0
@@ -180,14 +182,15 @@ class Trainer:
         
                 for epoch in range(self.n_epochs):                                            
                     train_acc = exec.train_epoch()
-                                        
+                    # print(self.tm._load_state_from_backend(only_return_copy=True).c)
+                    # print(self.tm._load_state_from_backend(only_return_copy=True).w)
                     train_log.append(train_acc)                
                     n_epochs_trained += 1
 
                     input_block.set_data(self.x_test, self.y_test)
                      
                     if self.tm._is_multi_label is False:
-                        y_hat = exec.eval_predict()                            
+                        y_hat = exec.eval_predict()   
                     else:
                         y_hat = exec.eval_predict_multi()        
                             

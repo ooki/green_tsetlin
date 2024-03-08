@@ -98,11 +98,14 @@ class ClauseBlock:
         self.clause_votes = self.state.vote_counter(self.clause_outputs)
         self.m_feedback_block.register_votes(self.clause_votes)
 
+    def get_number_of_clauses(self):
+        return self.n_classes
+
     def get_clause_state(self, c_copy, clause_offset):
-        np.copyto(c_copy, self.state.get_clause_state())
+        np.copyto(c_copy, self.state.get_clause_state(c_copy, clause_offset))
 
     def get_clause_weights(self, w_copy, clause_offset):
-        np.copyto(w_copy, self.state.get_clause_weights())
+        np.copyto(w_copy, self.state.get_clause_weights(w_copy, clause_offset))
 
     def get_number_of_clauses(self):
         return self.state.n_clauses
