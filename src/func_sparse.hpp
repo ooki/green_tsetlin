@@ -125,22 +125,22 @@ namespace  green_tsetlin
                     // WeightInt* clause_weights = state.clause_weights + clause_k * state.num_classes;
 
                     //  pass clause_row or only clause_k? prev. sparse imp only take clause_k. Can we use func_tm imp using &state.clauses[clause_k * n_features]? 
-                    SparseLiterals clause_row = state.clauses[clause_k];
+                    // SparseLiterals clause_row = state.clauses[clause_k];
 
-                    WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
+                    // WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
                     
 
-                    if (state.fast_rng.next_u() < prob_positive)
-                    {
-                        _ClauseUpdate clause_update;
-                        clause_update(state, clause_row, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
-                    }
-                    else if (state.fast_rng.next_u() < prob_negative)
-                    {
-                        _ClauseUpdate clause_update;
-                        clause_update(state, clause_row, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
+                    // if (state.fast_rng.next_u() < prob_positive)
+                    // {
+                    //     _ClauseUpdate clause_update;
+                    //     clause_update(state, clause_row, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
+                    // }
+                    // else if (state.fast_rng.next_u() < prob_negative)
+                    // {
+                    //     _ClauseUpdate clause_update;
+                    //     clause_update(state, clause_row, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
 
-                    }
+                    // }
                 }
 
             }
