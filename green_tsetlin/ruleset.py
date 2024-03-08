@@ -35,7 +35,7 @@ class RuleSet:
             rule_map[key] = weights
 
         self.rules = [list(k) for k in rule_map.keys()]
-        self.weights = np.array([w.tolist() for w in rule_map.values()], dtype=np.int32)
+        self.weights = [w.tolist() for w in rule_map.values()]
 
     def __len__(self):
         return len(self.rules)
