@@ -36,7 +36,20 @@ namespace  green_tsetlin
                 state.fast_rng.seed(seed);
 
                 // need set size for each, now there is num_clauses empty vectors
-                state.sparse_clauses.reserve(state.num_clauses);
+                state.clauses.resize(2*state.num_clauses);
+
+                for (int i = 0; i < state.num_clauses; ++i)
+                {   
+                    // num_literals is placeholder. Need change to load factor
+                    state.clauses[i].reserve(state.num_literals);
+                }
+
+                state.active_literals.resize(state.num_classes);
+                for (int i = 0; i < state.num_classes; ++i)
+                {
+                    // num_literals is placeholder. Need change to user defined AL size
+                    state.active_literals[i].reserve(state.num_literals);
+                }
 
                 state.clause_outputs = new ClauseOutputUint[state.num_clauses];
                 memset(state.clause_outputs, 0, sizeof(ClauseOutputUint) * state.num_clauses);
@@ -68,6 +81,16 @@ namespace  green_tsetlin
         public: 
             void operator()(_State& state, SparseLiterals* literals)
             {
+
+                
+                for (int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
+                {
+                    // uint32t pos_literal_count = 0;
+                    // uint32t neg_literal_count = 0;
+
+                    state.clause_outputs[clause_k] = 1;
+
+                }
             }
     };
 
@@ -97,6 +120,29 @@ namespace  green_tsetlin
         public:
             void operator()(_State& state, SparseLiterals* literals, int positive_class, double prob_positive, int negative_class, double prob_negative)
             {
+                for (int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
+                {
+                    // WeightInt* clause_weights = state.clause_weights + clause_k * state.num_classes;
+
+                    //  pass clause_row or only clause_k? prev. sparse imp only take clause_k. Can we use func_tm imp using &state.clauses[clause_k * n_features]? 
+                    SparseLiterals clause_row = state.clauses[clause_k];
+
+                    WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
+                    
+
+                    if (state.fast_rng.next_u() < prob_positive)
+                    {
+                        _ClauseUpdate clause_update;
+                        clause_update(state, clause_row, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
+                    }
+                    else if (state.fast_rng.next_u() < prob_negative)
+                    {
+                        _ClauseUpdate clause_update;
+                        clause_update(state, clause_row, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
+
+                    }
+                }
+
             }
     };
 
@@ -105,7 +151,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, int8_t* clause_row, WeightInt* clause_weight, int target, SparseLiterals* literals, ClauseOutputUint clause_output)
+            void operator()(_State& state, SparseLiterals* clause_row, WeightInt* clause_weight, int target, SparseLiterals* literals, ClauseOutputUint clause_output)
             {
             }
     };
@@ -115,7 +161,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, int8_t* clause_row, SparseLiterals* literals)
+            void operator()(_State& state, SparseLiterals* clause_row, SparseLiterals* literals)
             {
             }
     };
@@ -125,7 +171,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, int8_t* clause_row)
+            void operator()(_State& state, SparseLiterals* clause_row)
             {
             }
     };
@@ -137,7 +183,7 @@ namespace  green_tsetlin
         public:
             // Assume that clause_output == 1 (check ClauseUpdate)
             // // TODO: clause_row needs a sparse type
-            void operator()(_State& state, int8_t* clause_row, SparseLiterals* literals)
+            void operator()(_State& state, SparseLiterals* clause_row, SparseLiterals* literals)
             {
             }
     };
