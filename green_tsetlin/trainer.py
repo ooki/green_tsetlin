@@ -137,6 +137,8 @@ class Trainer:
     def train(self):                
                 
         input_block = self._cls_dense_ib(self.tm.n_literals)
+        print("_cls_dense_ib:", self._cls_dense_ib)
+        
         input_block.set_data(self.x_train, self.y_train)
         feedback_block = self._get_feedback_block(self.tm.n_classes, self.tm.threshold)        
         

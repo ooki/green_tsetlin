@@ -29,7 +29,7 @@ def test_init():
     #predictor.set_target_names(["no", "yes"])
 
 
-    y_hat = predictor.predict([0,1,1,1])
+    y_hat = predictor.predict(np.array([0,1,1,1]))
     print(y_hat)
 
     #y_hat, expl = predictor.explain([0,1,1,1])

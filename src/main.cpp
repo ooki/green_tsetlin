@@ -3,9 +3,9 @@
 #include <pybind11/stl_bind.h>
 
 
-PYBIND11_MAKE_OPAQUE(std::vector<int>);
-PYBIND11_MAKE_OPAQUE(std::vector<double>);
-PYBIND11_MAKE_OPAQUE(std::vector<std::vector<int>>);
+// PYBIND11_MAKE_OPAQUE(std::vector<int>);
+// PYBIND11_MAKE_OPAQUE(std::vector<double>);
+// PYBIND11_MAKE_OPAQUE(std::vector<std::vector<int>>);
 
 
 #define STRINGIFY(x) #x
@@ -231,9 +231,9 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
            A impl. of the Tsetlin Machine
     )pbdoc";
 
-    py::bind_vector<std::vector<int>>(m, "VectorInt");
-    py::bind_vector<std::vector<std::vector<int>>>(m, "VectorVectorInt");
-    py::bind_vector<std::vector<double>>(m, "VectorDouble");
+    // py::bind_vector<std::vector<int>>(m, "VectorInt");
+    // py::bind_vector<std::vector<std::vector<int>>>(m, "VectorVectorInt");
+    // py::bind_vector<std::vector<double>>(m, "VectorDouble");
 
 
     // hw info

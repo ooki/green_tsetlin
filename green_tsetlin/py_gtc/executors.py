@@ -86,7 +86,7 @@ class SingleThreadExecutor:
                 else:
                     cb.train_update(positive_class, pup, negative_class, nup)
 
-    def eval_predict(self):
+    def eval_predict(self, outputs):
         n_examples = self.get_number_of_examples_ready()
         
         outputs = np.zeros(n_examples, dtype=np.int32)
@@ -100,8 +100,6 @@ class SingleThreadExecutor:
                 cb.eval_example()
 
             outputs[i] = self.m_feedback_block.predict()
-
-        return outputs
     
     def eval_predict_multi(self):
         pass
