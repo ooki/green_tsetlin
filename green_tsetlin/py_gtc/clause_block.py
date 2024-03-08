@@ -1,8 +1,9 @@
 import numpy 
 from green_tsetlin.py_gtc.feedback_block import FeedbackBlock
 from green_tsetlin.py_gtc.dense_input_block import DenseInputBlock
-from green_tsetlin.py_gtc.py_tsetlin_machine import pyTsetlinState
+from green_tsetlin.py_gtc.tsetlin_state import TsetlinState, TsetlinStateSparse
 import numpy as np 
+
 
 class ClauseBlock:
     def __init__(self, n_literals, n_clauses, n_classes):
@@ -16,7 +17,7 @@ class ClauseBlock:
         self.n_classes = n_classes
 
         # this is not clear
-        self.state = pyTsetlinState(n_literals,
+        self.state = TsetlinState(n_literals,
                                     n_clauses,
                                     n_classes)
     
@@ -107,3 +108,15 @@ class ClauseBlock:
     def get_number_of_clauses(self):
         return self.state.n_clauses
         
+
+class ClauseBlockSparse(ClauseBlock):
+    def __init__(self, n_literals, n_clauses, n_classes):
+        super().__init__(n_literals, n_clauses, n_classes)
+        self.state = TsetlinStateSparse(n_literals,
+                                          n_clauses,
+                                          n_classes)
+        
+
+    def initialize(self, seed):
+        self.m_is_init = True
+        self.state.initialize(seed=seed)

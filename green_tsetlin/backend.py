@@ -5,13 +5,13 @@ import green_tsetlin.py_gtc as py_gtc
 impl = {
     "cb" : py_gtc.ClauseBlock,
     "conv_cb" : None,
-    "sparse_cb" : None,
+    "sparse_cb" : py_gtc.SparseInputBlock, # for now own ib, will see if can be same as denseIb.
     "feedback" : py_gtc.FeedbackBlock,
     "feedback_multi" : py_gtc.FeedbackBlockMultiLabel,
     "single_executor": py_gtc.SingleThreadExecutor,
     "thread_executor" : py_gtc.MultiThreadExecutor,
     "dense_input" : py_gtc.DenseInputBlock,
-    "sparse_input" : None
+    "sparse_input" : py_gtc.SparseInputBlock
 }
 
 
