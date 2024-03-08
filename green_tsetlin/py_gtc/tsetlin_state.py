@@ -2,7 +2,7 @@
 import numpy as np
 
 
-class pyTsetlinState:
+class TsetlinState:
     def __init__(self, n_literals, n_clauses, n_classes):
 
         self.n_literals = n_literals
@@ -221,3 +221,20 @@ class pyTsetlinState:
     
     def get_clause_weights(self):
         return self.clause_weights
+    
+
+class TsetlinStateSparse:
+    def __init__(self, n_literals, n_clauses, n_classes):
+
+        self.n_literals = n_literals
+        self.n_clauses = n_clauses
+        self.n_classes = n_classes
+
+        self.clauses = None
+        self.clause_weights = None
+        self.literal_budget = None
+        self.do_literal_budget = True
+
+    def initialize(self, seed):
+        
+        self.rng = np.random.default_rng(seed)
