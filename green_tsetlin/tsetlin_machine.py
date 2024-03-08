@@ -287,7 +287,7 @@ class TsetlinMachine:
         rs.compile_from_dense_state(self._state)
         
         predictor = gt.Predictor(self._is_multi_label, explanation=explanation)
-        predictor._ruleset = rs
+        predictor._set_ruleset(rs)
         predictor.init()
 
         return predictor

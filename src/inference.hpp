@@ -13,9 +13,7 @@
 
 namespace green_tsetlin
 {
-    typedef std::vector<uint32_t> InferenceRule;
-    typedef std::vector<InferenceRule>  RuleVector;
-
+    typedef std::vector<uint32_t> InferenceRule;    
     typedef std::vector<int32_t> RuleWeights;
 
     template <typename _ExampleType, bool calculate_literal_importance, bool calculate_feature_importance, bool exclude_negative_clauses>
@@ -24,10 +22,9 @@ namespace green_tsetlin
         public:
             typedef _ExampleType example_type;
 
-            Inference(int num_literals, int num_clauses, int num_classes, int num_explanations)
+            Inference(int num_literals, int num_classes, int num_explanations)
             {
                 m_num_literals = num_literals;
-                m_num_clauses = num_clauses;
                 m_num_classes = num_classes;
                 m_num_explanations = num_explanations;
 
@@ -68,13 +65,13 @@ namespace green_tsetlin
             }
 
 
-            void set_rules(RuleVector& l, std::vector<RuleWeights>& w)
+            void set_rules(std::vector<InferenceRule>& l, std::vector<RuleWeights>& w)
             {
                 m_rules = l;
                 m_weights = w;  
             }
 
-            void set_features(RuleVector& f)
+            void set_features(std::vector<InferenceRule>& f)
             {
                 if(calculate_feature_importance)
                     m_features = f;
@@ -192,8 +189,8 @@ namespace green_tsetlin
             int m_num_explanations = 0;
             uint32_t m_empty_class = 0;
 
-            RuleVector  m_rules;
-            RuleVector  m_features;
+            std::vector<InferenceRule>  m_rules;
+            std::vector<InferenceRule>  m_features;
 
             std::vector<RuleWeights> m_weights;
             std::vector<int>         m_active_clauses;

@@ -61,3 +61,15 @@ class DenseInputBlock:
 
     def initialize(self, seed):
         pass
+
+
+class SparseInputBlock:
+    def __init__(self, n_literals):
+        self.n_literals = n_literals
+
+        self.m_num_labels_per_example = 0
+
+        self.m_num_examples = 0
+
+        self.m_labels = None
+        self.m_data = None 

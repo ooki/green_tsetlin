@@ -6,6 +6,7 @@ from collections import defaultdict
 import numpy as np
 from sklearn.metrics import accuracy_score
 import tqdm
+from scipy.sparse import csr_matrix
 
 
 
@@ -69,6 +70,9 @@ class Trainer:
         self._cls_exec_singlethread = _backend_impl["single_executor"]
         self._cls_exec_multithread = _backend_impl["thread_executor"]
 
+        self._cls_sparse_ib = _backend_impl["sparse_input"]
+
+        self._cls_input_block = None
 
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
@@ -133,13 +137,30 @@ class Trainer:
         
     def _calculate_blocks_for_tm(self):            
         return self.n_jobs
-    
-    def train(self):                
-                
-        input_block = self._cls_dense_ib(self.tm.n_literals)
-        print("_cls_dense_ib:", self._cls_dense_ib)
+
+
+    def _select_backend_ib(self):
+
+        if isinstance(self.x_train, csr_matrix) and isinstance(self.x_test, csr_matrix):
+            self._cls_input_block = self._cls_sparse_ib
         
-        input_block.set_data(self.x_train, self.y_train)
+        elif isinstance(self.x_train, np.ndarray) and isinstance(self.x_test, np.ndarray):
+            self._cls_input_block = self._cls_dense_ib
+        
+        else:
+            raise ValueError("Train and test data must be of the same type. x_train type: {}, x_test type: {}".format(type(self.x_train), type(self.x_test)))
+
+
+    def train(self):                
+
+
+        self._select_backend_ib()
+        input_block = self._cls_input_block(self.tm.n_literals)
+        
+
+        _flexible_set_data(input_block, self.x_train, self.y_train)
+
+
         feedback_block = self._get_feedback_block(self.tm.n_classes, self.tm.threshold)        
         
         if self.tm._clause_block_sizes is None:
@@ -191,7 +212,7 @@ class Trainer:
                     train_log.append(train_acc)                
                     n_epochs_trained += 1
 
-                    input_block.set_data(self.x_test, self.y_test)
+                    _flexible_set_data(input_block, self.x_test, self.y_test)
                      
                     if self.tm._is_multi_label is False:
                         exec.eval_predict(y_hat)                            
@@ -220,7 +241,8 @@ class Trainer:
                     progress_bar.update(1)
                     
                     if epoch < (self.n_epochs - 1):                   
-                        input_block.set_data(self.x_train, self.y_train)
+                        _flexible_set_data(input_block, self.x_train, self.y_train)
+
 
                     
             if self.load_best_state is True:
@@ -236,15 +258,15 @@ class Trainer:
         }
 
                 
-                
+                  
         
-        
-        
-        
-        
-        
-        
-        
+def _flexible_set_data(ib, x, y):
+    if isinstance(x, csr_matrix):
+        ib.set_data(x.indices, x.indptr, y)
+    elif isinstance(x, np.ndarray):
+        ib.set_data(x, y)
+    else:
+        raise ValueError("Cannot set input data with type: {}".format(type(x)))
         
         
     

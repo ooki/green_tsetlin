@@ -87,8 +87,6 @@ class SingleThreadExecutor:
             nup = self.m_feedback_block.get_negative_update_probability()
 
 
-            # Do all the rest of cb prep first!
-
             for cb in self.m_trainable_clause_blocks:
 
                 if(not cb.is_trainable()): # always false?
@@ -101,9 +99,11 @@ class SingleThreadExecutor:
                     cb.train_update(positive_class, pup, negative_class, nup)
 
     def eval_predict(self, outputs):
+        
         n_examples = self.get_number_of_examples_ready()
         
-        outputs = np.zeros(n_examples, dtype=np.int32)
+        if(outputs.shape[0] != n_examples):
+            return False
 
         for i in range(n_examples):
 
@@ -114,7 +114,10 @@ class SingleThreadExecutor:
                 cb.eval_example()
 
             outputs[i] = self.m_feedback_block.predict()
-    
+
+
+        return True
+
     def eval_predict_multi(self):
         pass
 
