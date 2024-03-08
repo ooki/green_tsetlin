@@ -220,9 +220,9 @@ class TsetlinState:
         src[clause_offset:self.n_clauses+clause_offset] = self.clauses
         return src
     
-    def get_clause_weights(self):
-        return self.clause_weights
-    
+    def get_clause_weights(self, src, clause_offset):
+        src[clause_offset:self.n_clauses+clause_offset] = self.clause_weights
+        return src
 
 class TsetlinStateSparse:
     def __init__(self, n_literals, n_clauses, n_classes):
