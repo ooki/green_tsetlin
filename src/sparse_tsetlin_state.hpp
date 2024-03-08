@@ -25,6 +25,7 @@ namespace green_tsetlin
             Wyhash64                   fast_rng; // can only generate a random [0,1] float 
 
             std::vector<SparseLiterals> sparse_clauses;
+            std::vector<SparseLiterals> active_literals;
 
             int8_t* clauses = nullptr;
             ClauseOutputUint* clause_outputs = nullptr;
