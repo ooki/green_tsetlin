@@ -288,6 +288,7 @@ class TsetlinMachine:
         
         predictor = gt.Predictor(self._is_multi_label, explanation=explanation)
         predictor._ruleset = rs
+        predictor.init()
 
         return predictor
 

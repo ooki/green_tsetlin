@@ -140,13 +140,15 @@ namespace green_tsetlin
                 return best_k;
             }            
 
-            virtual std::vector<int> predict_multi() const
+            virtual bool predict_multi(uint32_t* out) const
             {
+                // TODO: fix - this is wrong!!
+
                 int best_k = 0;
                 int best_v = m_votes[0];
                 
-                std::vector<int> o;
-                o.resize(m_num_classes, 0);
+                // std::vector<int> o;
+                // o.resize(m_num_classes, 0);
 
                 for(int i = 1; i < m_num_classes; ++i)
                 {
@@ -157,8 +159,8 @@ namespace green_tsetlin
                     }
                 }
                 
-                o[best_k] = 1;
-                return o;
+                out[best_k] = 1;
+                return false;
             }
 
             std::vector<double> get_update_probabilities() const
@@ -203,7 +205,7 @@ namespace green_tsetlin
             int get_number_of_classes() const
             {
                 return m_num_classes;
-            }
+            }            
 
         protected:
             int m_num_classes = -42;       

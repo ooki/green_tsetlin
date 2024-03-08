@@ -21,13 +21,15 @@ namespace green_tsetlin
             // support for convolution (leave it at 1 for now)
             int num_patches_per_example = 1;
 
-            WeightInt* class_votes = nullptr;
-            WeightInt* clause_weights = nullptr;
-            
             std::default_random_engine rng;
             Wyhash64                   fast_rng; // can only generate a random [0,1] float 
 
-            
+            std::vector<SparseLiterals> sparse_clauses;
+
+            int8_t* clauses = nullptr;
+            ClauseOutputUint* clause_outputs = nullptr;
+            WeightInt* class_votes = nullptr;
+            WeightInt* clause_weights = nullptr;
 
             
             inline void set_s(double s_param)
@@ -44,19 +46,19 @@ namespace green_tsetlin
                 return class_votes;
             }
 
-            inline void get_clause_state()
+            inline void get_clause_state(int8_t* dst, int clause_offset)
             {
             }
 
-            inline void set_clause_state()
+            inline void set_clause_state(int8_t* src, int clause_offset)
             {
             }
 
-            inline void set_clause_weights()
+            inline void set_clause_weights(WeightInt* src, int clause_offset)
             {
             }
 
-            inline void get_clause_weights()
+            inline void get_clause_weights(WeightInt* dst, int clause_offset)
             {
             }
     };  

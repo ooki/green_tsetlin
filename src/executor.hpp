@@ -154,12 +154,19 @@ namespace green_tsetlin
             }
 
 
-           std::vector<int> eval_predict()
+           bool eval_predict(pybind11::array_t<uint32_t> out_array)
            {
+                pybind11::buffer_info buffer_info = out_array.request();
+                std::vector<ssize_t> shape2 = buffer_info.shape;
+
                 int n_examples = get_number_of_examples_ready();
+                if(shape2[0] != n_examples)
+                    return false;
+
+                uint32_t* output = static_cast<uint32_t*>(buffer_info.ptr);
                 
-                std::vector<int> output;
-                output.resize(n_examples);
+                //std::vector<int> output;
+                //output.resize(n_examples);
 
                 for(int i = 0; i < n_examples; ++i)
                 {
@@ -170,18 +177,30 @@ namespace green_tsetlin
                         cb->eval_example();                    
 
                     output[i] = m_feedback_block->predict();
-                }
-                
-                return output;
+                }         
+
+                return true;   
             }
 
             
-            std::vector<std::vector<int>> eval_predict_multi()
+            bool eval_predict_multi(pybind11::array_t<uint32_t> out_array)
             {
-                int n_examples = get_number_of_examples_ready();                
+                std::cout << "eval_predict_multi IS BROKEN!!!!!!!!!!" << std::endl;
+                exit(1);
+
+                pybind11::buffer_info buffer_info = out_array.request();      
+                std::vector<ssize_t> shape2 = buffer_info.shape;                      
                 
-                std::vector<std::vector<int>> output;
-                output.resize(n_examples);
+
+                int n_examples = get_number_of_examples_ready();                                      
+                if(shape2[0] != n_examples)
+                    return false;        
+
+                int n_classes = m_feedback_block->get_number_of_classes();
+                if(shape2[1] != n_classes)
+                    return false;
+
+                uint32_t* output = static_cast<uint32_t*>(buffer_info.ptr);        
 
                 for(int i = 0; i < n_examples; ++i)
                 {
@@ -191,9 +210,11 @@ namespace green_tsetlin
                     for(auto cb : m_clause_blocks)
                         cb->eval_example();
                     
-                    output[i] = m_feedback_block->predict_multi();
+                    uint32_t* example_ptr = &output[n_examples]; // fix this index to be multi label
+                    m_feedback_block->predict_multi(example_ptr);                    
                 }
-                return output;
+
+                return true;
             }
 
             int get_number_of_examples_ready() const

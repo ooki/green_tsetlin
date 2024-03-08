@@ -137,6 +137,8 @@ class Trainer:
     def train(self):                
                 
         input_block = self._cls_dense_ib(self.tm.n_literals)
+        print("_cls_dense_ib:", self._cls_dense_ib)
+        
         input_block.set_data(self.x_train, self.y_train)
         feedback_block = self._get_feedback_block(self.tm.n_classes, self.tm.threshold)        
         
@@ -175,6 +177,8 @@ class Trainer:
             train_log = []
             test_log = []
             did_early_exit = False
+            
+            y_hat = np.empty_like(self.y_test)
 
             hide_progress_bar = self.progress_bar is False  
             with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
@@ -190,9 +194,9 @@ class Trainer:
                     input_block.set_data(self.x_test, self.y_test)
                      
                     if self.tm._is_multi_label is False:
-                        y_hat = exec.eval_predict()   
+                        exec.eval_predict(y_hat)                            
                     else:
-                        y_hat = exec.eval_predict_multi()        
+                        exec.eval_predict_multi(y_hat)        
                             
                     test_score = self.fn_test_score(self.y_test, np.array(y_hat))
                     test_log.append(test_score)                

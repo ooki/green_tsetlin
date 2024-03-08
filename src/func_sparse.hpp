@@ -16,7 +16,7 @@ namespace  green_tsetlin
     
 
 
-    emplate <typename _State, bool do_literal_budget>
+    template <typename _State, bool do_literal_budget>
     class InitializeSparseTM
     {
         public:                        
@@ -34,6 +34,19 @@ namespace  green_tsetlin
                     
                 state.rng.seed(seed);
                 state.fast_rng.seed(seed);
+
+                // need set size for each, now there is num_clauses empty vectors
+                state.sparse_clauses.reserve(state.num_clauses);
+
+                state.clause_outputs = new ClauseOutputUint[state.num_clauses];
+                memset(state.clause_outputs, 0, sizeof(ClauseOutputUint) * state.num_clauses);
+
+                state.class_votes = new WeightInt[state.num_classes];
+                memset(state.class_votes, 0, sizeof(WeightInt) * state.num_classes);
+
+                state.clause_weights = new WeightInt[state.num_clauses * state.num_classes];
+
+                // init clauses and clause weigths like in func_tm?
 
                 return true;
             }    
