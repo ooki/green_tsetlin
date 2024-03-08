@@ -9,15 +9,17 @@ class RuleSet:
         self.weights:np.array = None
         self.is_multi_label = is_multi_label
 
+        self.n_literals = -1
         self.n_classes = -1
+
 
 
     def compile_from_dense_state(self, state):
         w = state.w
         c = state.c
 
+        self.n_literals = c.shape[1] // 2
         self.n_classes = w.shape[1]
-        self.n_clauses = c.shape[0]
 
         rule_map = {}
         for k, row in enumerate(c):

@@ -28,6 +28,9 @@ def test_simple_rulset_from_dense():
     assert np.array_equal(weights[0], [9,-9]) # clause 0 and clause 1 is identical, so they should have been compiled to 1 rule
     assert np.array_equal(weights[1], [-1,4])
 
+    assert rs.n_literals == 2
+    assert rs.n_classes == 2
+
 
 if __name__ == "__main__":
     test_simple_rulset_from_dense()

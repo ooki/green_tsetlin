@@ -17,7 +17,6 @@ class Predictor:
         self.explanation = explanation
         
         self.n_literals: int = -1
-        self.n_clauses: int = -1
         self.n_classes: int = -1
         self.n_features: int = -1
         
@@ -26,6 +25,17 @@ class Predictor:
         self.target_names:list = None
 
         self._inf = None
+
+    
+    def _set_ruleset(self, ruleset: RuleSet):
+        self._ruleset = ruleset
+        self.n_literals = self._ruleset.n_literals
+        self.n_classes = self._ruleset.n_classes
+
+    def set_features(self, feature_something_todo):
+        raise NotImplementedError("Not impl features yet!")
+        pass
+
 
     def set_explanation_names(self, names):
         self.explanation_names = names
@@ -68,17 +78,20 @@ class Predictor:
 
 
     def _create_backend_inference(self):        
-        backend_cls = None
+        backend_cls = self._get_backend()
+
+        self._inf = backend_cls(self.n_literals, self.n_classes, self.n_features)        
+        self._inf.set_rules(self._ruleset.rules, self._ruleset.weights)
+
+    def _get_backend(self):
         if self.explanation == "none":
             backend_cls = _backend_impl["Inference8u_Ff_Lf_Wf"]
         
         
         if backend_cls is None:
             raise ValueError("Could not find a backend inference object with explanation set to '{}'".format(self.explanation))
-        
-        self._inf = backend_cls(self.n_literals, self.n_clauses, self.n_classes, self.n_features)        
-        print("create inf:", self._inf)
-        self._inf.set_rules(self._ruleset.rules, self._ruleset.weights)
+
+        return backend_cls
 
 
 

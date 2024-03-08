@@ -2,14 +2,19 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
+
 
 // PYBIND11_MAKE_OPAQUE(std::vector<int>);
 // PYBIND11_MAKE_OPAQUE(std::vector<double>);
 // PYBIND11_MAKE_OPAQUE(std::vector<std::vector<int>>);
 
+// PYBIND11_MAKE_OPAQUE(green_tsetlin::InferenceRule);
+// PYBIND11_MAKE_OPAQUE(green_tsetlin::RuleVector);
+// PYBIND11_MAKE_OPAQUE(green_tsetlin::RuleWeights);
 
-#define STRINGIFY(x) #x
-#define MACRO_STRINGIFY(x) STRINGIFY(x)
+
 
 bool has_avx2()
 {
@@ -202,7 +207,7 @@ template<typename _T>
 void define_inference_module(py::module& m, const char* name)
 {
     py::class_<_T>(m, name)
-        .def(py::init<int, int, int, int>())
+        .def(py::init<int, int, int>())
         .def("set_rules", &_T::set_rules)
         .def("set_features", &_T::set_features)
 
@@ -231,7 +236,9 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
            A impl. of the Tsetlin Machine
     )pbdoc";
 
-    // py::bind_vector<std::vector<int>>(m, "VectorInt");
+    // py::bind_vector<gt::InferenceRule>(m, "InferenceRule");
+    // py::bind_vector<gt::RuleVector>(m, "RuleVector");
+    // py::bind_vector<gt::RuleWeights>(m, "RuleWeights");
     // py::bind_vector<std::vector<std::vector<int>>>(m, "VectorVectorInt");
     // py::bind_vector<std::vector<double>>(m, "VectorDouble");
 
