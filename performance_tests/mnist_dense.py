@@ -49,28 +49,39 @@ if __name__ == "__main__":
     s = 10.0
     n_literal_budget = 20
     threshold = 1000    
-        
+    
+    print("n_clauses:", n_clauses)
+    
+    has_printed_cb = False
     log = {}
     n_repeats = 5
-    
+    import time
+    seed = 42
     for n_jobs in range(0, 15):
         results = []
         for _ in range(n_repeats):        
-            tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, n_literal_budget=n_literal_budget)
-            tm.set_train_data(xt, yt)
-            tm.set_test_data(xe, ye)
-            trainer = gt.Trainer(threshold, n_epochs=1, seed=32, n_jobs=n_jobs, early_exit_acc=True)
+            tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=n_literal_budget)
+            if has_printed_cb:
+                print("tm backend:", tm._backend_clause_block_cls)
+                has_printed_cb = True
             
+            trainer = gt.Trainer(tm, n_epochs=1, seed=seed, n_jobs=n_jobs)            
+            trainer.set_train_data(xt, yt)
+            trainer.set_test_data(xe, ye)
+                        
             t0 = perf_counter()
-            r = trainer.train(tm)
+            r = trainer.train()
             t1 = perf_counter()
             
             results.append(t1 - t0)
+            seed += 1
             
-        log[n_jobs] = np.median(results)
+        log[n_jobs] = results
         
     print("--- done ---")
-    print(log)
+    with open("mnist_dense.log", "w") as fp:
+        for k, v in log.items():
+            fp.write("n_jobs: {}, median: {:.2f},  all:{}\n".format(k, np.median(v), v))
 
         
     """_c:1000
