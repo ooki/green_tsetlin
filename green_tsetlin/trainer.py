@@ -71,8 +71,9 @@ class Trainer:
         self._cls_exec_multithread = _backend_impl["thread_executor"]
 
         self._cls_sparse_ib = _backend_impl["sparse_input"]
-
         self._cls_input_block = None
+        
+        self.x_train = None
 
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
@@ -152,7 +153,9 @@ class Trainer:
 
 
     def train(self):                
-
+        
+        if self.x_train is None:
+            raise ValueError("Cannot train() without train data. Did you forget to set_train_data()?")
 
         self._select_backend_ib()
         input_block = self._cls_input_block(self.tm.n_literals)
