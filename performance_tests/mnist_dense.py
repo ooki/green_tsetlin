@@ -19,6 +19,17 @@ except (ImportError, ModuleNotFoundError):
     print("Please install 'pip install py-cpuinfo' to run this test.")
     exit(0)
 
+
+try:
+    import psutil
+except (ImportError, ModuleNotFoundError):
+    print("Please install 'pip install psutil' to run this test.")
+    exit(0)
+
+
+
+
+
 import green_tsetlin as gt 
 
 
@@ -49,73 +60,41 @@ def get_mnist():
     return X_train, X_test, y_train, y_test
 
 
-def get_data_selection():
-    xt1, xe1, yt, ye = get_mnist()
 
-    xt2 = np.concatenate([xt1, xt1], axis=1)
-    xe2 = np.concatenate([xe1, xe1], axis=1)    
+def get_data():
+    xt, xe, yt, ye = get_mnist()
+    xt = np.concatenate([xt, xt], axis=1)    
+    xt = np.concatenate([xt, xt], axis=0)
+    yt = np.concatenate([yt, yt], axis=0)
     
-    n = xt1.shape[1] // 2
-    d = xt1.shape[0] // 2
+    xe = np.concatenate([xe, xe], axis=1)
+
     
-    xt05 = xt1[:, 0:n]
-    xe05 = xe1[:, 0:n]
-    
-    
-    # make bigger    
-    xt05_small = xt05[0:d, :]        
-    xt1_small = xt1[0:d, :]
-    xt2_small = xt2[0:d, :]
-    ye_small = ye[0:d]
-    yt_small = yt[0:d]
-    
-        
-    xt05_big = np.concatenate([xt05, xt05_small], axis=0)
-    xt1_big = np.concatenate([xt1, xt1_small], axis=0)
-    xt2_big = np.concatenate([xt2, xt2_small], axis=0)
-    
-    yt_big = np.concatenate([yt, yt_small], axis=0)    
-    ye_big = np.concatenate([ye, ye_small], axis=0)
-    
-    
-    
-    data = [(xt05_small, xe05, yt_small, ye_small),
-            (xt05,       xe05, yt, ye),
-            (xt05_big,   xe05, yt_big, ye_big),
-            (xt1_small,  xe1,  yt_small, ye_small),
-            (xt1_small,  xe1,  yt, ye),
-            (xt1_big,    xe1,  yt_big, ye_big),
-            (xt2_small,  xe2,  yt_small, ye_small),
-            (xt2,        xe2,  yt, ye),
-            (xt2_big,    xe2,  yt_big, ye_big)]
-    
-    return data
+    return xt, xe, yt, ye
 
 
 def run_trial(data, seed):
-    
-    print("-"*80)
-    print()
-    print("PLEASE MAKE SURE YOU DONT RUN ANY OTHER HEAVY PROCESSES WHILE RUNNING THE TESTS!!")
-    print()
-    print("-"*80)
-    # random params    
-    data_size = random.randint(0, len(data)-1)
-    # testing
-    train_x, test_x, train_y, test_y = data[data_size]    
-    n_literals = train_x.shape[1]        
-    n_clauses = random.randint(50, 20000)
-        
-    n_jobs = random.randint(1, 24)
-    
-    min_cbs = max(n_jobs-1, 1)
-    n_cbs = random.randint(min_cbs, n_jobs*3)
-    
+    xt, xe, yt, ye = data
     # static    
     n_classes = 10
     s = 10.0
     n_literal_budget = 20
     threshold = 1000    
+
+   
+    n_literals = random.randint(2, xt.shape[1]-1)
+    n_examples = random.randint(2, xt.shape[0]-1)
+    n_clauses = random.randint(n_classes, 20000)
+
+    train_x = xt[:n_examples, :n_literals]
+    train_y = yt[:n_examples]
+    test_x = xe[:,  :n_literals]
+    test_y = ye
+        
+    n_jobs = random.randint(1, 24)
+    
+    min_cbs = max(n_jobs-1, 1)
+    n_cbs = random.randint(min_cbs, n_jobs*3)
     
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=n_literal_budget)
     tm.set_num_clause_blocks(n_cbs)
@@ -131,7 +110,6 @@ def run_trial(data, seed):
     training_time = t1 - t0
     
     return {
-        "data_size": data_size,
         "n_literals": n_literals,
         "n_examples": train_x.shape[0],
         "n_clauses": n_clauses,
@@ -148,13 +126,29 @@ def inf_gen():
         yield i
         i += 1
 
+
+def get_computer_id():
+    import uuid    
+    u = uuid.UUID(int=uuid.getnode())
+    return str(u.int)
+
+
+
 if __name__ == "__main__":
-    
-    data = get_data_selection()
+    c_id = get_computer_id()
+    print("-"*80)
+    print()
+    print("PLEASE MAKE SURE YOU DONT RUN ANY OTHER HEAVY PROCESSES WHILE RUNNING THE TESTS!!")
+    print("Computer id: {}".format(c_id))
+    print()
+    print("-"*80)
+
+    data = get_data()
     log = None
     seed = 42
     
-    out_file = "mnist_dense_results.pkl"
+    out_file = "mnist_dense_results_{}.pkl".format(c_id)
+    print("out file:", out_file)
     
     for _ in tqdm.tqdm(inf_gen()):        
         if os.path.isfile(out_file):
@@ -167,12 +161,15 @@ if __name__ == "__main__":
         else:
             print("No log file found, creating new log.")
             ci = get_cpu_info()
-            log = [ci]
+            log = {"cpu": ci,
+                   "physical_cores": psutil.cpu_count(logical=False),
+                   "logical_cores": psutil.cpu_count(),
+                   "trials": []}
                 
             
         r = run_trial(data, seed)
         seed += 1
-        log.append(r)
+        log["trials"].append(r)
         
         with open(out_file, "wb") as fp:
             pickle.dump(log, fp, protocol=pickle.HIGHEST_PROTOCOL)
