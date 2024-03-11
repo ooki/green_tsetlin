@@ -94,6 +94,11 @@ def get_data_selection():
 
 def run_trial(data, seed):
     
+    print("-"*80)
+    print()
+    print("PLEASE MAKE SURE YOU DONT RUN ANY OTHER HEAVY PROCESSES WHILE RUNNING THE TESTS!!")
+    print()
+    print("-"*80)
     # random params    
     data_size = random.randint(0, len(data)-1)
     # testing
