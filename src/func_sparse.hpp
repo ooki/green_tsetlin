@@ -118,18 +118,18 @@ namespace  green_tsetlin
                         bool ta_found = false;
                         for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
-                            if (pos_clause[ta_k] == literals[0][lit_k])
+                            if (pos_clause[ta_k] == literals->at(lit_k))
                             {
                                 ta_found = true;
                                 break;
                             }
 
-                            else if (literals[0][lit_k] < pos_clause[ta_k])
+                            else if (literals->at(lit_k) < pos_clause[ta_k])
                             {
                                 continue;
                             }
 
-                            else if (literals[0][lit_k] > pos_clause[ta_k])
+                            else if (literals->at(lit_k) > pos_clause[ta_k])
                             {
                                 state.clause_outputs[clause_k] = 0;
                                 goto endclause;
@@ -151,19 +151,19 @@ namespace  green_tsetlin
 
                         for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
-                            if (neg_clause[ta_k] == literals[0][lit_k])
+                            if (neg_clause[ta_k] == literals->at(lit_k))
                             {
                                 state.clause_outputs[clause_k] = 0;
                                 goto endclause;
                                 // break;
                             }
 
-                            else if (literals[0][lit_k] < neg_clause[ta_k])
+                            else if (literals->at(lit_k) < neg_clause[ta_k])
                             {
                                 continue;
                             }
 
-                            else if (literals[0][lit_k] > neg_clause[ta_k])
+                            else if (literals->at(lit_k) > neg_clause[ta_k])
                             {
                                 break;
                             }
