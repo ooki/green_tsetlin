@@ -233,9 +233,31 @@ class TsetlinStateSparse:
 
         self.clauses = None
         self.clause_weights = None
+        self.active_literals = None
         self.literal_budget = None
         self.do_literal_budget = True
 
     def initialize(self, seed):
         
         self.rng = np.random.default_rng(seed)
+
+        self.clauses = self.rng.choice(np.array([-1, 0]), size=(self.n_clauses, self.n_literals*2), replace=True).astype(np.int8)
+        
+        self.clause_weights = self.rng.choice(np.array([-1, 1]), size=(self.n_clauses, self.n_classes), replace=True).astype(np.int8)
+        self.active_literals = None        
+        self.class_votes = np.zeros(self.n_classes, dtype=np.int32)
+        self.literal_counts = np.zeros(self.n_clauses, dtype=np.int32)
+        
+        if(self.literal_budget is None or self.literal_budget == 32700):
+            self.do_literal_budget = False
+
+    def cleanup(self):
+        self.clauses = None
+        self.clause_weights = None
+        self.class_votes = np.zeros(self.n_classes, dtype=np.int32)
+
+        if(self.do_literal_budget):
+            self.literal_counts = np.zeros(self.n_clauses, dtype=np.int32)
+
+    def set_clause_output(self, m_literals, seed):
+        pass

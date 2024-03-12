@@ -1,6 +1,6 @@
 import numpy 
 from green_tsetlin.py_gtc.feedback_block import FeedbackBlock
-from green_tsetlin.py_gtc.dense_input_block import DenseInputBlock
+from green_tsetlin.py_gtc.dense_input_block import DenseInputBlock, SparseInputBlock
 from green_tsetlin.py_gtc.tsetlin_state import TsetlinState, TsetlinStateSparse
 import numpy as np 
 
@@ -123,3 +123,11 @@ class ClauseBlockSparse(ClauseBlock):
     def initialize(self, seed):
         self.m_is_init = True
         self.state.initialize(seed=seed)
+
+
+    def set_input_block(self, ib):
+
+        if isinstance(ib, SparseInputBlock):
+            self.m_input_block = ib
+        else:
+            raise ValueError("SparseInputBlock object expected.")
