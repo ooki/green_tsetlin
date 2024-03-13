@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-from PIL import Image as im
 import tqdm
 
 try:
@@ -111,7 +110,8 @@ def run_trial(data, seed):
         "n_cbs": n_cbs,
         "n_jobs": n_jobs,
         "time": training_time,
-        "train_accuracy": r["train_log"][0]
+        "train_accuracy": r["train_log"][0],
+        "backend": str(tm._backend_clause_block_cls)
     }
     
 
@@ -168,6 +168,7 @@ if __name__ == "__main__":
         try:
             seed += 1
             r = run_trial(data, seed)
+            print(r)
             log["trials"].append(r)
         except:
             n_fails_left -= 1

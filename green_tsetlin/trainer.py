@@ -170,7 +170,7 @@ class Trainer:
             n_blocks = self._calculate_blocks_for_tm()
             self.tm.set_num_clause_blocks(n_blocks)
                 
-        cbs = self.tm.construct_clause_blocks()   
+        cbs = self.tm.construct_clause_blocks()
         for cb in cbs:
             cb.set_feedback(feedback_block)     
             cb.set_input_block(input_block)
