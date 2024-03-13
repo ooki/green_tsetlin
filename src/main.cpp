@@ -110,7 +110,7 @@ typedef typename gt::ClauseBlockT<
 typedef typename gt::SparseTsetlinState SparseTsetlinState;
 
 typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
-                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, false>, // boost_true_positive = false
+                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState>, false>, // boost_true_positive = false
                                     gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
                                     gt::Type2FeedbackSparseTM<SparseTsetlinState>>
                                 ClauseUpdateSparseTMImpl;

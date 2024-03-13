@@ -25,6 +25,7 @@ namespace green_tsetlin
             int lower_ta_threshold = 0;
 
             int num_literals = 0;
+            int active_literals_size = 0;
 
             uint32_t literal_budget = 0xFFFF;
 
