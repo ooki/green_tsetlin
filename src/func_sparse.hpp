@@ -242,8 +242,10 @@ namespace  green_tsetlin
                     // WeightInt* clause_weights = state.clause_weights + clause_k * state.num_classes;
 
                     //  pass clause_row or only clause_k? prev. sparse imp only take clause_k. Can we use func_tm imp using &state.clauses[clause_k * n_features]? 
-                    SparseClause* clause_row = &state.clauses[clause_k];
-                    SparseClauseStates* clause_states = &state.clause_states[clause_k];
+                    SparseClause* pos_clause_row = &state.clauses[clause_k];
+                    SparseClause* neg_clause_row = &state.clauses[clause_k + state.num_clauses];
+                    SparseClauseStates* pos_clause_states = &state.clause_states[clause_k];
+                    SparseClauseStates* neg_clause_states = &state.clause_states[clause_k + state.num_clauses];
 
                     WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
                     
@@ -251,12 +253,12 @@ namespace  green_tsetlin
                     if (state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, clause_row, clause_states, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
                     }
                     else if (state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, clause_row, clause_states, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
 
                     }
                 }
@@ -269,7 +271,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* clause_row, SparseClauseStates* clause_states, WeightInt* clause_weight, int target, SparseLiterals* literals, ClauseOutputUint clause_output)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, WeightInt* clause_weight, int target, SparseLiterals* literals, ClauseOutputUint clause_output)
             {
                 int32_t sign = (*clause_weight) >= 0 ? +1 : -1;
 
@@ -280,14 +282,16 @@ namespace  green_tsetlin
                         (*clause_weight) += sign;
 
                         _T1aFeedback t1a;
-                        t1a(state, clause_row, clause_states, literals);
-                        prune_clause(state, clause_row, clause_states);
+                        t1a(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, literals);
+                        prune_clause(state, pos_clause_row, pos_clause_states);
+                        prune_clause(state, neg_clause_row, neg_clause_states);
                     }
                     else
                     {
                         _T1bFeedback t1b;
-                        t1b(state, clause_row, clause_states);
-                        prune_clause(state, clause_row, clause_states);
+                        t1b(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states);
+                        prune_clause(state, pos_clause_row, pos_clause_states);
+                        prune_clause(state, neg_clause_row, neg_clause_states);
                     }
                 }
                 else if ((target * sign) < 0 && clause_output == 1)
@@ -295,7 +299,7 @@ namespace  green_tsetlin
                     (*clause_weight) -= sign;
 
                     _T2Feedback t2;
-                    t2(state, clause_row, clause_states, literals);
+                    t2(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, literals);
                 }
 
             }
@@ -317,7 +321,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* clause_row, SparseClauseStates* clause_states, SparseLiterals* literals)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* literals)
             {
             }
     };
@@ -327,7 +331,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* clause_row, SparseClauseStates* clause_states)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states)
             {
             }
     };
@@ -339,7 +343,7 @@ namespace  green_tsetlin
         public:
             // Assume that clause_output == 1 (check ClauseUpdate)
             // // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* clause_row, SparseClauseStates* clause_states, SparseLiterals* literals)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* literals)
             {
             }
     };
