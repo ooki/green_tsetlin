@@ -1,6 +1,7 @@
 import os
 from typing import Optional, List, Union
 from collections import defaultdict
+from time import perf_counter
 
     
 import numpy as np
@@ -47,6 +48,7 @@ class Trainer:
         self.copy_training_data = copy_training_data
 
         self._best_tm_state : TMState = None
+        self.results : dict = None 
 
 
         if fn_test_score == "accuracy":
@@ -170,7 +172,7 @@ class Trainer:
             n_blocks = self._calculate_blocks_for_tm()
             self.tm.set_num_clause_blocks(n_blocks)
                 
-        cbs = self.tm.construct_clause_blocks()   
+        cbs = self.tm.construct_clause_blocks()
         for cb in cbs:
             cb.set_feedback(feedback_block)     
             cb.set_input_block(input_block)
@@ -197,6 +199,7 @@ class Trainer:
             best_test_epoch = -1
             train_acc = -1.0
             
+            train_time_of_epochs = []
             
             train_log = []
             test_log = []
@@ -208,10 +211,13 @@ class Trainer:
             with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
                 progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
         
-                for epoch in range(self.n_epochs):                                            
+                for epoch in range(self.n_epochs):         
+
+                    t0 = perf_counter()                                   
                     train_acc = exec.train_epoch()
-                    # print(self.tm._load_state_from_backend(only_return_copy=True).c)
-                    # print(self.tm._load_state_from_backend(only_return_copy=True).w)
+                    t1 = perf_counter()
+
+                    train_time_of_epochs.append(t1-t0)
                     train_log.append(train_acc)                
                     n_epochs_trained += 1
 
@@ -251,7 +257,8 @@ class Trainer:
             if self.load_best_state is True:
                 self.tm._state = self._best_tm_state
         
-        return {
+        r = {
+            "train_time_of_epochs": train_time_of_epochs,
             "best_test_score": best_test_score,
             "best_test_epoch": best_test_epoch,
             "n_epochs": n_epochs_trained,
@@ -259,6 +266,8 @@ class Trainer:
             "test_log": test_log,
             "did_early_exit": did_early_exit
         }
+        self.results = r
+        return r
 
                 
                   
