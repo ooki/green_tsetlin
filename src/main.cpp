@@ -248,6 +248,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
     m.def("has_avx2", has_avx2);
     m.def("has_neon", has_neon);
+    // m.def("test_train_set_clause_output_sparse", &gt::test_train_set_clause_output<SparseTsetlinState, gt::SetClauseOutputSparseTM<SparseTsetlinState, true>>);
     
     py::class_<gt::InputBlock>(m, "InputBlock")
         .def("prepare_example", &gt::InputBlock::prepare_example)
@@ -322,7 +323,6 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         
         .def("set_feedback", &gt::ClauseBlock::set_feedback)
     ;
-
 
 
     

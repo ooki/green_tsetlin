@@ -2,18 +2,28 @@
 #define _SPARSE_TSETLIN_STATE_HPP_
 
 #include <vector>
+#include <map>
 #include <gt_common.hpp>
 
 namespace green_tsetlin
 {
     typedef typename std::vector<uint32_t> SparseLiterals;
+    typedef typename std::vector<uint32_t> SparseClause;
+    typedef typename std::vector<int8_t> SparseClauseStates;
+
+
+
 
     class SparseTsetlinState
     {
         public:
             double s = -42.0;
             int num_clauses = 0;
-            int num_classes = 0;            
+            int num_classes = 0;        
+            int num_class_weights_mem = 0;
+
+            int lower_ta_threshold = 0;
+
             int num_literals = 0;
 
             uint32_t literal_budget = 0xFFFF;
@@ -24,7 +34,9 @@ namespace green_tsetlin
             std::default_random_engine rng;
             Wyhash64                   fast_rng; // can only generate a random [0,1] float 
 
-            std::vector<SparseLiterals> clauses;
+            std::vector<SparseClause> clauses;
+            std::vector<SparseClauseStates> clause_states;
+            
             std::vector<SparseLiterals> active_literals;
 
             ClauseOutputUint* clause_outputs = nullptr;
@@ -43,23 +55,42 @@ namespace green_tsetlin
 
             inline WeightInt* get_class_votes() const
             {
+                
                 return class_votes;
             }
 
             inline void get_clause_state(int8_t* dst, int clause_offset)
             {
+
             }
 
             inline void set_clause_state(int8_t* src, int clause_offset)
             {
+
             }
 
             inline void set_clause_weights(WeightInt* src, int clause_offset)
             {
+                for(int i = 0; i < num_clauses; i++)
+                {                    
+                    const int src_o = (i+clause_offset) * num_class_weights_mem;
+                    const int dst_o = i * num_classes;
+
+                    memcpy(&clause_weights[dst_o],
+                           &src[src_o], num_classes * sizeof(WeightInt));
+                }
             }
 
             inline void get_clause_weights(WeightInt* dst, int clause_offset)
             {
+                for(int i = 0; i < num_clauses; i++)
+                {
+                    const int src_o = i * num_classes;
+                    const int dst_o = (i+clause_offset) * num_class_weights_mem;
+
+                    memcpy(&dst[dst_o],
+                           &clause_weights[src_o], num_classes * sizeof(WeightInt));
+                }
             }
     };  
 
