@@ -204,7 +204,7 @@ def test_select_backend_ib():
 
 def test_train_simple_xor_sparse():
     print("SPARSE\n")
-    n_literals = 7
+    n_literals = 4
     n_clauses = 5
     n_classes = 2
     s = 3.0
@@ -290,11 +290,11 @@ if __name__ == "__main__":
     #sstest_train_simple_xor()
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
-    # test_train_simple_xor_sparse()
-    # test_train_simple_xor_gtc_tm_backend()
+    test_train_simple_xor_sparse()
+    test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
 
-    test_trainer_with_kfold()
+    # test_trainer_with_kfold()
 
     print("<done: ", __file__, ">")
