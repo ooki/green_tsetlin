@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 import tqdm
 from scipy.sparse import csr_matrix
-
+from sklearn.model_selection import StratifiedKFold
 
 
 #import green_tsetlin_core as gtc
@@ -32,7 +32,9 @@ class Trainer:
                  fn_epoch_callback=empty_epoch_callback,
                  fn_test_score="accuracy",
                  progress_bar=True,
-                 copy_training_data:bool=True):
+                 copy_training_data:bool=True,
+                 k_folds:int=0,
+                 kfold_progress_bar:bool=False):
 
         self.tm = tm
         self.feedback_type = feedback_type
@@ -50,6 +52,8 @@ class Trainer:
         self._best_tm_state : TMState = None
         self.results : dict = None 
 
+        self.kfold_progress_bar = kfold_progress_bar
+        self.k_folds = k_folds
 
         if fn_test_score == "accuracy":
             self.fn_test_score = accuracy_score        
@@ -97,9 +101,9 @@ class Trainer:
         if x_train.shape[1] != self.tm.n_literals:
             raise ValueError("Data x_train does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_train.shape[1], self.tm.n_literals))
 
-
         self.x_train = x_train
         self.y_train = y_train        
+
 
     def set_test_data(self, x_test:np.array, y_test:np.array):
         
@@ -122,6 +126,27 @@ class Trainer:
         
         self.x_test = x_test
         self.y_test = y_test
+
+
+    def set_validation_data(self, x_val:np.array, y_val:np.array):
+
+        y_val = np.atleast_1d(y_val)       
+
+        if x_val is not None:
+            x_val = x_val.copy()
+            y_val = y_val.copy()
+
+        if x_val.dtype != np.uint8:
+            raise ValueError("Data x_test must be of type np.uint8, was: {}".format(x_val.dtype))
+        
+        if y_val.dtype != np.uint32:
+            raise ValueError("Data y_test must be of type np.uint32, was: {}".format(y_val.dtype))
+        
+        if x_val.shape[1] != self.tm.n_literals:
+            raise ValueError("Data x_test does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_val.shape[1], self.tm.n_literals))
+        
+        self.x_val = x_val
+        self.y_val = y_val 
 
 
     def _get_feedback_block(self, n_classes, threshold):
@@ -154,17 +179,16 @@ class Trainer:
             raise ValueError("Train and test data must be of the same type. x_train type: {}, x_test type: {}".format(type(self.x_train), type(self.x_test)))
 
 
-    def train(self):                
+    def _train_inner(self):                
         
         if self.x_train is None:
             raise ValueError("Cannot train() without train data. Did you forget to set_train_data()?")
 
         self._select_backend_ib()
         input_block = self._cls_input_block(self.tm.n_literals)
-        
+
 
         _flexible_set_data(input_block, self.x_train, self.y_train)
-
 
         feedback_block = self._get_feedback_block(self.tm.n_classes, self.tm.threshold)        
         
@@ -181,9 +205,9 @@ class Trainer:
             return
         
         with allocate_clause_blocks(cbs, seed=self.seed):    
+
             if self.tm._state is not None:
                 self.tm._save_state_in_backend()
-
 
             if self.n_jobs == 1:
                 exec = self._cls_exec_singlethread(input_block, cbs, feedback_block, 1, self.seed)
@@ -191,8 +215,6 @@ class Trainer:
                 exec = self._cls_exec_multithread(input_block, cbs, feedback_block, self.n_jobs, self.seed)
             
 
-
-            
             # main loop
             n_epochs_trained = 0
             best_test_score = -1.0
@@ -212,7 +234,7 @@ class Trainer:
                 progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
         
                 for epoch in range(self.n_epochs):         
-
+                    
                     t0 = perf_counter()                                   
                     train_acc = exec.train_epoch()
                     t1 = perf_counter()
@@ -220,9 +242,9 @@ class Trainer:
                     train_time_of_epochs.append(t1-t0)
                     train_log.append(train_acc)                
                     n_epochs_trained += 1
-
+                    
                     _flexible_set_data(input_block, self.x_test, self.y_test)
-                     
+
                     if self.tm._is_multi_label is False:
                         exec.eval_predict(y_hat)                            
                     else:
@@ -252,7 +274,6 @@ class Trainer:
                     if epoch < (self.n_epochs - 1):                   
                         _flexible_set_data(input_block, self.x_train, self.y_train)
 
-
                     
             if self.load_best_state is True:
                 self.tm._state = self._best_tm_state
@@ -265,13 +286,60 @@ class Trainer:
             "train_log": train_log,
             "test_log": test_log,
             "did_early_exit": did_early_exit
-        }
-        self.results = r
-        return r
-
-                
-                  
+            }
         
+        self.results = r
+        
+    
+    def train(self):
+        
+        if self.k_folds > 1:
+
+            x = np.vstack((self.x_train, self.x_test))
+            y = np.concatenate((self.y_train, self.y_test))
+
+            kf = StratifiedKFold(n_splits=self.k_folds, random_state=self.seed, shuffle=True)
+            
+            best_iter = -1
+            best_score = -1
+
+            with tqdm.tqdm(total=self.k_folds, disable=self.kfold_progress_bar is False) as progress_bar:
+                
+                progress_bar.set_description("Processing kfold 1 of {}, best test score: NA".format(self.k_folds))
+                
+                for i, (train_index, test_index) in enumerate(kf.split(x, y)):
+
+                    x_train, x_test = x[train_index], x[test_index]
+                    y_train, y_test = y[train_index], y[test_index]
+
+                    x_train = np.ascontiguousarray(x_train, dtype=np.uint8)
+                    x_test = np.ascontiguousarray(x_test, dtype=np.uint8)
+                    y_train = np.ascontiguousarray(y_train, dtype=np.uint32)
+                    y_test = np.ascontiguousarray(y_test, dtype=np.uint32)
+
+                    self.set_train_data(x_train, y_train)
+                    self.set_test_data(x_test, y_test)
+
+                    self._train_inner()
+
+                    if self.results["best_test_score"] > best_score:
+                        
+                        best_score = self.results["best_test_score"]
+                        best_iter = i
+
+                    progress_bar.set_description("Processing kfold {} of {}, best test score: {:.3f} (iter: {})".format(i+1, self.k_folds, best_score, best_iter))
+                    progress_bar.update(1)
+            
+            r = {"best_test_score": best_score, "k_folds" : self.k_folds}
+
+            self.results = r
+            return self.results
+
+        else:
+            self._train_inner()
+            return self.results
+
+
 def _flexible_set_data(ib, x, y):
     if isinstance(x, csr_matrix):
         ib.set_data(x.indices, x.indptr, y)

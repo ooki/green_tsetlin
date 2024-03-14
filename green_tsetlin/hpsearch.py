@@ -21,7 +21,8 @@ class HyperparameterSearch:
                  literal_budget : Union[Tuple[int, int], int],
                  minimize_literal_budget : bool = False,
                  seed : int = 42, 
-                 n_jobs : int = -1):
+                 n_jobs : int = -1,
+                 k_folds : int = 0):
         
         self.s_space = s_space
         self.clause_space = clause_space
@@ -31,6 +32,7 @@ class HyperparameterSearch:
         self.n_jobs = n_jobs
         self.literal_budget = literal_budget
         self.minimize_literal_budget = minimize_literal_budget
+        self.k_folds = k_folds
 
 
     def set_train_data(self, train_x, train_y):
@@ -73,12 +75,14 @@ class HyperparameterSearch:
                           n_jobs=self.n_jobs,
                           n_epochs=max_epoch_per_trial,
                           seed=self.seed,
-                          progress_bar=False)
+                          progress_bar=False,
+                          k_folds=self.k_folds,
+                          kfold_progress_bar=False)
         
         trainer.set_train_data(self.train_x, self.train_y)
         trainer.set_test_data(self.test_x, self.test_y)
 
-        trainer.train()
+        res = trainer.train()
         
         res = trainer.results["best_test_score"]
 
@@ -87,7 +91,7 @@ class HyperparameterSearch:
 
         return res
 
-    def optimize(self, n_trials, study_name, storage : str = None, return_best : bool = False, show_progress_bar : bool = False):
+    def optimize(self, n_trials, study_name, storage : str = None, show_progress_bar : bool = False):
         
         if self.minimize_literal_budget:
             study = optuna.create_study(study_name=study_name, storage=storage, directions=["maximize", "minimize"], load_if_exists=True)
@@ -97,8 +101,7 @@ class HyperparameterSearch:
         
         study.optimize(self.objective, n_trials=n_trials, show_progress_bar=show_progress_bar)
 
-        if return_best:
-            return study.best_trials
+        self.best_trials = study.best_trials
 
 
 
@@ -137,9 +140,11 @@ if __name__ == "__main__":
     tm_hp.set_train_data(train_x_bin, train_y)
     tm_hp.set_validation_data(val_x_bin, val_y)
 
-    best_score = tm_hp.optimize(n_trials=2, study_name="IMDB_study", storage=None, return_best=True)
+    tm_hp.optimize(n_trials=2, study_name="IMDB_study", storage=None, return_best=True)
 
-    print(best_score)
+    print(tm_hp.best_trails)
+
+
 
 
 

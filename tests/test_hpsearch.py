@@ -70,10 +70,10 @@ def test_optimization_literals():
     hyperparam_search.set_train_data(train_x, train_y)
     hyperparam_search.set_test_data(test_x, test_y)
 
-    best_trials = hyperparam_search.optimize(n_trials=50, study_name="none", return_best=True, show_progress_bar=True)
+    hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
     
     vals = []
-    for trial in best_trials:
+    for trial in hyperparam_search.best_trials:
         vals.append(trial.values)
 
     vals = np.array(vals)
@@ -97,9 +97,9 @@ def test_set_params():
     hyperparam_search.set_train_data(train_x, train_y)
     hyperparam_search.set_test_data(test_x, test_y)
 
-    best_trials = hyperparam_search.optimize(n_trials=2, study_name="none", return_best=True)
+    hyperparam_search.optimize(n_trials=1, study_name="none")
 
-    for trial in best_trials:
+    for trial in hyperparam_search.best_trials:
         assert trial.params == {}
     
     hyperparam_search = HyperparameterSearch(s_space=5.0,
@@ -113,9 +113,9 @@ def test_set_params():
     hyperparam_search.set_train_data(train_x, train_y)
     hyperparam_search.set_test_data(test_x, test_y)
 
-    best_trials = hyperparam_search.optimize(n_trials=2, study_name="none", return_best=True)
+    hyperparam_search.optimize(n_trials=1, study_name="none")
 
-    for trial in best_trials:
+    for trial in hyperparam_search.best_trials:
         assert list(trial.params.keys()) == ["n_clauses"]
 
 
@@ -134,10 +134,35 @@ def test_optimization():
     hyperparam_search.set_train_data(train_x, train_y)
     hyperparam_search.set_test_data(test_x, test_y)
 
-    best_trials = hyperparam_search.optimize(n_trials=50, study_name="none", return_best=True, show_progress_bar=True)
+    hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
     
     vals = []
-    for trial in best_trials:
+    for trial in hyperparam_search.best_trials:
+        vals.append(trial.values)
+
+    assert np.max(vals) == 1.0
+
+
+def test_with_kfold():
+
+    train_x, train_y, test_x, test_y = xor_dataset(n_train=50, n_test=10, n_literals=8, seed=42, noise=0.05)
+
+    hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
+                                              clause_space=(5, 20),
+                                              threshold_space=(3, 20),
+                                              max_epoch_per_trial=20,
+                                              literal_budget=(1, train_x.shape[1]),
+                                              seed=42,
+                                              n_jobs=5,
+                                              k_folds=5)
+    
+    hyperparam_search.set_train_data(train_x, train_y)
+    hyperparam_search.set_test_data(test_x, test_y)
+
+    hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
+    
+    vals = []
+    for trial in hyperparam_search.best_trials:
         vals.append(trial.values)
 
     assert np.max(vals) == 1.0
@@ -146,9 +171,11 @@ def test_optimization():
 
 if __name__ == "__main__":
     
-    test_optimization_literals()
-    # test_optimization()
+    # test_optimization_literals()
     # test_set_params()
     # test_trial()
+    # test_set_data()
+    # test_optimization()
+    test_with_kfold()
 
     print("<done tests:", __file__, ">")
