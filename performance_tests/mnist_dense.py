@@ -168,7 +168,6 @@ if __name__ == "__main__":
         try:
             seed += 1
             r = run_trial(data, seed)
-            print(r)
             log["trials"].append(r)
         except:
             n_fails_left -= 1

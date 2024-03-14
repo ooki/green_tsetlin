@@ -110,8 +110,7 @@ def test_train_simple_xor_gtc_tm_backend():
     r = trainer.train()    
     
     assert r["did_early_exit"]
-    assert sum(r["train_time_of_epochs"]) > 0.000001
-    
+    assert sum(r["train_time_of_epochs"]) > 0.000001        
     
 def test_train_set_best_state_and_results_afterwards():    
     n_literals = 7
