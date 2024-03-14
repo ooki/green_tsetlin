@@ -93,7 +93,7 @@ def test_train_simple_xor_gtc_tm_backend():
     n_clauses = 5
     n_classes = 2
     s = 3.0
-    threshold = 42    
+    threshold = 42
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     tm._backend_clause_block_cls = gtc.ClauseBlockTM
     
@@ -208,12 +208,12 @@ def test_train_simple_xor_sparse():
     n_clauses = 5
     n_classes = 2
     s = 3.0
-    threshold = 42    
+    threshold = 42
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
     tm._backend_clause_block_cls = gtc.ClauseBlockSparse
 
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40)
     
     print("BACKEND:")
     print(tm._backend_clause_block_cls)

@@ -12,53 +12,6 @@
 #include <gt_common.hpp>
 #include <sparse_tsetlin_state.hpp>
 
-// using namespace std;
-// struct Tuple;
-// struct RefTuple;
-// #define TUPLE_COMMON_FUNC(C, D, E)            \
-//     C##::C## (Tuple& t) ##D                        \
-//     C##::C## (RefTuple& t) ##D                    \
-//     void C##::operator = (Tuple& t) ##E        \
-//     void C##::operator = (RefTuple& t) ##E    
-// #define ASSIGN_1    : i(t.i), j(t.j) {}
-// #define ASSIGN_2    { i = t.i; j = t.j; }
-// #define SORT_CRITERIA \
-//     return (j < t.j) || (j == t.j && (i < t.i));
-// struct Tuple {
-//     int i, j;
-//     TUPLE_COMMON_FUNC(Tuple, ; , ;)
-// };
-// struct RefTuple {
-//     int &i, &j;
-//     RefTuple(int &x, int &y): i(x), j(y) {}
-//     TUPLE_COMMON_FUNC(RefTuple, ; , ;)
-// };
-// TUPLE_COMMON_FUNC(Tuple, ASSIGN_1, ASSIGN_2, {SORT_CRITERIA})
-// TUPLE_COMMON_FUNC(RefTuple, ASSIGN_1, ASSIGN_2, {SORT_CRITERIA})
-
-// void swap(RefTuple& t1, RefTuple& t2) {
-//     t1.i ^= t2.i; t2.i ^= t1.i; t1.i ^= t2.i;
-//     t1.j ^= t2.j; t2.j ^= t1.j; t1.j ^= t2.j;
-// }
-
-// class IterTuple : public iterator<random_access_iterator_tag, Tuple> {
-//     int *i, *j, idx;
-// public:
-//     IterTuple(int* x, int*y, int l) : i(x), j(y), idx(l) {}
-//     IterTuple(const IterTuple& e) : i(e.i), j(e.j), idx(e.idx) {}
-//     RefTuple operator*() { return RefTuple(i[idx], j[idx]);  }
-//     IterTuple& operator ++ () { idx++; return *this; }
-//     IterTuple& operator -- () { idx--; return *this; }
-//     IterTuple operator ++ (int) { IterTuple tmp(*this); idx++; return tmp; }
-//     IterTuple operator -- (int) { IterTuple tmp(*this); idx--; return tmp; }
-//     int operator - (IterTuple& rhs) { return idx - rhs.idx;    }
-//     IterTuple operator + (int n) { IterTuple tmp(*this); tmp.idx += n; return tmp; }
-//     IterTuple operator - (int n) { IterTuple tmp(*this); tmp.idx -= n; return tmp; }
-//     bool operator==(const IterTuple& rhs) {        return idx == rhs.idx;    }
-//     bool operator!=(const IterTuple& rhs) {     return idx != rhs.idx;  }
-//     bool operator<(IterTuple& rhs) {     return idx < rhs.idx;   }
-// };
-
 
 
 namespace  green_tsetlin
@@ -106,6 +59,10 @@ namespace  green_tsetlin
                     state.active_literals[i].reserve(state.active_literals_size);
                 }
 
+                if (do_literal_budget)
+                    state.literal_counts = new uint32_t[state.num_clauses];
+                
+
 
                 state.clause_outputs = new ClauseOutputUint[state.num_clauses];
                 memset(state.clause_outputs, 0, sizeof(ClauseOutputUint) * state.num_clauses);
@@ -139,6 +96,24 @@ namespace  green_tsetlin
         public:                        
             void operator()(_State& state)
             {
+                state.clauses.clear();
+                state.clauses.shrink_to_fit();
+
+                state.clause_states.clear();
+                state.clause_states.shrink_to_fit();
+
+                delete[] state.class_votes;
+                state.class_votes = nullptr;
+
+                delete[] state.clause_weights;
+                state.clause_weights = nullptr;
+
+                if(do_literal_budget)
+                {
+                    delete[] state.literal_counts;
+                    state.literal_counts = nullptr;
+                }
+
             }
     };
 
@@ -152,8 +127,11 @@ namespace  green_tsetlin
 
                 for (int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
-                    // uint32t pos_literal_count = 0;
-                    // uint32t neg_literal_count = 0;
+                    
+                    uint32_t pos_literal_count = 0;
+                    uint32_t neg_literal_count = 0;
+                   
+
                     SparseClause pos_clause = state.clauses[clause_k];
                     SparseClause neg_clause = state.clauses[clause_k + state.num_clauses];
 
@@ -181,12 +159,16 @@ namespace  green_tsetlin
                         {
                             if (pos_clause[ta_k] == literals->at(lit_k))
                             {
+                                if(do_literal_budget)
+                                    pos_literal_count++;
                                 ta_found = true;
                                 break;
                             }
 
                             else if (literals->at(lit_k) < pos_clause[ta_k])
                             {
+                                if(do_literal_budget)
+                                    pos_literal_count++;
                                 continue;
                             }
 
@@ -226,11 +208,15 @@ namespace  green_tsetlin
 
                             else if (literals->at(lit_k) < neg_clause[ta_k])
                             {
+                                if(do_literal_budget)
+                                    neg_literal_count++;
                                 continue;
                             }
 
                             else if (literals->at(lit_k) > neg_clause[ta_k])
                             {
+                                if(do_literal_budget)
+                                    neg_literal_count++;
                                 break;
                             }
                             
@@ -240,7 +226,7 @@ namespace  green_tsetlin
                 
                     endclause:
                         if (do_literal_budget)
-                            ;
+                            state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
 
                 
                 }
@@ -270,8 +256,9 @@ namespace  green_tsetlin
 
                     state.clause_outputs[clause_k] = 1;
 
-                    if ((state.clauses[clause_k].size() == 0) && (state.clauses[clause_k + state.num_clauses].size() == 0))
+                    if ((state.clauses[clause_k].size() == 0) || (state.clauses[clause_k + state.num_clauses].size() == 0))
                     {
+                        state.clause_outputs[clause_k] = 0;
                         continue;
                     }
 
@@ -392,6 +379,11 @@ namespace  green_tsetlin
 
                     WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
                     
+                    if (do_literal_budget)
+                    {
+                        if(state.literal_counts[clause_k] > state.literal_budget)
+                            state.clause_outputs[clause_k] = 0;
+                    }
 
                     if (state.fast_rng.next_u() < prob_positive)
                     {
