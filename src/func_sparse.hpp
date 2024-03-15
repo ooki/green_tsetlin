@@ -53,8 +53,8 @@ namespace  green_tsetlin
 
                 // num_literals is placeholder. Need change active_literals_size to be user defined
                 state.active_literals_size = state.num_literals;
-                state.active_literals.resize(state.num_classes);
-                for (int i = 0; i < state.num_classes; ++i)
+                state.active_literals.resize(state.num_classes*2);
+                for (int i = 0; i < state.num_classes*2; ++i)
                 {
                     state.active_literals[i].reserve(state.active_literals_size);
                 }
@@ -139,6 +139,9 @@ namespace  green_tsetlin
                     SparseClauseStates pos_clause_states = state.clause_states[clause_k];
                     SparseClauseStates neg_clause_states = state.clause_states[clause_k + state.num_clauses];
 
+                    // sort literals
+                    std::sort(literals->begin(), literals->end());
+
                     state.clause_outputs[clause_k] = 1;
 
                     if ((state.clauses[clause_k].size() == 0) && (state.clauses[clause_k + state.num_clauses].size() == 0))
@@ -150,7 +153,7 @@ namespace  green_tsetlin
                     for (int ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
                     {
                         bool ta_found = false;
-                        if (pos_clause_states[ta_k] <= 0)
+                        if (pos_clause_states[ta_k] < 0)
                         {
                             //  only evaluate when ta state is > 0
                             continue;
@@ -191,7 +194,7 @@ namespace  green_tsetlin
                     for (int ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
                     {
 
-                        if (neg_clause_states[ta_k] <= 0)
+                        if (neg_clause_states[ta_k] < 0)
                         {
                             //  only evaluate when ta state is > 0
                             continue;
@@ -255,6 +258,9 @@ namespace  green_tsetlin
 
                     state.clause_outputs[clause_k] = 1;
 
+                    // sort literals
+                    std::sort(literals->begin(), literals->end());
+
                     if ((state.clauses[clause_k].size() == 0) || (state.clauses[clause_k + state.num_clauses].size() == 0))
                     {
                         state.clause_outputs[clause_k] = 0;
@@ -265,7 +271,7 @@ namespace  green_tsetlin
                     for (int ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
                     {
                         bool ta_found = false;
-                        if (pos_clause_states[ta_k] <= 0)
+                        if (pos_clause_states[ta_k] < 0)
                         {
                             //  only evaluate when ta state is > 0
                             continue;
@@ -302,7 +308,7 @@ namespace  green_tsetlin
                     for (int ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
                     {
 
-                        if (neg_clause_states[ta_k] <= 0)
+                        if (neg_clause_states[ta_k] < 0)
                         {
                             //  only evaluate when ta state is > 0
                             continue;
@@ -373,8 +379,12 @@ namespace  green_tsetlin
                     SparseClauseStates* pos_clause_states = &state.clause_states[clause_k];
                     SparseClauseStates* neg_clause_states = &state.clause_states[clause_k + state.num_clauses];
                     
-                    SparseLiterals* pos_active_literals = &state.active_literals[positive_class];
-                    SparseLiterals* neg_active_literals = &state.active_literals[negative_class];
+                    SparseLiterals* pos_active_literals_positive_class = &state.active_literals[positive_class];
+                    SparseLiterals* neg_active_literals_positive_class = &state.active_literals[positive_class + state.num_classes];
+
+                    SparseLiterals* pos_active_literals_negative_class = &state.active_literals[negative_class];
+                    SparseLiterals* neg_active_literals_negative_class = &state.active_literals[negative_class + state.num_classes];
+
 
                     WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
                     
@@ -387,12 +397,12 @@ namespace  green_tsetlin
                     if (state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals, neg_active_literals, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_positive_class, neg_active_literals_positive_class, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
                     }
-                    else if (state.fast_rng.next_u() < prob_negative)
+                    if (state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals, neg_active_literals, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_negative_class, neg_active_literals_negative_class, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
 
                     }
                 }
@@ -446,7 +456,7 @@ namespace  green_tsetlin
 
                 for (int ta_k = 0; ta_k < clause_row->size(); ++ta_k)
                 {
-                    if (clause_states->at(ta_k) <= state.lower_ta_threshold)
+                    if (clause_states->at(ta_k) < state.lower_ta_threshold)
                     {   
                         clause_row->erase(clause_row->begin() + ta_k);
                         clause_states->erase(clause_states->begin() + ta_k);
@@ -504,11 +514,14 @@ namespace  green_tsetlin
             // TODO: clause_row needs a sparse type
             void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals)
             {
-                const double s_inv = 1.0 / state.s;
+                const double s_inv = (1.0 / state.s);
                 const double s_min1_inv = (state.s - 1.0) / state.s;
 
                 const int8_t lower_state = -127;
                 const int8_t upper_state = 127;
+
+                // sort literals
+                std::sort(literals->begin(), literals->end());
 
                 _UpdateAL update_al;
 
@@ -622,7 +635,7 @@ namespace  green_tsetlin
             // TODO: clause_row needs a sparse type
             void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states)
             {
-                const double s_inv = 1.0 / state.s;
+                const double s_inv = (1.0 / state.s);
                 const int8_t lower_state = -127;
 
 
@@ -657,6 +670,8 @@ namespace  green_tsetlin
             // // TODO: clause_row needs a sparse type
             void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals)
             {
+                // sort literals
+                std::sort(literals->begin(), literals->end());
                 // loop pos clauses, check if ta is not in literals, if so, increment ta state if its above threshold
                 for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
@@ -695,6 +710,7 @@ namespace  green_tsetlin
 
                     endloop_neg:;
                 }
+
 
                 for (int lit_k = 0; lit_k < pos_active_literals->size(); ++lit_k)
                 {
