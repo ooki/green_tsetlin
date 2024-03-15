@@ -73,7 +73,7 @@ def test_trainer_throws_on_wrong_number_of_examples_between_x_and_y():
 
 def test_train_simple_xor():
     
-    n_literals = 7
+    n_literals = 4
     n_clauses = 5
     n_classes = 2
     s = 3.0
@@ -205,7 +205,7 @@ def test_select_backend_ib():
 def test_train_simple_xor_sparse():
     print("SPARSE\n")
     n_literals = 4
-    n_clauses = 5
+    n_clauses = 50
     n_classes = 2
     s = 3.0
     threshold = 42
@@ -222,7 +222,7 @@ def test_train_simple_xor_sparse():
     print(trainer._cls_sparse_ib)
     print(trainer._cls_exec_singlethread)
 
-    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    # seed=6
 
     x = csr_matrix(x)
     ex = csr_matrix(ex)
@@ -287,11 +287,11 @@ def test_trainer_with_kfold():
 
 if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
-    #sstest_train_simple_xor()
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
     test_train_simple_xor_sparse()
-    test_train_simple_xor_gtc_tm_backend()
+    test_train_simple_xor()
+    # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
 

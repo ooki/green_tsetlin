@@ -121,7 +121,7 @@ typedef typename gt::TrainUpdateSparseTM<SparseTsetlinState,
                                    true > // do_literal_budget = true
                                 TrainUpdateSparseTMImpl;
 
-typedef typename gt::ClauseBlockT<
+typedef typename gt::ClauseBlockSparseT<
                                     SparseTsetlinState,
                                     gt::InitializeSparseTM<SparseTsetlinState, true>,       // do_literal_budget = true
                                     gt::CleanupSparseTM<SparseTsetlinState, true>,          // do_literal_budget = true
@@ -204,6 +204,22 @@ void define_clause_block(py::module& m, const char* name)
 
 
 template<typename _T>
+void define_clause_block_sparse(py::module& m, const char* name)
+{
+    py::class_<_T, gt::ClauseBlock>(m, name)
+        .def(py::init<int, int, int>())
+        .def("set_input_block", &_T::set_input_block)
+        
+        .def("get_clause_output", &_T::get_clause_output_npy)
+
+        .def("set_clause_state_sparse", &_T::set_clause_state_sparse_npy)
+        .def("get_clause_state_sparse", &_T::get_clause_state_sparse_npy)
+        .def("set_clause_weights", &_T::set_clause_weights_npy)
+        .def("get_clause_weights", &_T::get_clause_weights_npy);
+}
+
+
+template<typename _T>
 void define_inference_module(py::module& m, const char* name)
 {
     py::class_<_T>(m, name)
@@ -249,6 +265,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     m.def("has_avx2", has_avx2);
     m.def("has_neon", has_neon);
     // m.def("test_train_set_clause_output_sparse", &gt::test_train_set_clause_output<SparseTsetlinState, gt::SetClauseOutputSparseTM<SparseTsetlinState, true>>);
+    m.def("test_type2_feedback", &gt::test_Type2FeedbackSparse<SparseTsetlinState, gt::Type2FeedbackSparseTM<SparseTsetlinState>>);
+
     
     py::class_<gt::InputBlock>(m, "InputBlock")
         .def("prepare_example", &gt::InputBlock::prepare_example)
@@ -335,7 +353,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
     // Sparse TM tentative
-    define_clause_block<ClauseBlockSparseImpl>(m, "ClauseBlockSparse"); // Sparse TM
+    define_clause_block_sparse<ClauseBlockSparseImpl>(m, "ClauseBlockSparse"); // Sparse TM
 
 
     typedef typename gt::Inference<uint8_t, false, false, false>    Inference8u_Ff_Lf_Wf;

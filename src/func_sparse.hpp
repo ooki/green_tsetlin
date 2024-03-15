@@ -245,8 +245,7 @@ namespace  green_tsetlin
             {
                 for (int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
-                    // uint32t pos_literal_count = 0;
-                    // uint32t neg_literal_count = 0;
+
                     SparseClause pos_clause = state.clauses[clause_k];
                     SparseClause neg_clause = state.clauses[clause_k + state.num_clauses];
 
@@ -463,6 +462,10 @@ namespace  green_tsetlin
                 // Function to sort clauses and states, when new elements have been added from t2 feedback
                 
                 // if 2 elements, just check if they are in order, if not, swap
+                if (clause_row->size() == 1)
+                    return;
+                
+                
                 if (clause_row->size() == 2)
                 {
                     if (clause_row->at(0) > clause_row->at(1))
@@ -796,6 +799,103 @@ namespace  green_tsetlin
 
         return state.clause_outputs;
     }
+
+    class InputBlock;
+    template <typename _State, typename _T2Feedback>
+    void test_Type2FeedbackSparse()
+    {
+        
+        _State state;
+        std::vector<SparseClause> clauses = {{}, {0, 1}};
+        std::vector<SparseClauseStates> clause_states = {{}, {-4, -4}};
+        std::vector<SparseLiterals> active_literals = {{2}, {2}};
+        
+        state.clauses = clauses;
+        state.clause_states = clause_states;
+        state.active_literals = active_literals;
+        state.num_clauses = 1;
+        state.clause_outputs = new ClauseOutputUint[1];
+        state.clause_outputs[0] = 1;
+
+
+        SparseLiterals lits = {0};
+
+        for (int i = 0; i < state.num_clauses; i++)
+        {
+            _T2Feedback t2;
+            t2(state, &state.clauses[0], &state.clauses[1], &state.clause_states[0], &state.clause_states[1], &state.active_literals[0], &state.active_literals[1], &lits);
+        }
+
+        // print clauses and states
+        for (int i = 0; i < state.num_clauses*2; ++i)
+        {
+            std::cout << "clause: " << i << " = ";
+            for (int j = 0; j < state.clauses[i].size(); ++j)
+            {
+                std::cout << (int)state.clauses[i][j] << " ";
+            }
+            std::cout << std::endl;
+            std::cout << "states: " << i << " = ";
+            for (int j = 0; j < state.clause_states[i].size(); ++j)
+            {
+                std::cout << (int)state.clause_states[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+
+    }
+
+
+    // class InputBlock;
+    // template <typename _State, typename _T1aFeedback>
+    // void test_Type1aFeedbackSparseNV(_CBImpl* cb, InputBlock* ib)
+    // {
+    //     if(n_clauses < 1)
+    //         n_clauses = 1;
+
+
+    //     ib->prepare_example(0);
+
+
+    //     SparseTsetlinState &state = cb->get_state();
+    //     cb->pull_example();
+    //     auto lits = cb->get_current_literals();
+
+
+    //     for (int i = 0; i < n_clauses; i++)
+    //     {
+    //         _T1aFeedback t1a;
+    //         t1a(state, i, lits);
+    //     }
+
+
+    // }
+
+
+    // class InputBlock;
+    // template <typename _State, typename _T1bFeedback>
+    // void test_Type1bFeedbackSparseNV(_CBImpl* cb, InputBlock* ib)
+    // {
+    //     if(n_clauses < 1)
+    //         n_clauses = 1;
+
+
+    //     ib->prepare_example(0);
+
+
+    //     SparseTsetlinState &state = cb->get_state();
+    //     cb->pull_example();
+    //     auto lits = cb->get_current_literals();
+
+
+    //     for (int i = 0; i < n_clauses; i++)
+    //     {
+    //         _T1bFeedback t1b;
+    //         t1b(state, i, lits);
+    //     }
+
+
+    // }
 
 }; // namespace  green_tsetlin
 
