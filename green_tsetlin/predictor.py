@@ -15,6 +15,10 @@ class Predictor:
         self.is_multi_label = multi_label
         self.empty_class_output = 0
         self.explanation = explanation
+
+        valid_explanations = set(["none", "literals", "features", "positive_weighted_literals", "positive_weighted_features"])
+        if explanation not in valid_explanations:
+            raise ValueError("explanation must be one of the following: {}".format(", ".join(valid_explanations)))
         
         self.n_literals: int = -1
         self.n_classes: int = -1
@@ -86,7 +90,20 @@ class Predictor:
     def _get_backend(self):
         if self.explanation == "none":
             backend_cls = _backend_impl["Inference8u_Ff_Lf_Wf"]
-        
+
+        elif self.explanation == "literals":
+            backend_cls = _backend_impl["Inference8u_Ff_Lt_Wf"]
+
+        elif self.explanation == "features":
+            raise NotImplementedError("Not implemented backend for explanation 'features' yet!")
+            #backend_cls = _backend_impl["Inference8u_Ft_Lf_Wf"]
+
+        elif self.explanation == "positive_weighted_literals":
+            backend_cls = _backend_impl["Inference8u_Ff_Lt_Wt"]
+
+        elif self.explanation == "positive_weighted_features":
+            #backend_cls = _backend_impl["Inference8u_Ft_Lf_Wt"]        
+            raise NotImplementedError("Not implemented backend for explanation 'positive_weighted_features' yet!")
         
         if backend_cls is None:
             raise ValueError("Could not find a backend inference object with explanation set to '{}'".format(self.explanation))

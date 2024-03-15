@@ -17,25 +17,43 @@ class MockRuleset:
         self.n_classes = 2
 
 
-def test_init():
-    
-
+def test_init():    
     p = gt.Predictor(multi_label=False, explanation="none")
     m = MockRuleset()
     p._set_ruleset(m)    
     p.init()
 
+    assert p.n_literals == 2
+    assert p.n_classes == 2
 
 
+def test_sets_correct_backend_based_on_exploration():
+    e_and_backend = [
+        ("none", gtc.Inference8u_Ff_Lf_Wf),
+        ("literals", gtc.Inference8u_Ff_Lt_Wf),
+        # ("features", gtc.Inference8u_Ft_Lf_Wf),
+        ("features", None),
+        ("positive_weighted_literals", gtc.Inference8u_Ff_Lt_Wt),
+        # ("positive_weighted_features", gtc.Inference8u_Ft_Lf_Wt),
+        ("positive_weighted_features", None),
+    ]
 
-    #y_hat = predictor.predict(np.array([0,1,1,1]))
-    #print(y_hat)
+    for explanation, backend_cls in e_and_backend:
+        p = gt.Predictor(multi_label=False, explanation=explanation)
+        m = MockRuleset()
+        p._set_ruleset(m)
+        if backend_cls is None:
+            with pytest.raises(NotImplementedError):
+                p.init()
+            continue
 
-    #y_hat, expl = predictor.explain([0,1,1,1])
-
+        p.init()
+        assert p._get_backend() == backend_cls
+        print("DONE")
 
 
 if __name__ == "__main__":
     test_init()
+    test_sets_correct_backend_based_on_exploration()
     print("<done tests:", __file__, ">")
 
