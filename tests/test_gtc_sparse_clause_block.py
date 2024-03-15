@@ -46,7 +46,7 @@ def test_getset_state_and_weights():
 
 def test_simple_xor_sparse():
     n_literals = 4
-    n_clauses = 5
+    n_clauses = 6
     n_classes = 2
     s = 3.0
     threshold = 42.0
@@ -101,39 +101,111 @@ def test_simple_xor_sparse():
 
 def test_type2_fb_boost_negative_states():
     n_literals = 2
+    n_clauses = 1
+    n_classes = 1
+    s = 3.0
 
-    # ib = gtc.SparseInputBlock(n_literals)
+    x = np.array([[1, 0]], dtype=np.int8)   
+    y = np.array([0], dtype=np.int8)
+    x = csr_matrix(x)
 
-    # x = np.array([[1, 0]], dtype=np.uint32)
-    # y = np.array([0], dtype=np.uint32)
-    # s = csr_matrix(x)
+    ib = gtc.SparseInputBlock(n_literals)
+    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+
+    ib.set_data(x.indices, x.indptr, y)
+    fb = gtc.FeedbackBlock(n_classes, 42, 42)
+    cb.set_feedback(fb)
+    cb.set_input_block(ib)
+    cb.set_s(s)
+    cb.initialize()
+
+    dense_state = np.array([[-4, -4],
+                            [0, 0]])
     
-    # ib.set_data(s.indices, s.indptr, y)
+    dense_state = csr_matrix(dense_state)
+    print("DENSE STATES CSR")
+    print(dense_state.data)
+    print(dense_state.indices)
+    print(dense_state.indptr)
 
-    gtc.test_type2_feedback()
-    assert False
+    print("\n DENSE STATES TOARRAY")
+    cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
+    # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
+    # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
+    print('\n')
+    for ex in range(1):
+        gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], False)
+
+    data, indices, indptr = cb.get_clause_state_sparse()
+    print(data, indices, indptr)
+    dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
+    print(dense_output)
+
+    expected = np.array([[-4, -3],
+                         [0, 0]])
+
+    assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
 
-# def test_set_clause_output():
+def test_type2_AL_fills_clause():
+    n_literals = 2
+    n_clauses = 2
+    n_classes = 1
+    s = 3.0
 
-#     literals = [
-#         [1],
-#         [],
-#         [0, 1],
-#         [0]
-#     ]
+    x = np.array([[0, 1]], dtype=np.int8)   
+    y = np.array([0], dtype=np.int8)
+    x = csr_matrix(x)
 
-#     for lit in literals:
-#         t = gtc.test_train_set_clause_output_sparse(lit)
-#         # assert t == [1, 0], t
+    ib = gtc.SparseInputBlock(n_literals)
+    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+
+    ib.set_data(x.indices, x.indptr, y)
+    fb = gtc.FeedbackBlock(n_classes, 42, 42)
+    cb.set_feedback(fb)
+    cb.set_input_block(ib)
+    cb.set_s(s)
+    cb.initialize()
+
+    dense_state = np.array([[0, 0],
+                            [0, 0],
+                            [0, 0],
+                            [0, 0]])
+    
+    dense_state = csr_matrix(dense_state)
+    # print("DENSE STATES CSR")
+    # print(dense_state.data)
+    # print(dense_state.indices)
+    # print(dense_state.indptr)
+
+    # print("\n DENSE STATES TOARRAY")
+    cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
+    # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
+    # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
+    # print('\n')
+    for ex in range(1):
+        gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], True)
+
+    data, indices, indptr = cb.get_clause_state_sparse()
+    # print(data, indices, indptr)
+    dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
+    # print(dense_output)
+
+    expected = np.array([[-15, 0],
+                         [-15, 0],
+                         [0, -15],
+                         [0, -15]])
+
+    assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
 
 
 if __name__ == "__main__":
 
-    test_getset_state_and_weights()
+    # test_getset_state_and_weights()
     # test_set_clause_output()
     # test_type2_fb_boost_negative_states()
-    # test_simple_xor_sparse()
+    # test_type2_AL_fills_clause()
+    test_simple_xor_sparse()
 
     print("<done:", __file__, ">")
