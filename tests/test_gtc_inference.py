@@ -16,8 +16,16 @@ def get_inference_cls(f, l, w):
 
     if not f and not l and not w:
         inference_cls = gtc.Inference8u_Ff_Lf_Wf
-    else:
-        assert False
+    
+    elif not f and l:
+        if w:
+            inference_cls = gtc.Inference8u_Ff_Lt_Wt
+        else:
+            inference_cls = gtc.Inference8u_Ff_Lt_Wf
+        
+    
+    assert inference_cls is not None
+    
 
     n_literals = 2
     n_classes = 2
@@ -65,10 +73,25 @@ def test_predict_take_empty_class_into_account():
     assert o == 42
 
 
+def test_literal_importance():
+    
+    for w in [(False, -1, 2), (True, 0, 2)]:
+        n_literals, n_classes, n_features, inference = get_inference_cls(False, True, w[0])
+        inference.predict(np.array([1,0], dtype=np.uint8))                
+        lit_imp0 = inference.calculate_importance(0)
+        lit_imp1 = inference.calculate_importance(1)
+        
+        r = np.zeros(n_literals*2)
+        r[0] = lit_imp0[0]
+        assert np.array_equal(r, [w[1], 0, 0, 0])
+        
+        r[0] = lit_imp1[0]
+        assert np.array_equal(r, [w[2], 0, 0, 0])
+
 
 if __name__ == "__main__":
-    test_default_empty_class_is_zero_and_getset_works()
-    test_predict()
-    test_predict_take_empty_class_into_account()
-
+    # test_default_empty_class_is_zero_and_getset_works()
+    # test_predict()
+    # test_predict_take_empty_class_into_account()
+    test_literal_importance()
     print("<done>")
