@@ -278,15 +278,12 @@ namespace green_tsetlin
 
                 int offset = 0;
 
-                // loop all clauses*2, to get negated
                 for (int i = 0; i < m_state.num_clauses*2; ++i)
                 {
                     indptr.push_back(offset);
                     for (int ta_k = 0; ta_k < m_state.clauses[i].size(); ++ta_k)
                     {
-                        // add states to data
                         data.push_back(m_state.clause_states[i][ta_k]);
-                        // add indices to indices
                         indices.push_back(m_state.clauses[i][ta_k]);
                     }
                     offset += m_state.clauses[i].size();
@@ -307,13 +304,39 @@ namespace green_tsetlin
             }
 
 
-            virtual void set_clause_state_sparse_npy(pybind11::array_t<int8_t> in_array, int clause_offset)
+            virtual void set_clause_state_sparse_npy(pybind11::array data, pybind11::array indices, pybind11::array indptr)
             {
-                pybind11::buffer_info buffer_info = in_array.request();                            
-                std::vector<ssize_t> shape = buffer_info.shape;
+                // fill clauses and clause_states with data, indices and indptr
 
-                int8_t* p = static_cast<int8_t*>(buffer_info.ptr);                
-                m_state.set_clause_state(p, clause_offset);  
+                pybind11::buffer_info states_info = data.request();
+                int8_t* data_p = static_cast<int8_t*>(states_info.ptr);
+
+                pybind11::buffer_info indices_info = indices.request();
+                uint32_t* indices_p = static_cast<uint32_t*>(indices_info.ptr);
+
+                pybind11::buffer_info indptr_info = indptr.request();
+                std::vector<long int> shape_indptr = indptr_info.shape;
+                int _num_clauses = shape_indptr[0] - 1;
+                uint32_t* indptr_p = static_cast<uint32_t*>(indptr_info.ptr);
+
+
+                std::vector<std::vector<int8_t>> clause_states;
+                std::vector<std::vector<uint32_t>> clauses;
+                clauses.resize(_num_clauses);
+                clause_states.resize(_num_clauses);
+                
+
+                for (int i = 0; i < _num_clauses; ++i)
+                {
+                    for (int j = indptr_p[i]; j < indptr_p[i+1]; ++j)
+                    {
+                        clause_states[i].push_back(data_p[j]);
+                        clauses[i].push_back(indices_p[j]);
+                    }
+                }
+                m_state.clauses = clauses;
+                m_state.clause_states = clause_states;
+
             }
 
             virtual void get_clause_weights_npy(pybind11::array_t<WeightInt> out_array, int clause_offset)

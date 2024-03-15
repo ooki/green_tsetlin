@@ -18,17 +18,25 @@ def test_getset_state_and_weights():
     
 
     
-    new_state = rng.integers(low=-50, high=50, size=(n_clauses, n_literals*2)).astype(np.int8)                    
-    current_state = np.zeros_like(new_state)
+    new_state = rng.integers(low=-50, high=50, size=(n_clauses*2, n_literals)).astype(np.int8)
+    s_new_state = csr_matrix(new_state)
+    current_state = np.zeros_like(s_new_state)
     
     new_weights = rng.integers(low=-1000, high=1000, size=(n_clauses, n_classes)).astype(np.int16)
     current_weights = np.zeros_like(new_weights)
     
-    tmp = new_state.copy()
-    cb.get_clause_state_sparse()
-    assert np.array_equal(tmp, new_state)
-    assert np.array_equal(tmp, current_state)
+    tmp = s_new_state.copy()
+    cb.set_clause_state_sparse(s_new_state.data, s_new_state.indices, s_new_state.indptr)
+    current_state = cb.get_clause_state_sparse()
+    assert np.array_equal(tmp.data, s_new_state.data)
+    assert np.array_equal(tmp.indices, s_new_state.indices)
+    assert np.array_equal(tmp.indptr, s_new_state.indptr)
+    assert np.array_equal(tmp.data, current_state[0])
+    assert np.array_equal(tmp.indices, current_state[1])
+    assert np.array_equal(tmp.indptr, current_state[2]), (tmp.indptr, current_state[2])
     
+
+
     tmp_w = new_weights.copy()
     cb.set_clause_weights(new_weights, offset)
     cb.get_clause_weights(current_weights, offset)
@@ -88,6 +96,9 @@ def test_simple_xor_sparse():
     print(csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray())
 
 
+
+
+
 def test_type2_fb_boost_negative_states():
     n_literals = 2
 
@@ -120,9 +131,9 @@ def test_type2_fb_boost_negative_states():
 
 if __name__ == "__main__":
 
-    # test_getset_state_and_weights()
+    test_getset_state_and_weights()
     # test_set_clause_output()
     # test_type2_fb_boost_negative_states()
-    test_simple_xor_sparse()
+    # test_simple_xor_sparse()
 
     print("<done:", __file__, ">")
