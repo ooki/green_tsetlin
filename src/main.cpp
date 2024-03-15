@@ -265,7 +265,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     m.def("has_avx2", has_avx2);
     m.def("has_neon", has_neon);
     // m.def("test_train_set_clause_output_sparse", &gt::test_train_set_clause_output<SparseTsetlinState, gt::SetClauseOutputSparseTM<SparseTsetlinState, true>>);
-    m.def("test_type2_feedback", &gt::test_Type2FeedbackSparse<SparseTsetlinState, gt::Type2FeedbackSparseTM<SparseTsetlinState>>);
+    m.def("test_type2_feedback", &gt::test_Type2FeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type2FeedbackSparseTM<SparseTsetlinState>>);
 
     
     py::class_<gt::InputBlock>(m, "InputBlock")

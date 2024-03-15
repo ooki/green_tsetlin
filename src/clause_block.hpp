@@ -324,15 +324,19 @@ namespace green_tsetlin
                 std::vector<std::vector<uint32_t>> clauses;
                 clauses.resize(_num_clauses);
                 clause_states.resize(_num_clauses);
-                
+
 
                 for (int i = 0; i < _num_clauses; ++i)
                 {
+                    
+                
+                
                     for (int j = indptr_p[i]; j < indptr_p[i+1]; ++j)
                     {
                         clause_states[i].push_back(data_p[j]);
                         clauses[i].push_back(indices_p[j]);
                     }
+                    
                 }
                 m_state.clauses = clauses;
                 m_state.clause_states = clause_states;
@@ -377,7 +381,7 @@ namespace green_tsetlin
                 m_literals = m_input_block->pull_current_example();
             }
 
-            uint8_t* get_current_literals()
+            typename _InputBlock::example_type* get_current_literals()
             {
                 return m_literals;
             }

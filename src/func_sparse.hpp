@@ -72,13 +72,14 @@ namespace  green_tsetlin
 
                 state.clause_weights = new WeightInt[state.num_clauses * state.num_classes];
                 state.num_class_weights_mem = state.num_classes;
+                init_clause_weights(state);
 
                 return true;
             } 
         private:
             void init_clause_weights(_State& state)
             {
-                std::bernoulli_distribution dist(0.5);
+                
                 const int num_weights_total = state.num_clauses * state.num_classes;
                 for(int k = 0; k < num_weights_total; ++k)
                 {
@@ -140,7 +141,7 @@ namespace  green_tsetlin
                     SparseClauseStates neg_clause_states = state.clause_states[clause_k + state.num_clauses];
 
                     // sort literals
-                    std::sort(literals->begin(), literals->end());
+
 
                     state.clause_outputs[clause_k] = 1;
 
@@ -258,8 +259,7 @@ namespace  green_tsetlin
 
                     state.clause_outputs[clause_k] = 1;
 
-                    // sort literals
-                    std::sort(literals->begin(), literals->end());
+
 
                     if ((state.clauses[clause_k].size() == 0) || (state.clauses[clause_k + state.num_clauses].size() == 0))
                     {
@@ -502,7 +502,7 @@ namespace  green_tsetlin
                         break;
                 }
 
-                    
+            
             }
 
     };
@@ -520,8 +520,6 @@ namespace  green_tsetlin
                 const int8_t lower_state = -127;
                 const int8_t upper_state = 127;
 
-                // sort literals
-                std::sort(literals->begin(), literals->end());
 
                 _UpdateAL update_al;
 
@@ -670,8 +668,7 @@ namespace  green_tsetlin
             // // TODO: clause_row needs a sparse type
             void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals)
             {
-                // sort literals
-                std::sort(literals->begin(), literals->end());
+
                 // loop pos clauses, check if ta is not in literals, if so, increment ta state if its above threshold
                 for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
@@ -712,48 +709,51 @@ namespace  green_tsetlin
                 }
 
 
-                for (int lit_k = 0; lit_k < pos_active_literals->size(); ++lit_k)
+                for (int pos_lit_k = 0; pos_lit_k < pos_active_literals->size(); ++pos_lit_k)
                 {
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
-                        if (pos_active_literals->at(lit_k) == literals->at(lit_k))
+                        if (pos_active_literals->at(pos_lit_k) == literals->at(lit_k))
                         {
                             goto endloop_pos_al;
                         }
                     }
                     for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                     {
-                        if (pos_active_literals->at(lit_k) == pos_clause_row->at(ta_k))
+                        if (pos_active_literals->at(pos_lit_k) == pos_clause_row->at(ta_k))
                         {
                             goto endloop_pos_al;
                         }
                     }
 
-                    pos_clause_row->push_back(pos_active_literals->at(lit_k));
+                    // std::cout << "adding to clause: " << pos_active_literals->at(pos_lit_k) << std::endl;
+                    pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
                     pos_clause_states->push_back(state.lower_ta_threshold + 5);
 
                     endloop_pos_al:;
                 }
 
-                for (int lit_k = 0; lit_k < neg_active_literals->size(); ++lit_k)
+                for (int neg_lit_k = 0; neg_lit_k < neg_active_literals->size(); ++neg_lit_k)
                 {
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
-                        if (neg_active_literals->at(lit_k) == literals->at(lit_k))
-                        {
+                        if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
+                        {   
+                            // std::cout << "adding to clause: " << neg_active_literals->at(neg_lit_k) << std::endl;
+                            neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
+                            neg_clause_states->push_back(state.lower_ta_threshold + 5);
                             goto endloop_neg_al;
                         }
                     }
                     for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                     {
-                        if (neg_active_literals->at(lit_k) == neg_clause_row->at(ta_k))
+                        if (neg_active_literals->at(neg_lit_k) == neg_clause_row->at(ta_k))
                         {
                             goto endloop_neg_al;
                         }
                     }
 
-                    neg_clause_row->push_back(neg_active_literals->at(lit_k));
-                    neg_clause_states->push_back(state.lower_ta_threshold + 5);
+
 
                     endloop_neg_al:;
                 }
@@ -765,7 +765,7 @@ namespace  green_tsetlin
     class UpdateAL
     {
         public:
-            void operator()(_State& state, SparseLiterals* active_literals_class_k, int8_t literal) // active_literals_class_k might need to be pointer
+            void operator()(_State& state, SparseLiterals* active_literals_class_k, uint32_t literal) // active_literals_class_k might need to be pointer
             {
                 // Function to update active literals
 
@@ -817,46 +817,31 @@ namespace  green_tsetlin
     }
 
     class InputBlock;
-    template <typename _State, typename _T2Feedback>
-    void test_Type2FeedbackSparse()
+    template <typename _State, typename _CBImpl, typename _T2Feedback>
+    void test_Type2FeedbackSparse(_CBImpl* cb, InputBlock* ib, int n_clauses, int example, int class_num, bool do_AL)
     {
         
-        _State state;
-        std::vector<SparseClause> clauses = {{}, {0, 1}};
-        std::vector<SparseClauseStates> clause_states = {{}, {-4, -4}};
-        std::vector<SparseLiterals> active_literals = {{2}, {2}};
-        
-        state.clauses = clauses;
-        state.clause_states = clause_states;
-        state.active_literals = active_literals;
-        state.num_clauses = 1;
-        state.clause_outputs = new ClauseOutputUint[1];
-        state.clause_outputs[0] = 1;
+        if(n_clauses < 1)
+            n_clauses = 1;
 
+        ib->prepare_example(example);
 
-        SparseLiterals lits = {0};
+        _State& state = cb->get_state();
+        cb->pull_example();
+        auto lits = cb->get_current_literals();
 
-        for (int i = 0; i < state.num_clauses; i++)
+        if (do_AL)
         {
-            _T2Feedback t2;
-            t2(state, &state.clauses[0], &state.clauses[1], &state.clause_states[0], &state.clause_states[1], &state.active_literals[0], &state.active_literals[1], &lits);
+            
+            state.active_literals[0] = {0, 1};
+            state.active_literals[1] = {0, 1};
+        
         }
 
-        // print clauses and states
-        for (int i = 0; i < state.num_clauses*2; ++i)
+        for (int i = 0; i < n_clauses; i++)
         {
-            std::cout << "clause: " << i << " = ";
-            for (int j = 0; j < state.clauses[i].size(); ++j)
-            {
-                std::cout << (int)state.clauses[i][j] << " ";
-            }
-            std::cout << std::endl;
-            std::cout << "states: " << i << " = ";
-            for (int j = 0; j < state.clause_states[i].size(); ++j)
-            {
-                std::cout << (int)state.clause_states[i][j] << " ";
-            }
-            std::cout << std::endl;
+            _T2Feedback t2;
+            t2(state, &state.clauses[i], &state.clauses[i + state.num_clauses], &state.clause_states[i], &state.clause_states[i + state.num_clauses], &state.active_literals[class_num], &state.active_literals[class_num + 1], lits);
         }
 
     }
