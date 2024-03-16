@@ -45,12 +45,12 @@ def test_getset_state_and_weights():
 
 
 def test_simple_xor_sparse():
-    n_literals = 4
-    n_clauses = 6
+    n_literals = 4   
+    n_clauses = 5
     n_classes = 2
     s = 3.0
     threshold = 42.0
-    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    # seed=6
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)
 
     x = csr_matrix(x)
     ex = csr_matrix(ex)
@@ -90,9 +90,7 @@ def test_simple_xor_sparse():
     
     data, indices, indptr = cb.get_clause_state_sparse()
     print(data.shape, indices.shape, indptr.shape)
-    print(data[-1])
-    print(indices[-1])
-    print(indptr[-1])
+
     print(csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray())
 
 
@@ -123,12 +121,12 @@ def test_type2_fb_boost_negative_states():
                             [0, 0]])
     
     dense_state = csr_matrix(dense_state)
-    print("DENSE STATES CSR")
-    print(dense_state.data)
-    print(dense_state.indices)
-    print(dense_state.indptr)
+    # print("DENSE STATES CSR")
+    # print(dense_state.data)
+    # print(dense_state.indices)
+    # print(dense_state.indptr)
 
-    print("\n DENSE STATES TOARRAY")
+    # print("\n DENSE STATES TOARRAY")
     cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
     # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
     # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)

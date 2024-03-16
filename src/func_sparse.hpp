@@ -147,6 +147,8 @@ namespace  green_tsetlin
 
                     if ((state.clauses[clause_k].size() == 0) && (state.clauses[clause_k + state.num_clauses].size() == 0))
                     {
+                        if (do_literal_budget)
+                            state.literal_counts[clause_k] = 0;
                         continue;
                     }
 
@@ -159,20 +161,20 @@ namespace  green_tsetlin
                             //  only evaluate when ta state is > 0
                             continue;
                         }
+
+
                         for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
                             if (pos_clause[ta_k] == literals->at(lit_k))
                             {
-                                if(do_literal_budget)
-                                    pos_literal_count++;
+                                
                                 ta_found = true;
                                 break;
                             }
 
                             else if (literals->at(lit_k) < pos_clause[ta_k])
                             {
-                                if(do_literal_budget)
-                                    pos_literal_count++;
+
                                 continue;
                             }
 
@@ -180,6 +182,7 @@ namespace  green_tsetlin
                             {
                                 state.clause_outputs[clause_k] = 0;
                                 goto endclause;
+                                // break;
 
                             }
                             
@@ -201,6 +204,7 @@ namespace  green_tsetlin
                             continue;
                         }
 
+
                         for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
                             if (neg_clause[ta_k] == literals->at(lit_k))
@@ -212,15 +216,13 @@ namespace  green_tsetlin
 
                             else if (literals->at(lit_k) < neg_clause[ta_k])
                             {
-                                if(do_literal_budget)
-                                    neg_literal_count++;
+                                
                                 continue;
                             }
 
                             else if (literals->at(lit_k) > neg_clause[ta_k])
                             {
-                                if(do_literal_budget)
-                                    neg_literal_count++;
+                                
                                 break;
                             }
                             
@@ -230,8 +232,23 @@ namespace  green_tsetlin
                 
                     endclause:
                         if (do_literal_budget)
+                        {
+                            for (int ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
+                            {
+                                if (pos_clause_states[ta_k] > 0)
+                                {
+                                    pos_literal_count++;
+                                }
+                            }
+                            for (int ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
+                            {
+                                if (neg_clause_states[ta_k] > 0)
+                                {
+                                    neg_literal_count++;
+                                }
+                            }
                             state.literal_counts[clause_k] = pos_literal_count + neg_literal_count;
-
+                        };
                 
                 }
                 //  print clause outputs
@@ -261,7 +278,7 @@ namespace  green_tsetlin
 
 
 
-                    if ((state.clauses[clause_k].size() == 0) || (state.clauses[clause_k + state.num_clauses].size() == 0))
+                    if ((pos_clause.size() == 0) || (neg_clause.size() == 0))
                     {
                         state.clause_outputs[clause_k] = 0;
                         continue;
@@ -373,7 +390,8 @@ namespace  green_tsetlin
             {
                 for (int clause_k = 0; clause_k < state.num_clauses; ++clause_k)
                 {
-
+                    
+                    
                     SparseClause* pos_clause_row = &state.clauses[clause_k];
                     SparseClause* neg_clause_row = &state.clauses[clause_k + state.num_clauses];
                     SparseClauseStates* pos_clause_states = &state.clause_states[clause_k];
@@ -387,11 +405,15 @@ namespace  green_tsetlin
 
 
                     WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
-                    
+
+
+
                     if (do_literal_budget)
                     {
                         if(state.literal_counts[clause_k] > state.literal_budget)
+                        {
                             state.clause_outputs[clause_k] = 0;
+                        }
                     }
 
                     if (state.fast_rng.next_u() < prob_positive)
@@ -421,7 +443,7 @@ namespace  green_tsetlin
 
                 if ( (target * sign) > 0)
                 {
-                    if (clause_output == 1)
+                    if ((int)clause_output == 1)
                     {
                         (*clause_weight) += sign;
 
@@ -430,7 +452,7 @@ namespace  green_tsetlin
                         prune_clause(state, pos_clause_row, pos_clause_states);
                         prune_clause(state, neg_clause_row, neg_clause_states);
                     }
-                    else
+                    else if ((int)clause_output == 0)
                     {
                         _T1bFeedback t1b;
                         t1b(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states);
@@ -438,7 +460,7 @@ namespace  green_tsetlin
                         prune_clause(state, neg_clause_row, neg_clause_states);
                     }
                 }
-                else if ((target * sign) < 0 && clause_output == 1)
+                else if ((target * sign) < 0 && (int)clause_output == 1)
                 {
                     (*clause_weight) -= sign;
 
@@ -584,11 +606,6 @@ namespace  green_tsetlin
                 for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
 
-                    if (pos_clause_states->at(ta_k) <= 0)
-                    {
-                        continue;
-                    }
-
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (pos_clause_row->at(ta_k) == literals->at(lit_k))
@@ -596,7 +613,8 @@ namespace  green_tsetlin
                             goto endloop_pos;
                         }
                     }
-                    pos_clause_states->at(ta_k) -= 1;
+                    if (state.fast_rng.next_u() <= s_inv)
+                        pos_clause_states->at(ta_k) -= 1;
 
                     endloop_pos:;
                 }
@@ -604,12 +622,6 @@ namespace  green_tsetlin
                 // loop neg clauses
                 for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
-                    
-                    // check if this is right
-                    if (neg_clause_states->at(ta_k) <= 0)
-                    {
-                        continue;
-                    }
 
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
@@ -618,7 +630,15 @@ namespace  green_tsetlin
                             goto endloop_neg;
                         }
                     }
-                    neg_clause_states->at(ta_k) += 1;
+                    if (boost_true_positive)
+                    {
+                        neg_clause_states->at(ta_k) += 1;
+                    }
+                    else
+                    {
+                        if (state.fast_rng.next_u() <= s_min1_inv)
+                            neg_clause_states->at(ta_k) += 1;
+                    }
 
                     endloop_neg:;
                 }
@@ -672,10 +692,6 @@ namespace  green_tsetlin
                 // loop pos clauses, check if ta is not in literals, if so, increment ta state if its above threshold
                 for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
-                    // if ((pos_clause_states->at(ta_k) <= state.lower_ta_threshold))
-                    // {
-                    //     continue;
-                    // }
                 
                     // loop literals, if we find ta in literals, skip increment
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
@@ -692,10 +708,7 @@ namespace  green_tsetlin
 
                 for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
-                    // if ((neg_clause_states->at(ta_k) <= state.lower_ta_threshold))
-                    // {
-                    //     continue;
-                    // }
+
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (neg_clause_row->at(ta_k) == literals->at(lit_k))
@@ -726,7 +739,6 @@ namespace  green_tsetlin
                         }
                     }
 
-                    // std::cout << "adding to clause: " << pos_active_literals->at(pos_lit_k) << std::endl;
                     pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
                     pos_clause_states->push_back(state.lower_ta_threshold + 5);
 
@@ -735,20 +747,19 @@ namespace  green_tsetlin
 
                 for (int neg_lit_k = 0; neg_lit_k < neg_active_literals->size(); ++neg_lit_k)
                 {
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
-                    {
-                        if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
-                        {   
-                            // std::cout << "adding to clause: " << neg_active_literals->at(neg_lit_k) << std::endl;
-                            neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
-                            neg_clause_states->push_back(state.lower_ta_threshold + 5);
-                            goto endloop_neg_al;
-                        }
-                    }
                     for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                     {
                         if (neg_active_literals->at(neg_lit_k) == neg_clause_row->at(ta_k))
                         {
+                            goto endloop_neg_al;
+                        }
+                    }
+                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    {
+                        if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
+                        {   
+                            neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
+                            neg_clause_states->push_back(state.lower_ta_threshold + 5);
                             goto endloop_neg_al;
                         }
                     }

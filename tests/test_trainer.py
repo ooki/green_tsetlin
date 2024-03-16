@@ -289,7 +289,7 @@ if __name__ == "__main__":
     #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
-    test_train_simple_xor_sparse()
+    # test_train_simple_xor_sparse()
     test_train_simple_xor()
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
