@@ -39,30 +39,26 @@ namespace  green_tsetlin
                 state.rng.seed(seed);
                 state.fast_rng.seed(seed);
 
-                // placeholder, needs to be user defined
-                state.lower_ta_threshold = -20;
 
                 state.clauses.resize(2*state.num_clauses);
                 state.clause_states.resize(2*state.num_clauses);
                 for (int i = 0; i < state.num_clauses; ++i)
                 {   
-                    // num_literals is placeholder. Need change to load factor
-                    state.clauses[i].reserve(state.num_literals);
-                    state.clause_states[i].reserve(state.num_literals);
+                    state.clauses[i].reserve(state.clause_size);
+                    state.clause_states[i].reserve(state.clause_size);
                 }
 
-                // num_literals is placeholder. Need change active_literals_size to be user defined
-                state.active_literals_size = state.num_literals;
+
                 state.active_literals.resize(state.num_classes*2);
                 for (int i = 0; i < state.num_classes*2; ++i)
                 {
                     state.active_literals[i].reserve(state.active_literals_size);
                 }
 
+
                 if (do_literal_budget)
                     state.literal_counts = new uint32_t[state.num_clauses];
                 
-
 
                 state.clause_outputs = new ClauseOutputUint[state.num_clauses];
                 memset(state.clause_outputs, 0, sizeof(ClauseOutputUint) * state.num_clauses);

@@ -27,6 +27,9 @@ namespace green_tsetlin
             int num_literals = 0;
             int active_literals_size = 0;
 
+            // want this as percentage or just as number of states in clauses?
+            int clause_size = 0;
+
             uint32_t* literal_counts = nullptr;
             uint32_t literal_budget = 0xFFFF;
 

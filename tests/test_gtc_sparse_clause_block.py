@@ -89,7 +89,7 @@ def test_simple_xor_sparse():
     print("Best Test Accuracy: %.3f" % best_acc)
     
     data, indices, indptr = cb.get_clause_state_sparse()
-    print(data.shape, indices.shape, indptr.shape)
+    # print(data.shape, indices.shape, indptr.shape)
 
     print(csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray())
 
@@ -130,14 +130,14 @@ def test_type2_fb_boost_negative_states():
     cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
     # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
     # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
-    print('\n')
+    # print('\n')
     for ex in range(1):
         gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], False)
 
     data, indices, indptr = cb.get_clause_state_sparse()
-    print(data, indices, indptr)
+    # print(data, indices, indptr)
     dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
-    print(dense_output)
+    # print(dense_output)
 
     expected = np.array([[-4, -3],
                          [0, 0]])
@@ -197,13 +197,58 @@ def test_type2_AL_fills_clause():
     assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
 
+def test_getset_lower_ta_threshold():
+    cb = gtc.ClauseBlockSparse(4, 3, 2)
+    # cb.initialize(seed=42)
+
+    first = cb.get_lower_ta_threshold()
+    assert first == -20, "got: {}, expected: {}".format(first, -20)
+
+    cb.set_lower_ta_threshold(42)
+    second = cb.get_lower_ta_threshold()
+
+    assert second == 42, "got: {}, expected: {}".format(second, 42)
+
+def test_getset_clause_size():
+    n_literals = 4
+    n_clauses = 3
+    n_classes = 2
+    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    # cb.initialize(seed=42)
+
+    first = cb.get_clause_size()
+    assert first == n_literals, "got: {}, expected: {}".format(first, n_literals)
+
+    cb.set_clause_size(42)
+    second = cb.get_clause_size()
+    assert second == 42, "got: {}, expected: {}".format(second, 42)
+
+def test_getset_active_literals_size():
+    n_literals = 4
+    n_clauses = 3
+    n_classes = 2
+    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    # cb.initialize(seed=42)
+
+    first = cb.get_active_literals_size()
+    assert first == n_literals, "got: {}, expected: {}".format(first, n_literals)
+
+    cb.set_active_literals_size(42)
+    second = cb.get_active_literals_size()
+
+    assert second == 42, "got: {}, expected: {}".format(second, 42)
+
+
 
 if __name__ == "__main__":
 
-    # test_getset_state_and_weights()
-    # test_set_clause_output()
-    # test_type2_fb_boost_negative_states()
-    # test_type2_AL_fills_clause()
-    test_simple_xor_sparse()
+    # test_simple_xor_sparse()
+    
+    test_getset_state_and_weights()
+    test_type2_fb_boost_negative_states()
+    test_type2_AL_fills_clause()
+    test_getset_lower_ta_threshold()
+    test_getset_clause_size()
+    test_getset_active_literals_size()
 
     print("<done:", __file__, ">")
