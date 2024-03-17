@@ -103,6 +103,10 @@ class TsetlinMachine:
         if self._is_multi_label:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
+        # sparse specific
+        self.clause_size = n_literals
+        self.active_literals_size = n_literals
+        self.lower_ta_threshold = -20
         
         self._backend_clause_block_cls = _backend_impl["cb"]
 
