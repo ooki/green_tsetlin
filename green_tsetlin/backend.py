@@ -20,7 +20,7 @@ try:
     
     impl["cb"] = gtc.ClauseBlockTM
     impl["conv_cb"] = gtc.ClauseBlockConvTM,
-    # impl["sparse_cb"] = None # fallback
+    impl["sparse_cb"] = gtc.ClauseBlockSparse # fallback
     impl["feedback"] = gtc.FeedbackBlock
     impl["feedback_multi"] = gtc.FeedbackBlockMultiLabel
     impl["single_executor"] = gtc.SingleThreadExecutor

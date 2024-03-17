@@ -735,8 +735,11 @@ namespace  green_tsetlin
                         }
                     }
 
-                    pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
-                    pos_clause_states->push_back(state.lower_ta_threshold + 5);
+                    if (pos_clause_row->size() < state.clause_size)
+                    {
+                        pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
+                        pos_clause_states->push_back(state.lower_ta_threshold + 5);
+                    }
 
                     endloop_pos_al:;
                 }
@@ -754,8 +757,11 @@ namespace  green_tsetlin
                     {
                         if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
                         {   
-                            neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
-                            neg_clause_states->push_back(state.lower_ta_threshold + 5);
+                            if (neg_clause_row->size() < state.clause_size)
+                            {    
+                                neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
+                                neg_clause_states->push_back(state.lower_ta_threshold + 5);
+                            }
                             goto endloop_neg_al;
                         }
                     }
