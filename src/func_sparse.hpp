@@ -147,7 +147,7 @@ namespace  green_tsetlin
                     }
 
                     
-                    for (int ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
                     {
                         bool ta_found = false;
                         if (pos_clause_states[ta_k] < 0)
@@ -157,7 +157,7 @@ namespace  green_tsetlin
                         }
 
 
-                        for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                        for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
                             if (literals->at(lit_k) > pos_clause[ta_k])
                             {
@@ -189,7 +189,7 @@ namespace  green_tsetlin
                         }
 
                     }
-                    for (int ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
                     {
 
                         if (neg_clause_states[ta_k] < 0)
@@ -199,7 +199,7 @@ namespace  green_tsetlin
                         }
 
 
-                        for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                        for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
                             if (neg_clause[ta_k] == literals->at(lit_k))
                             {
@@ -227,14 +227,14 @@ namespace  green_tsetlin
                     endclause:
                         if (do_literal_budget)
                         {
-                            for (int ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
+                            for (size_t ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
                             {
                                 if (pos_clause_states[ta_k] >= 0)
                                 {
                                     pos_literal_count++;
                                 }
                             }
-                            for (int ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
+                            for (size_t ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
                             {
                                 if (neg_clause_states[ta_k] >= 0)
                                 {
@@ -281,7 +281,7 @@ namespace  green_tsetlin
                     }
 
                     
-                    for (int ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < pos_clause.size(); ++ta_k)
                     {
                         bool ta_found = false;
                         if (pos_clause_states[ta_k] < 0)
@@ -289,7 +289,7 @@ namespace  green_tsetlin
                             //  only evaluate when ta state is > 0
                             continue;
                         }
-                        for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                        for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
                             if (pos_clause[ta_k] == literals->at(lit_k))
                             {
@@ -318,7 +318,7 @@ namespace  green_tsetlin
                         }
 
                     }
-                    for (int ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < neg_clause.size(); ++ta_k)
                     {
 
                         if (neg_clause_states[ta_k] < 0)
@@ -327,7 +327,7 @@ namespace  green_tsetlin
                             continue;
                         }
 
-                        for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                        for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
                             if (neg_clause[ta_k] == literals->at(lit_k))
                             {
@@ -473,7 +473,7 @@ namespace  green_tsetlin
             {
                 // Function to remove automata from clauses if state is below threshold. clause_row and states remains sorted
 
-                for (int ta_k = 0; ta_k < clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < clause_row->size(); ++ta_k)
                 {
                     if (clause_states->at(ta_k) < state.lower_ta_threshold)
                     {   
@@ -506,9 +506,9 @@ namespace  green_tsetlin
                 }
 
                 bool swapped = false;
-                for (int i = 0; i < clause_row->size(); i++)
+                for (size_t i = 0; i < clause_row->size(); i++)
                 {
-                    for (int j = 0; j < clause_row->size() - i - 1; j++)
+                    for (size_t j = 0; j < clause_row->size() - i - 1; j++)
                     {
                         if (clause_row->at(j) > clause_row->at(j + 1))
                         {
@@ -543,14 +543,14 @@ namespace  green_tsetlin
                 _UpdateAL update_al;
 
                 // loop literals
-                for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                 {
                     const uint32_t literal = literals->at(lit_k);
                     int8_t literal_state_pos = 1;
                     int8_t literal_state_neg = 1;
 
                     // loop pos clauses
-                    for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                     {
                         if (pos_clause_row->at(ta_k) == literal)
                         {
@@ -579,7 +579,7 @@ namespace  green_tsetlin
                     }
 
                     // loop neg clauses
-                    for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                     {
                         if (neg_clause_row->at(ta_k) == literal)
                         {
@@ -600,10 +600,10 @@ namespace  green_tsetlin
             
 
                 // loop pos clauses
-                for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
 
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (pos_clause_row->at(ta_k) == literals->at(lit_k))
                         {
@@ -617,10 +617,10 @@ namespace  green_tsetlin
                 }
 
                 // loop neg clauses
-                for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
                     
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (neg_clause_row->at(ta_k) == literals->at(lit_k))
                         {
@@ -646,6 +646,7 @@ namespace  green_tsetlin
             }
     };
 
+
     template <typename _State>
     class Type1bFeedbackSparseTM
     {
@@ -658,7 +659,7 @@ namespace  green_tsetlin
 
 
                 // loop pos clauses
-                for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
                     if (state.fast_rng.next_u() <= s_inv)
                     {
@@ -668,7 +669,7 @@ namespace  green_tsetlin
                 }
 
                 // loop neg clauses
-                for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
                     if (state.fast_rng.next_u() <= s_inv)
                     {
@@ -690,11 +691,11 @@ namespace  green_tsetlin
             {
 
                 // loop pos clauses, check if ta is not in literals, if so, increment ta state if its above threshold
-                for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
                 
                     // loop literals, if we find ta in literals, skip increment
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (pos_clause_row->at(ta_k) == literals->at(lit_k))
                         {
@@ -709,10 +710,10 @@ namespace  green_tsetlin
                     endloop_pos:;
                 }
 
-                for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
 
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (neg_clause_row->at(ta_k) == literals->at(lit_k))
                         {
@@ -726,16 +727,16 @@ namespace  green_tsetlin
                 }
 
 
-                for (int pos_lit_k = 0; pos_lit_k < pos_active_literals->size(); ++pos_lit_k)
+                for (size_t pos_lit_k = 0; pos_lit_k < pos_active_literals->size(); ++pos_lit_k)
                 {
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (pos_active_literals->at(pos_lit_k) == literals->at(lit_k))
                         {
                             goto endloop_pos_al;
                         }
                     }
-                    for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                     {
                         if (pos_active_literals->at(pos_lit_k) == pos_clause_row->at(ta_k))
                         {
@@ -743,7 +744,7 @@ namespace  green_tsetlin
                         }
                     }
 
-                    if (pos_clause_row->size() < state.clause_size)
+                    if (pos_clause_row->size() < (size_t)state.clause_size)
                     {
                         pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
                         pos_clause_states->push_back(state.lower_ta_threshold + 5);
@@ -752,20 +753,20 @@ namespace  green_tsetlin
                     endloop_pos_al:;
                 }
 
-                for (int neg_lit_k = 0; neg_lit_k < neg_active_literals->size(); ++neg_lit_k)
+                for (size_t neg_lit_k = 0; neg_lit_k < neg_active_literals->size(); ++neg_lit_k)
                 {
-                    for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                     {
                         if (neg_active_literals->at(neg_lit_k) == neg_clause_row->at(ta_k))
                         {
                             goto endloop_neg_al;
                         }
                     }
-                    for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
+                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
                         {   
-                            if (neg_clause_row->size() < state.clause_size)
+                            if (neg_clause_row->size() < (size_t)state.clause_size)
                             {    
                                 neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
                                 neg_clause_states->push_back(state.lower_ta_threshold + 5);
@@ -790,10 +791,10 @@ namespace  green_tsetlin
             {
                 // Function to update active literals
 
-                if (active_literals_class_k->size() < state.active_literals_size)
+                if (active_literals_class_k->size() < (size_t)state.active_literals_size)
                 {
                     // check if literal is already in active_literals
-                    for (int i = 0; i < active_literals_class_k->size(); ++i)
+                    for (size_t i = 0; i < active_literals_class_k->size(); ++i)
                     {
                         if (active_literals_class_k->at(i) == literal)
                         {

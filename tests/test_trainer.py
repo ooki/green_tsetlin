@@ -322,7 +322,7 @@ def test_sparse_imdb():
     rng = np.random.default_rng(seed)  
 
 
-    x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(train_size=1600, test_size=400, seed=seed)    
+    x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(train_size=5000, test_size=800, seed=seed)    
     lits = x_train.shape[1]
 
     x_train = csr_matrix(x_train)
@@ -422,7 +422,7 @@ def test_sparse_imdb():
 
     tm._backend_clause_block_cls = gtc.ClauseBlockSparse
     tm.set_active_literals_size(130)
-    tm.set_clause_size(60)
+    tm.set_clause_size(80)
     tm.set_lower_ta_threshold(-40)
 
 
@@ -445,14 +445,14 @@ def test_sparse_imdb():
 
 
 if __name__ == "__main__":
-    # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
-    # test_train_set_best_state_and_results_afterwards()
-    # test_train_simple_xor_py_gtc()
-    # test_train_simple_xor_sparse()
-    # test_train_simple_xor()
-    # test_train_simple_xor_gtc_tm_backend()
-    # test_select_backend_ib()
-    # test_set_backend_py_gtc_sparse()
+    test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
+    test_train_set_best_state_and_results_afterwards()
+    test_train_simple_xor_py_gtc()
+    test_train_simple_xor_sparse()
+    test_train_simple_xor()
+    test_train_simple_xor_gtc_tm_backend()
+    test_select_backend_ib()
+    test_set_backend_py_gtc_sparse()
 
     # test_sparse_imdb()
     test_train_simple_xor_uniform_feedback()

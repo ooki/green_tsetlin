@@ -296,7 +296,7 @@ namespace green_tsetlin
                 for (int i = 0; i < m_state.num_clauses*2; ++i)
                 {
                     indptr.push_back(offset);
-                    for (int ta_k = 0; ta_k < m_state.clauses[i].size(); ++ta_k)
+                    for (size_t ta_k = 0; ta_k < m_state.clauses[i].size(); ++ta_k)
                     {
                         data.push_back(m_state.clause_states[i][ta_k]);
                         indices.push_back(m_state.clauses[i][ta_k]);
@@ -346,7 +346,7 @@ namespace green_tsetlin
                     
                 
                 
-                    for (int j = indptr_p[i]; j < indptr_p[i+1]; ++j)
+                    for (uint32_t j = indptr_p[i]; j < indptr_p[i+1]; ++j)
                     {
                         clause_states[i].push_back(data_p[j]);
                         clauses[i].push_back(indices_p[j]);
