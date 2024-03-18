@@ -105,7 +105,7 @@ def test_train_simple_xor_uniform_feedback():
 
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, feedback_type="uniform")
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, feedback_type="uniform", n_epochs=100)
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
     trainer.train()    
@@ -431,7 +431,8 @@ def test_sparse_imdb():
                         n_epochs=n_epochs,
                         seed=seed,
                         progress_bar=True,
-                        load_best_state=False)
+                        load_best_state=False,
+                        feedback_type="uniform")
 
 
     trainer.set_train_data(csr_matrix(x_train), y_train)
@@ -453,7 +454,7 @@ if __name__ == "__main__":
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
 
-    #test_sparse_imdb()
+    # test_sparse_imdb()
     test_train_simple_xor_uniform_feedback()
 
     # test_trainer_with_kfold()

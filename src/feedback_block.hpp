@@ -329,6 +329,29 @@ namespace green_tsetlin
 
                 v_clamped = std::clamp(static_cast<double>(m_votes[m_positive_class]), -m_threshold, m_threshold);
                 m_update_prob_positive = (m_threshold - v_clamped) / (2*m_threshold);                
+
+                WeightInt most_votes = m_votes[0];
+                uint32_t predicted_class = 0;
+
+                for(int class_k = 1; class_k < m_num_classes; ++class_k)
+                {   
+                    WeightInt votes = m_votes[class_k];
+                    if(votes > most_votes)
+                    {
+                        most_votes = votes;
+                        predicted_class = class_k;
+                    }
+
+                    
+                    //if(class_k != m_positive_class)
+                    //    std::cout << "\t update prob of class " << class_k << " is: " << m_update_probability[class_k] << " from:" << m_votes[class_k] << std::endl;
+                }
+
+                m_total_train_predict += 1.0;
+                if(predicted_class == positive_class)                
+                {
+                    m_correct_train_predict += 1.0;
+                }
             }
     };
     
