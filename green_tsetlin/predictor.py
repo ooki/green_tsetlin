@@ -23,6 +23,8 @@ class Predictor:
         self.n_literals: int = -1
         self.n_classes: int = -1
         self.n_features: int = -1
+
+        self._predict_if_target_is_none = None
         
         self._ruleset:gt.RuleSet = None
         self.explanation_names:list = None
@@ -52,18 +54,41 @@ class Predictor:
     def predict(self, x : np.array) -> Union[Union[int, str], List[Union[int, str]]]:
         self.init()
 
-        argmax_prediction = self._inf.predict(x)
-        if self.target_names is not None:
-            argmax_prediction = self.target_names[argmax_prediction]
+        self._predict_if_target_is_none = self._inf.predict(x)
+        predicted_class = self._predict_if_target_is_none
 
-        return 0
+        if self.target_names is not None:
+            predicted_class = self.target_names[predicted_class]
+
+        return predicted_class
     
 
-    def explain(self, x : np.array) -> Tuple[Union[Union[int, str], List[Union[int, str]]], list]:
+    def explain(self):
         if self.explanation == "none":
             raise ValueError("Cannot request explanation on a predictor that has explanation set to 'none'.")        
         self.init()
         
+        
+        # expl = []
+        # for target_class in range(self.n_classes):
+        #     expl = self._inf.calculate_importance(self._predict_if_target_is_none)
+
+        #     if self.explanation_names is not None:
+        #         expl = [self.explanation_names[idx] for idx, v in expl]
+
+
+        #     explanation = (target_class, raw_expl)
+        #     expl.append(explanation)
+
+        # if self.target_names is not None:
+        #     expl = dict( (self.target_names[idx], v) for idx, v in expl) )
+
+        return expl
+        
+
+
+
+
         argmax_prediction = 0
         explantion = [[0, +3], [2, -6]]
 
