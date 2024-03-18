@@ -3,6 +3,7 @@ import os
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 import numpy as np
 import datasets
 import optuna
@@ -91,6 +92,7 @@ class HyperparameterSearch:
 
         return res
 
+
     def optimize(self, n_trials, study_name, storage : str = None, show_progress_bar : bool = False):
         
         if self.minimize_literal_budget:
@@ -99,7 +101,20 @@ class HyperparameterSearch:
         else:
             study = optuna.create_study(study_name=study_name, storage=storage, direction="maximize", load_if_exists=True)
         
-        study.optimize(self.objective, n_trials=n_trials, show_progress_bar=show_progress_bar)
+        # study.optimize(self.objective, n_trials=n_trials, show_progress_bar=show_progress_bar)
+
+        with tqdm(total=n_trials, disable=show_progress_bar is False) as bar:
+            
+            bar.set_description("Processing trial 1 of {}, best score: NA".format(n_trials))
+
+            for i in range(n_trials):
+                
+                trial = study.ask()
+                value = self.objective(trial)
+                study.tell(trial, value)
+
+                bar.set_description("Processing trial {} of {}, best score: {}".format(i, n_trials, study.best_trials[0].values))
+                bar.update(1)
 
         self.best_trials = study.best_trials
 
