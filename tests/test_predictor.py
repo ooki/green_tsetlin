@@ -50,16 +50,6 @@ def test_sets_correct_backend_based_on_exploration():
         p.init()
         assert p._get_backend() == backend_cls
     
-def test_literal_expl_names():
-    p = gt.Predictor(multi_label=False, explanation="literals")
-    p.set_explanation_names(["a", "b", "not a", "not b"])    
-    assert p.explanation_names == ["a", "b", "not a", "not b"]
-
-    p = gt.Predictor(multi_label=False, explanation="literals")
-    m = MockRuleset()
-    p._set_ruleset(m)    
-    p.init()
-
 
 def test_prediction_with_target_names():
     p = gt.Predictor(multi_label=False, explanation="literals")
@@ -74,10 +64,8 @@ def test_prediction_with_target_names():
     assert p.predict(np.array([1,0], dtype=np.uint8)) == "b"
 
 
-def test_prediction_with_literal_names():
+def test_prediction_literal_explanation():
     p = gt.Predictor(multi_label=False, explanation="literals")
-    p.set_explanation_names(["ta0", "ta1", "not ta0", "not ta1"])
-    assert p.explanation_names == ["ta0", "ta1", "not ta0", "not ta1"]
     
     m = MockRuleset()
     p._set_ruleset(m)    
@@ -86,57 +74,32 @@ def test_prediction_with_literal_names():
     p.predict(np.array([0,0], dtype=np.uint8))
 
     x = np.array([1,0], dtype=np.uint8)
-    p.predict(x, explain=False) # only pred returned : int/target_name or list of int/target_name (if multi-label)
+    p.predict(x)
+    assert np.array_equal(p.explain(explain="target"), [2, 0, 0, 0])
+    assert np.array_equal(p.explain(explain="all"), [[-1, 0, 0, 0], [2, 0, 0, 0]])
 
-    p.predict(x, explain="target")
-    p.predict(x, explain="all")
 
-    {"cat":
-        {
-            "purrr": 5,
-            "milk": 11,        
-        },
-     "dog":
-        {
-            "bark": 51,
-        }
-    }
+def test_prediction_positive_clauses_literal_explanation():
+    p = gt.Predictor(multi_label=False, explanation="positive_weighted_literals")
     
-    
+    m = MockRuleset()
+    p._set_ruleset(m)    
+    p.init()
 
+    p.predict(np.array([0,0], dtype=np.uint8))
 
-
-
-    p.set_explanation_names(vocabulary)
-    p.predict(x, explain="target") 
-
-
-
-
-    
-
-
-
-    
-
-
-    # assert  == "a"
-    # assert p.predict(np.array([1,0], dtype=np.uint8)) == "b"
-
-
-
-
-
-
-
+    x = np.array([1,0], dtype=np.uint8)
+    p.predict(x)
+    assert np.array_equal(p.explain(explain="target"), [2, 0, 0, 0])
+    assert np.array_equal(p.explain(explain="all"), [[0, 0, 0, 0], [2, 0, 0, 0]])
 
 
 
 if __name__ == "__main__":
     test_init()
     test_sets_correct_backend_based_on_exploration()
-    test_literal_expl_names()
     test_prediction_with_target_names()
-    test_prediction_with_literal_names()
+    test_prediction_literal_explanation()
+    test_prediction_positive_clauses_literal_explanation()
     print("<done tests:", __file__, ">")
 
