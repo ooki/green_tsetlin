@@ -294,7 +294,7 @@ def test_trainer_with_kfold():
 
     assert r["best_test_score"] == 1.0
 
-@pytest.mark.skip('so the test doesnt fail because of a missing Keras dependency')
+@pytest.mark.skip(reason='so the test doesnt fail because of a missing Keras dependency')
 def test_sparse_imdb():
 
 
@@ -302,102 +302,124 @@ def test_sparse_imdb():
     rng = np.random.default_rng(seed)  
 
 
-    x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(train_size=1000, test_size=200)    
+    x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(train_size=1600, test_size=400, seed=seed)    
     lits = x_train.shape[1]
 
     x_train = csr_matrix(x_train)
     x_val = csr_matrix(x_val)
 
 
+    # import datasets
+
+    # imdb = datasets.load_dataset('imdb')
+    # x, y = imdb['train']['text'], imdb['train']['label']
+
+    # from sklearn.feature_extraction.text import CountVectorizer
+    # from sklearn.model_selection import train_test_split
+
+    # vectorizer = CountVectorizer(ngram_range=(1, 1), binary=True, lowercase=True, max_features=5000)
+    # vectorizer.fit(x)
+
+    # x_bin = vectorizer.transform(x).toarray().astype(np.uint8)
+    # y = np.array(y).astype(np.uint32)
+
+    # shuffle_index = [i for i in range(len(x))]
+    # rng.shuffle(shuffle_index)
+
+    # x_bin = x_bin[shuffle_index]
+    # y = y[shuffle_index]
+
+    # x_bin = x_bin[:2000]
+    # y = y[:2000]
+
+    # train_x_bin, val_x_bin, y_train, y_val = train_test_split(x_bin, y, test_size=0.2, random_state=seed, shuffle=True)
+    # x_train = csr_matrix(train_x_bin)
+    # x_val = csr_matrix(val_x_bin)
+
     n_clauses = 1000
     s = 2.0
-    threshold = 46450
+    threshold = 1234
     literal_budget = 7
     n_classes = 2
+    n_epochs = 20
 
+    # ib = gtc.SparseInputBlock(lits)
+    # cb = gtc.ClauseBlockSparse(lits, n_clauses, n_classes)
+    # fb = gtc.FeedbackBlock(n_classes, threshold, 42)
 
-    ib = gtc.SparseInputBlock(lits)
-    cb = gtc.ClauseBlockSparse(lits, n_clauses, n_classes)
-    fb = gtc.FeedbackBlock(n_classes, threshold, 42)
+    # ib.set_data(x_train.indices, x_train.indptr, y_train)
 
-    ib.set_data(x_train.indices, x_train.indptr, y_train)
+    # cb.set_feedback(fb)
+    # cb.set_s(s)
+    # cb.set_input_block(ib)
+    # cb.set_active_literals_size(160)
+    # cb.set_clause_size(lits)
+    # cb.set_lower_ta_threshold(-20)
+    # cb.initialize()
 
-    cb.set_feedback(fb)
-    cb.set_s(s)
-    cb.set_input_block(ib)
-    cb.set_active_literals_size(200)
-    cb.set_clause_size(100)
-    cb.set_lower_ta_threshold(-10)
-    cb.initialize()
+    # exec = gtc.SingleThreadExecutor(ib, [cb], fb, 1, 42)
 
-    exec = gtc.SingleThreadExecutor(ib, [cb], fb, 1, 42)
+    # best_acc = -1.0
+    # y_hat = np.empty_like(y_val)
+    # print('yo')
+    # for epoch in range(10):
+    #     ib.set_data(x_train.indices, x_train.indptr, y_train)
+    #     train_acc = exec.train_epoch()
 
-    best_acc = -1.0
-    y_hat = np.empty_like(y_val)
+    #     ib.set_data(x_val.indices, x_val.indptr, y_val)
+    #     exec.eval_predict(y_hat)
 
-    for epoch in range(2):
-        ib.set_data(x_train.indices, x_train.indptr, y_train)
-        train_acc = exec.train_epoch()
-
-        ib.set_data(x_val.indices, x_val.indptr, y_val)
-        exec.eval_predict(y_hat)
-
-        from collections import Counter
-        print(Counter(y_hat))
+    #     from collections import Counter
+    #     print(Counter(y_hat))
         
-        test_acc = accuracy_score(y_val, y_hat)
+    #     test_acc = accuracy_score(y_val, y_hat)
 
-        if test_acc > best_acc:
-            best_acc = test_acc
+    #     if test_acc > best_acc:
+    #         best_acc = test_acc
 
-        print("Epoch: %d Train: %.3f Test: %.3f" % (epoch+1, train_acc, test_acc))
+    #     print("Epoch: %d Train: %.3f Test: %.3f" % (epoch+1, train_acc, test_acc))
 
-    print("Best Test Accuracy: %.3f" % best_acc)
+    # print("Best Test Accuracy: %.3f" % best_acc)
 
-    data, indices, indptr = cb.get_clause_state_sparse()
+    # data, indices, indptr = cb.get_clause_state_sparse()
 
-    print(data.shape, indices.shape, indptr.shape)
+    # print(data.shape, indices.shape, indptr.shape)
 
-    unassinged = (100 * n_clauses*2) - data.shape[0]
+    # unassinged = (100 * n_clauses*2) - data.shape[0]
 
-    print(unassinged/(100 * n_clauses*2))
-
-    # write csr matrix to file
-    # df = pd.DataFrame(csr_matrix((data, indices, indptr), shape=(n_clauses*2, _train_x_bin.shape[1])).toarray())
-    # df = pd.DataFrame(data)
-    # df.to_csv("test.csv", index=False)
-        
-    # print(csr_matrix((data, indices, indptr), shape=(n_clauses*2, _train_x_bin.shape[1])).toarray())
+    # print(unassinged/(100 * n_clauses*2))
 
 
-    # tm = gt.TsetlinMachine(n_literals=train_x_bin.shape[1],
-    #                     n_clauses=n_clauses,
-    #                     n_classes=len(np.unique(train_y)),
-    #                     s=s,
-    #                     threshold=threshold,
-    #                     literal_budget=literal_budget)
 
 
-    # tm._backend_clause_block_cls = gtc.ClauseBlockSparse
-    # tm.set_active_literals_size(110)
-    # # tm.set_clause_size(100)
-    # tm.set_lower_ta_threshold(-50)
+    tm = gt.TsetlinMachine(n_literals=lits,
+                        n_clauses=n_clauses,
+                        n_classes=len(np.unique(y_train)),
+                        s=s,
+                        threshold=threshold,
+                        literal_budget=literal_budget)
 
 
-    # trainer = gt.Trainer(tm=tm,
-    #                     n_jobs=6,
-    #                     n_epochs=n_epochs,
-    #                     seed=seed,
-    #                     progress_bar=True,
-    #                     load_best_state=False)
+    tm._backend_clause_block_cls = gtc.ClauseBlockSparse
+    tm.set_active_literals_size(130)
+    tm.set_clause_size(60)
+    tm.set_lower_ta_threshold(-40)
 
 
-    # trainer.set_train_data(csr_matrix(train_x_bin), train_y)
-    # trainer.set_test_data(csr_matrix(val_x_bin), val_y)
+    trainer = gt.Trainer(tm=tm,
+                        n_jobs=6,
+                        n_epochs=n_epochs,
+                        seed=seed,
+                        progress_bar=True,
+                        load_best_state=False)
 
 
-    # r = trainer.train()
-    # print(r)
+    trainer.set_train_data(csr_matrix(x_train), y_train)
+    trainer.set_test_data(csr_matrix(x_val), y_val)
+
+
+    r = trainer.train()
+    print(r)
 
 
 
@@ -405,8 +427,8 @@ if __name__ == "__main__":
     # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
-    test_train_simple_xor_sparse()
-    test_train_simple_xor()
+    # test_train_simple_xor_sparse()
+    # test_train_simple_xor()
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()

@@ -110,7 +110,7 @@ typedef typename gt::ClauseBlockT<
 typedef typename gt::SparseTsetlinState SparseTsetlinState;
 
 typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
-                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState>, false>, // boost_true_positive = false
+                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>, // dynamic_AL = true, boost_true_positive = false
                                     gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
                                     gt::Type2FeedbackSparseTM<SparseTsetlinState>>
                                 ClauseUpdateSparseTMImpl;
@@ -276,7 +276,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     m.def("has_neon", has_neon);
     // m.def("test_train_set_clause_output_sparse", &gt::test_train_set_clause_output<SparseTsetlinState, gt::SetClauseOutputSparseTM<SparseTsetlinState, true>>);
     m.def("test_type2_feedback", &gt::test_Type2FeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type2FeedbackSparseTM<SparseTsetlinState>>);
-    m.def("test_type1a_feedback", &gt::test_Type1aFeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState>, false>>);
+    m.def("test_type1a_feedback", &gt::test_Type1aFeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>>);
 
 
     

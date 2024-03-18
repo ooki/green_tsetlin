@@ -782,7 +782,7 @@ namespace  green_tsetlin
             }
     };
 
-    template <typename _State>
+    template <typename _State, bool dynamic_AL>
     class UpdateAL
     {
         public:
@@ -802,7 +802,11 @@ namespace  green_tsetlin
                     }
                     active_literals_class_k->push_back(literal);
                 }
-
+                else
+                {
+                    if (dynamic_AL)
+                        active_literals_class_k->at(state.fast_rng.next_u() * state.active_literals_size) = literal;
+                }
                 // dynamic al stuff, think need diff datatype for active_literals to do this effectively
                 // else
                 // {
