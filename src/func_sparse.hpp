@@ -41,7 +41,7 @@ namespace  green_tsetlin
 
                 state.clauses.resize(2*state.num_clauses);
                 state.clause_states.resize(2*state.num_clauses);
-                for (int i = 0; i < state.num_clauses; ++i)
+                for (int i = 0; i < 2*state.num_clauses; ++i)
                 {   
                     state.clauses[i].reserve(state.clause_size);
                     state.clause_states[i].reserve(state.clause_size);
@@ -597,7 +597,7 @@ namespace  green_tsetlin
                         update_al(state, neg_active_literals, literal);
                     }
                 }
-
+            
 
                 // loop pos clauses
                 for (int ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
@@ -619,7 +619,7 @@ namespace  green_tsetlin
                 // loop neg clauses
                 for (int ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
-
+                    
                     for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
                         if (neg_clause_row->at(ta_k) == literals->at(lit_k))
@@ -868,30 +868,30 @@ namespace  green_tsetlin
     }
 
 
-    // class InputBlock;
-    // template <typename _State, typename _T1aFeedback>
-    // void test_Type1aFeedbackSparseNV(_CBImpl* cb, InputBlock* ib)
-    // {
-    //     if(n_clauses < 1)
-    //         n_clauses = 1;
+    class InputBlock;
+    template <typename _State, typename _CBImpl, typename _T1aFeedback>
+    void test_Type1aFeedbackSparse(_CBImpl* cb, InputBlock* ib, int n_clauses, int example, int class_num)
+    {
+        if(n_clauses < 1)
+            n_clauses = 1;
 
 
-    //     ib->prepare_example(0);
+        ib->prepare_example(0);
 
 
-    //     SparseTsetlinState &state = cb->get_state();
-    //     cb->pull_example();
-    //     auto lits = cb->get_current_literals();
+        SparseTsetlinState &state = cb->get_state();
+        cb->pull_example();
+        auto lits = cb->get_current_literals();
 
 
-    //     for (int i = 0; i < n_clauses; i++)
-    //     {
-    //         _T1aFeedback t1a;
-    //         t1a(state, i, lits);
-    //     }
+        for (int i = 0; i < n_clauses; i++)
+        {
+            _T1aFeedback t1a;
+            t1a(state, &state.clauses[i], &state.clauses[i + state.num_clauses], &state.clause_states[i], &state.clause_states[i + state.num_clauses], &state.active_literals[class_num], &state.active_literals[class_num + 1], lits);
+        }
 
 
-    // }
+    }
 
 
     // class InputBlock;
