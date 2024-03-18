@@ -71,6 +71,7 @@ class TsetlinMachine:
 
         self.n_literals = n_literals
         self.n_clauses = n_clauses
+        
         self.n_classes = n_classes
         self._cbs : list = None
         self._state : TMState = None                
@@ -274,21 +275,26 @@ class TsetlinMachine:
             
 
         self._cbs = []
-        for s_k, literal_budget, n_clauses_in_block, is_trainable in zip(itertools.cycle(self.s), itertools.cycle(self.literal_budgets), self._clause_block_sizes, trainable_flags):            
+        for k, (s_k, literal_budget, n_clauses_in_block, is_trainable) in enumerate(zip(itertools.cycle(self.s), itertools.cycle(self.literal_budgets), self._clause_block_sizes, trainable_flags)):            
             cb = self._backend_clause_block_cls(self.n_literals, n_clauses_in_block, self.n_classes)
+            
             cb.set_s(s_k)
             cb.set_literal_budget(literal_budget)
-            if self._backend_clause_block_cls == _backend_impl["sparse_cb"]:
-                cb.set_active_literals_size(self.active_literals_size)
-                cb.set_clause_size(self.clause_size)
-                cb.set_lower_ta_threshold(self.lower_ta_threshold)
-
+            
 
             # cb.set_trainable(is_trainable) # TODO: add in backend
             self._cbs.append(cb)
+            self._set_extra_params_on_cb(cb, k)
         
         return copy.copy(self._cbs)
     
+    def _set_extra_params_on_cb(self, cb, k:int):
+        
+        if self._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+            cb.set_active_literals_size(self.active_literals_size)
+            cb.set_clause_size(self.clause_size)
+            cb.set_lower_ta_threshold(self.lower_ta_threshold)
+
 
     def get_predictor(self, explanation: str = "none") -> "gt.Predictor":
 

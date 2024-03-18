@@ -196,6 +196,54 @@ def test_type2_AL_fills_clause():
 
     assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
+def test_type_1a_feedback():
+    n_literals = 2 #357987
+    n_clauses = 1
+    n_classes = 1
+    s = 2.0
+
+    x = np.array([[1, 1]], dtype=np.int8)   
+    y = np.array([0], dtype=np.int8)
+    x = csr_matrix(x)
+
+    ib = gtc.SparseInputBlock(n_literals)
+    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+
+    ib.set_data(x.indices, x.indptr, y)
+    fb = gtc.FeedbackBlock(n_classes, 42, 42)
+    cb.set_feedback(fb)
+    cb.set_input_block(ib)
+    cb.set_clause_size(2)
+    cb.set_s(s)
+    cb.initialize()
+
+    dense_state = np.array([[0, 18],
+                            [16, 0]])
+    
+    dense_state = csr_matrix(dense_state)
+    # print("DENSE STATES CSR")
+    # print(dense_state.data)
+    # print(dense_state.indices)
+    # print(dense_state.indptr)
+
+    # print("\n DENSE STATES TOARRAY")
+    cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
+    # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
+    # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
+    # print('\n')
+    for ex in range(1):
+        gtc.test_type1a_feedback(cb, ib, n_clauses, ex, y[ex])
+
+    data, indices, indptr = cb.get_clause_state_sparse()
+    # print(data, indices, indptr)
+    dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
+    # print(dense_output)
+
+    expected = np.array([[0, 19],
+                         [15, 0]])
+
+    # assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
+
 
 def test_getset_lower_ta_threshold():
     cb = gtc.ClauseBlockSparse(4, 3, 2)
@@ -300,12 +348,14 @@ if __name__ == "__main__":
 
     # test_simple_xor_sparse()
     
-    test_getset_state_and_weights()
-    test_type2_fb_boost_negative_states()
-    test_type2_AL_fills_clause()
-    test_getset_lower_ta_threshold()
-    test_getset_clause_size()
-    test_getset_active_literals_size()
-    test_clauses_stay_below_clause_size()
+    # test_getset_state_and_weights()
+    # test_type2_fb_boost_negative_states()
+    # test_type2_AL_fills_clause()
+    # test_getset_lower_ta_threshold()
+    # test_getset_clause_size()
+    # test_getset_active_literals_size()
+    # test_clauses_stay_below_clause_size()
+
+    test_type_1a_feedback()
 
     print("<done:", __file__, ">")
