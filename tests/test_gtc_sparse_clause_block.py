@@ -300,12 +300,12 @@ if __name__ == "__main__":
 
     # test_simple_xor_sparse()
     
-    # test_getset_state_and_weights()
-    # test_type2_fb_boost_negative_states()
-    # test_type2_AL_fills_clause()
-    # test_getset_lower_ta_threshold()
-    # test_getset_clause_size()
-    # test_getset_active_literals_size()
-    # test_clauses_stay_below_clause_size()
+    test_getset_state_and_weights()
+    test_type2_fb_boost_negative_states()
+    test_type2_AL_fills_clause()
+    test_getset_lower_ta_threshold()
+    test_getset_clause_size()
+    test_getset_active_literals_size()
+    test_clauses_stay_below_clause_size()
 
     print("<done:", __file__, ">")
