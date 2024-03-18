@@ -103,6 +103,10 @@ class TsetlinMachine:
         if self._is_multi_label:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
+        # sparse specific
+        self.clause_size = n_literals
+        self.active_literals_size = n_literals
+        self.lower_ta_threshold = -20
         
         self._backend_clause_block_cls = _backend_impl["cb"]
 
@@ -274,7 +278,12 @@ class TsetlinMachine:
             cb = self._backend_clause_block_cls(self.n_literals, n_clauses_in_block, self.n_classes)
             cb.set_s(s_k)
             cb.set_literal_budget(literal_budget)
-            
+            if self._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+                cb.set_active_literals_size(self.active_literals_size)
+                cb.set_clause_size(self.clause_size)
+                cb.set_lower_ta_threshold(self.lower_ta_threshold)
+
+
             # cb.set_trainable(is_trainable) # TODO: add in backend
             self._cbs.append(cb)
         
@@ -293,8 +302,30 @@ class TsetlinMachine:
         return predictor
 
 
+    def set_clause_size(self, clause_size:int):
+        
+        # check if cb is sparse
+        if self._backend_clause_block_cls == _backend_impl["cb"]:
+            raise ValueError("Cannot set clause size on a dense clause block")
+        
+        self.clause_size = clause_size
+
+    def set_active_literals_size(self, active_literals_size:int):
+            
+        # check if cb is sparse
+        if self._backend_clause_block_cls == _backend_impl["cb"]:
+            raise ValueError("Cannot set active literals size on a dense clause block")
+        
+        self.active_literals_size = active_literals_size
 
 
+    def set_lower_ta_threshold(self, lower_ta_threshold:int):
+        
+        # check if cb is sparse
+        if self._backend_clause_block_cls == _backend_impl["cb"]:
+            raise ValueError("Cannot set lower ta threshold on a dense clause block")
+
+        self.lower_ta_threshold = lower_ta_threshold
     
     
 

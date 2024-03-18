@@ -251,7 +251,12 @@ namespace green_tsetlin
             {            
                 m_state.num_literals = num_literals;
                 m_state.num_clauses = num_clauses;
-                m_state.num_classes = num_classes;                    
+                m_state.num_classes = num_classes; 
+                
+                // default to clause_size being num_literals
+                m_state.clause_size = num_literals;      
+                m_state.active_literals_size = num_literals; 
+                m_state.lower_ta_threshold = -20;            
             }
             
             virtual int get_number_of_literals() const { return m_state.num_literals; }
@@ -266,6 +271,16 @@ namespace green_tsetlin
 
             virtual uint32_t get_literal_budget() { return m_state.literal_budget; }
             virtual void    set_literal_budget(uint32_t budget) { m_state.literal_budget = budget; }
+
+            
+            virtual int get_lower_ta_threshold() { return m_state.lower_ta_threshold; }
+            virtual void set_lower_ta_threshold(int lower_ta_threshold) { m_state.lower_ta_threshold = lower_ta_threshold; }
+
+            virtual int get_active_literals_size() { return m_state.active_literals_size; }
+            virtual void set_active_literals_size(int active_literals_size) { m_state.active_literals_size = active_literals_size; }
+
+            virtual int get_clause_size() { return m_state.clause_size; }
+            virtual void set_clause_size(int clause_size) { m_state.clause_size = clause_size; }
 
 
             virtual pybind11::list get_clause_state_sparse_npy() // pybind11::array_t<int8_t> out_array, int clause_offset

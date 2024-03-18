@@ -215,7 +215,17 @@ void define_clause_block_sparse(py::module& m, const char* name)
         .def("set_clause_state_sparse", &_T::set_clause_state_sparse_npy)
         .def("get_clause_state_sparse", &_T::get_clause_state_sparse_npy)
         .def("set_clause_weights", &_T::set_clause_weights_npy)
-        .def("get_clause_weights", &_T::get_clause_weights_npy);
+        .def("get_clause_weights", &_T::get_clause_weights_npy)
+
+        
+        .def("get_lower_ta_threshold", &_T::get_lower_ta_threshold)
+        .def("set_lower_ta_threshold", &_T::set_lower_ta_threshold)
+
+        .def("get_active_literals_size", &_T::get_active_literals_size)
+        .def("set_active_literals_size", &_T::set_active_literals_size)
+
+        .def("get_clause_size", &_T::get_clause_size)
+        .def("set_clause_size", &_T::set_clause_size);
 }
 
 
@@ -341,6 +351,31 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         
         .def("set_feedback", &gt::ClauseBlock::set_feedback)
     ;
+
+    // py::class_<gt::ClauseBlock>(m, "ClauseBlockSparse")
+    //     .def("get_number_of_literals", &gt::ClauseBlock::get_number_of_literals)
+    //     .def("get_number_of_clauses", &gt::ClauseBlock::get_number_of_clauses)
+    //     .def("get_number_of_classes", &gt::ClauseBlock::get_number_of_classes)
+
+    //     .def("get_s", &gt::ClauseBlock::get_s)
+    //     .def("set_s", &gt::ClauseBlock::set_s)
+
+    //     .def("get_number_of_patches_per_example", &gt::ClauseBlock::get_number_of_patches_per_example)
+    //     .def("set_number_of_patches_per_example", &gt::ClauseBlock::set_number_of_patches_per_example)
+
+    //     .def("set_trainable", &gt::ClauseBlock::set_trainable)
+    //     .def("is_trainable", &gt::ClauseBlock::is_trainable)
+        
+    //     .def("get_literal_budget", &gt::ClauseBlock::get_literal_budget)
+    //     .def("set_literal_budget", &gt::ClauseBlock::set_literal_budget)
+        
+    //     .def("initialize", &gt::ClauseBlock::initialize, py::arg("seed") = 42)
+    //     .def("is_initialized", &gt::ClauseBlock::is_init)        
+    //     .def("cleanup", &gt::ClauseBlock::cleanup)       
+        
+    //     .def("set_feedback", &gt::ClauseBlock::set_feedback)
+
+    // ;
 
 
     

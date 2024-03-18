@@ -4,6 +4,12 @@ import pytest
 
 import numpy as np
 
+import datasets
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import pandas as pd
+
 from scipy.sparse import csr_matrix
 
 import green_tsetlin as gt
@@ -73,7 +79,7 @@ def test_trainer_throws_on_wrong_number_of_examples_between_x_and_y():
 
 def test_train_simple_xor():
     
-    n_literals = 4
+    n_literals = 15
     n_clauses = 5
     n_classes = 2
     s = 3.0
@@ -204,7 +210,7 @@ def test_select_backend_ib():
 
 def test_train_simple_xor_sparse():
     print("SPARSE\n")
-    n_literals = 4
+    n_literals = 15
     n_clauses = 50
     n_classes = 2
     s = 3.0
@@ -212,15 +218,18 @@ def test_train_simple_xor_sparse():
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
     tm._backend_clause_block_cls = gtc.ClauseBlockSparse
+    tm.set_active_literals_size(8)
+    tm.set_clause_size(8)
+    tm.set_lower_ta_threshold(-20)
 
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40, load_best_state=False)
     
-    print("BACKEND:")
-    print(tm._backend_clause_block_cls)
-    print(trainer._cls_feedback_block)
-    print(trainer._cls_dense_ib)
-    print(trainer._cls_sparse_ib)
-    print(trainer._cls_exec_singlethread)
+    # print("BACKEND:")
+    # print(tm._backend_clause_block_cls)
+    # print(trainer._cls_feedback_block)
+    # print(trainer._cls_dense_ib)
+    # print(trainer._cls_sparse_ib)
+    # print(trainer._cls_exec_singlethread)
 
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    # seed=6
 
@@ -285,8 +294,138 @@ def test_trainer_with_kfold():
 
     assert r["best_test_score"] == 1.0
 
+
+def test_sparse_imdb():
+
+
+    seed = 42
+    rng = np.random.default_rng(seed)  
+
+
+    imdb = datasets.load_dataset('imdb')
+    x, y = imdb['train']['text'], imdb['train']['label']
+   
+    vectorizer = CountVectorizer(ngram_range=(1, 3), 
+                                    binary=True, 
+                                    lowercase=True,
+                                    max_features=1000,
+                                    max_df = 0.8,
+                                    min_df = 1,
+                                    stop_words='english',
+                                    analyzer='word')
+    vectorizer.fit(x)
+
+
+    x_bin = vectorizer.transform(x).toarray().astype(np.uint8)
+    y = np.array(y).astype(np.uint32)
+
+
+    shuffle_index = [i for i in range(len(x))]
+    rng.shuffle(shuffle_index)
+
+
+    x_bin = x_bin[shuffle_index]
+    y = y[shuffle_index]
+
+
+    _train_x_bin, val_x_bin, train_y, val_y = train_test_split(x_bin, y, test_size=0.2, random_state=seed, shuffle=True)
+
+
+    train_x_bin = csr_matrix(_train_x_bin[:10000])
+    train_y = train_y[:10000]
+    val_x_bin = csr_matrix(val_x_bin[:2000])
+    val_y = val_y[:2000]
+
+
+
+    n_clauses = 1000
+    s = 2.0
+    threshold = 46450
+    literal_budget = 7
+
+
+    n_epochs = 4
+
+
+    ib = gtc.SparseInputBlock(_train_x_bin.shape[1])
+    cb = gtc.ClauseBlockSparse(_train_x_bin.shape[1], n_clauses, len(np.unique(train_y)))
+    fb = gtc.FeedbackBlock(len(np.unique(train_y)), threshold, 42)
+
+    ib.set_data(train_x_bin.indices, train_x_bin.indptr, train_y)
+
+    cb.set_feedback(fb)
+    cb.set_s(s)
+    cb.set_input_block(ib)
+    cb.set_active_literals_size(200)
+    cb.set_clause_size(100)
+    cb.set_lower_ta_threshold(-10)
+    cb.initialize()
+
+    exec = gtc.SingleThreadExecutor(ib, [cb], fb, 1, 42)
+
+    best_acc = -1.0
+    y_hat = np.empty_like(val_y)
+
+    for epoch in range(3):
+        ib.set_data(train_x_bin.indices, train_x_bin.indptr, train_y)
+        train_acc = exec.train_epoch()
+
+        ib.set_data(val_x_bin.indices, val_x_bin.indptr, val_y)
+        exec.eval_predict(y_hat)
+
+        test_acc = accuracy_score(val_y, y_hat)
+
+        if test_acc > best_acc:
+            best_acc = test_acc
+
+        print("Epoch: %d Train: %.3f Test: %.3f" % (epoch+1, train_acc, test_acc))
+
+    print("Best Test Accuracy: %.3f" % best_acc)
+
+    data, indices, indptr = cb.get_clause_state_sparse()
+    print(data.shape, indices.shape, indptr.shape)
+
+    # write csr matrix to file
+    # df = pd.DataFrame(csr_matrix((data, indices, indptr), shape=(n_clauses*2, _train_x_bin.shape[1])).toarray())
+    # df = pd.DataFrame(data)
+    # df.to_csv("test.csv", index=False)
+        
+    # print(csr_matrix((data, indices, indptr), shape=(n_clauses*2, _train_x_bin.shape[1])).toarray())
+
+
+    # tm = gt.TsetlinMachine(n_literals=train_x_bin.shape[1],
+    #                     n_clauses=n_clauses,
+    #                     n_classes=len(np.unique(train_y)),
+    #                     s=s,
+    #                     threshold=threshold,
+    #                     literal_budget=literal_budget)
+
+
+    # tm._backend_clause_block_cls = gtc.ClauseBlockSparse
+    # tm.set_active_literals_size(110)
+    # # tm.set_clause_size(100)
+    # tm.set_lower_ta_threshold(-50)
+
+
+    # trainer = gt.Trainer(tm=tm,
+    #                     n_jobs=6,
+    #                     n_epochs=n_epochs,
+    #                     seed=seed,
+    #                     progress_bar=True,
+    #                     load_best_state=False)
+
+
+    # trainer.set_train_data(csr_matrix(train_x_bin), train_y)
+    # trainer.set_test_data(csr_matrix(val_x_bin), val_y)
+
+
+    # r = trainer.train()
+    # print(r)
+
+
+
 if __name__ == "__main__":
-    #test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
+    # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
     test_train_simple_xor_sparse()
@@ -294,6 +433,8 @@ if __name__ == "__main__":
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
+
+    # test_sparse_imdb()
 
     # test_trainer_with_kfold()
 
