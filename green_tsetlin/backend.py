@@ -7,7 +7,8 @@ impl = {
     "conv_cb" : None,
     "sparse_cb" : py_gtc.SparseInputBlock, # for now own ib, will see if can be same as denseIb.
     "feedback" : py_gtc.FeedbackBlock,
-    "feedback_multi" : py_gtc.FeedbackBlockMultiLabel,
+    "feedback_uniform" : None,
+    "feedback_multi" : py_gtc.FeedbackBlockMultiLabel,    
     "single_executor": py_gtc.SingleThreadExecutor,
     "thread_executor" : py_gtc.MultiThreadExecutor,
     "dense_input" : py_gtc.DenseInputBlock,
@@ -22,6 +23,7 @@ try:
     impl["conv_cb"] = gtc.ClauseBlockConvTM,
     impl["sparse_cb"] = gtc.ClauseBlockSparse # fallback
     impl["feedback"] = gtc.FeedbackBlock
+    impl["feedback_uniform"] = gtc.FeedbackBlockUniform
     impl["feedback_multi"] = gtc.FeedbackBlockMultiLabel
     impl["single_executor"] = gtc.SingleThreadExecutor
     impl["thread_executor"] =  gtc.MultiThreadExecutor

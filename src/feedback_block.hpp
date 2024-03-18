@@ -302,6 +302,35 @@ namespace green_tsetlin
                 return preds;
             }      
     };
+
+
+    class FeedbackBlockUniform : public FeedbackBlock
+    {
+        public:
+            FeedbackBlockUniform(int num_classes, double threshold, int seed)                
+                : FeedbackBlock(num_classes, threshold, seed) {}
+
+
+            virtual void process(const uint32_t* labels)
+            {
+                std::scoped_lock lock(m_votes_lock);
+
+                uint32_t positive_class = labels[0];                
+                m_positive_class = positive_class;
+
+                std::uniform_int_distribution<> distrib(0, m_num_classes - 1);
+
+                m_negative_class = distrib(m_rng);
+                while(m_negative_class == m_positive_class)
+                    m_negative_class = distrib(m_rng);
+
+                double v_clamped = std::clamp(static_cast<double>(m_votes[m_negative_class]), -m_threshold, m_threshold);
+                m_update_prob_negative = ( (m_threshold + v_clamped) / (2*m_threshold) ) + 1e-16; // 1e-16 is used as epsilon 
+
+                v_clamped = std::clamp(static_cast<double>(m_votes[m_positive_class]), -m_threshold, m_threshold);
+                m_update_prob_positive = (m_threshold - v_clamped) / (2*m_threshold);                
+            }
+    };
     
 }; // namespace green_tsetlin
 
