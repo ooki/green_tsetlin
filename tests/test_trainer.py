@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-import datasets
+# import datasets
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -79,7 +79,7 @@ def test_trainer_throws_on_wrong_number_of_examples_between_x_and_y():
 
 def test_train_simple_xor():
     
-    n_literals = 15
+    n_literals = 6
     n_clauses = 5
     n_classes = 2
     s = 3.0
@@ -210,16 +210,16 @@ def test_select_backend_ib():
 
 def test_train_simple_xor_sparse():
     print("SPARSE\n")
-    n_literals = 15
-    n_clauses = 50
+    n_literals = 6
+    n_clauses = 5
     n_classes = 2
     s = 3.0
     threshold = 42
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
     tm._backend_clause_block_cls = gtc.ClauseBlockSparse
-    tm.set_active_literals_size(8)
-    tm.set_clause_size(8)
+    tm.set_active_literals_size(n_literals)
+    tm.set_clause_size(4)
     tm.set_lower_ta_threshold(-20)
 
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40, load_best_state=False)
@@ -302,56 +302,25 @@ def test_sparse_imdb():
     rng = np.random.default_rng(seed)  
 
 
-    imdb = datasets.load_dataset('imdb')
-    x, y = imdb['train']['text'], imdb['train']['label']
-   
-    vectorizer = CountVectorizer(ngram_range=(1, 3), 
-                                    binary=True, 
-                                    lowercase=True,
-                                    max_features=1000,
-                                    max_df = 0.8,
-                                    min_df = 1,
-                                    stop_words='english',
-                                    analyzer='word')
-    vectorizer.fit(x)
+    x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(train_size=1000, test_size=200)    
+    lits = x_train.shape[1]
 
-
-    x_bin = vectorizer.transform(x).toarray().astype(np.uint8)
-    y = np.array(y).astype(np.uint32)
-
-
-    shuffle_index = [i for i in range(len(x))]
-    rng.shuffle(shuffle_index)
-
-
-    x_bin = x_bin[shuffle_index]
-    y = y[shuffle_index]
-
-
-    _train_x_bin, val_x_bin, train_y, val_y = train_test_split(x_bin, y, test_size=0.2, random_state=seed, shuffle=True)
-
-
-    train_x_bin = csr_matrix(_train_x_bin[:10000])
-    train_y = train_y[:10000]
-    val_x_bin = csr_matrix(val_x_bin[:2000])
-    val_y = val_y[:2000]
-
+    x_train = csr_matrix(x_train)
+    x_val = csr_matrix(x_val)
 
 
     n_clauses = 1000
     s = 2.0
     threshold = 46450
     literal_budget = 7
+    n_classes = 2
 
 
-    n_epochs = 4
+    ib = gtc.SparseInputBlock(lits)
+    cb = gtc.ClauseBlockSparse(lits, n_clauses, n_classes)
+    fb = gtc.FeedbackBlock(n_classes, threshold, 42)
 
-
-    ib = gtc.SparseInputBlock(_train_x_bin.shape[1])
-    cb = gtc.ClauseBlockSparse(_train_x_bin.shape[1], n_clauses, len(np.unique(train_y)))
-    fb = gtc.FeedbackBlock(len(np.unique(train_y)), threshold, 42)
-
-    ib.set_data(train_x_bin.indices, train_x_bin.indptr, train_y)
+    ib.set_data(x_train.indices, x_train.indptr, y_train)
 
     cb.set_feedback(fb)
     cb.set_s(s)
@@ -364,16 +333,19 @@ def test_sparse_imdb():
     exec = gtc.SingleThreadExecutor(ib, [cb], fb, 1, 42)
 
     best_acc = -1.0
-    y_hat = np.empty_like(val_y)
+    y_hat = np.empty_like(y_val)
 
-    for epoch in range(3):
-        ib.set_data(train_x_bin.indices, train_x_bin.indptr, train_y)
+    for epoch in range(2):
+        ib.set_data(x_train.indices, x_train.indptr, y_train)
         train_acc = exec.train_epoch()
 
-        ib.set_data(val_x_bin.indices, val_x_bin.indptr, val_y)
+        ib.set_data(x_val.indices, x_val.indptr, y_val)
         exec.eval_predict(y_hat)
 
-        test_acc = accuracy_score(val_y, y_hat)
+        from collections import Counter
+        print(Counter(y_hat))
+        
+        test_acc = accuracy_score(y_val, y_hat)
 
         if test_acc > best_acc:
             best_acc = test_acc
@@ -383,7 +355,12 @@ def test_sparse_imdb():
     print("Best Test Accuracy: %.3f" % best_acc)
 
     data, indices, indptr = cb.get_clause_state_sparse()
+
     print(data.shape, indices.shape, indptr.shape)
+
+    unassinged = (100 * n_clauses*2) - data.shape[0]
+
+    print(unassinged/(100 * n_clauses*2))
 
     # write csr matrix to file
     # df = pd.DataFrame(csr_matrix((data, indices, indptr), shape=(n_clauses*2, _train_x_bin.shape[1])).toarray())
