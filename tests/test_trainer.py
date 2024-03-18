@@ -294,7 +294,7 @@ def test_trainer_with_kfold():
 
     assert r["best_test_score"] == 1.0
 
-
+@pytest.mark.skip('so the test doesnt fail because of a missing Keras dependency')
 def test_sparse_imdb():
 
 
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
 
-    # test_sparse_imdb()
+    test_sparse_imdb()
 
     # test_trainer_with_kfold()
 

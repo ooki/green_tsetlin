@@ -5,9 +5,6 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import shuffle
 
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-import keras
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import chi2
@@ -52,6 +49,10 @@ def imdb_dataset(imdb_num_words: int = 5000, imdb_index_from: int = 2, features:
     """
     Gets and processed the IMDb dataset used for NLP classification
     """
+    
+    import os
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    import keras
 
     _LOGGER.info("Preparing dataset")
     train, test = keras.datasets.imdb.load_data(num_words=imdb_num_words, index_from=imdb_index_from, seed=seed)
