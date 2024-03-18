@@ -72,6 +72,7 @@ class Trainer:
 
         self._cls_dense_ib = _backend_impl["dense_input"]
         self._cls_feedback_block = _backend_impl["feedback"]
+        self._cls_feedback_block_uniform = _backend_impl["feedback_uniform"]
         self._cls_feedback_block_multi_label = _backend_impl["feedback_multi"]
         self._cls_exec_singlethread = _backend_impl["single_executor"]
         self._cls_exec_multithread = _backend_impl["thread_executor"]
@@ -157,6 +158,14 @@ class Trainer:
             else:
                 # since we have actual classes as 2*classes since we use 0/1 per class
                 return self._cls_feedback_block_multi_label(n_classes // 2, threshold, self.seed)
+            
+
+        elif self.feedback_type == "uniform":
+            if self.tm._is_multi_label:
+                raise NotImplementedError("Cannot use 'uniform' feedback for multi-label classification yet.")
+            
+            else:
+                return self._cls_feedback_block_uniform(n_classes, threshold, self.seed)
             
         
         else:

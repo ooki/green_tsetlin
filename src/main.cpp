@@ -311,6 +311,11 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def(py::init<int, double, int>())
     ;
 
+    py::class_<gt::FeedbackBlockUniform, gt::FeedbackBlock>(m, "FeedbackBlockUniform")
+        .def(py::init<int, double, int>())
+    ;
+    
+
     py::class_<SingleThreadExecutor>(m, "SingleThreadExecutor")
         .def(py::init<gt::InputBlock*, std::vector<gt::ClauseBlock*>, gt::FeedbackBlock*, int, int>())        
         .def("get_number_of_examples_ready", &SingleThreadExecutor::get_number_of_examples_ready)        
