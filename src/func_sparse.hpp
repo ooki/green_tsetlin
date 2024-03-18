@@ -137,7 +137,6 @@ namespace  green_tsetlin
 
                     // sort literals
 
-
                     state.clause_outputs[clause_k] = 1;
 
                     if ((state.clauses[clause_k].size() == 0) && (state.clauses[clause_k + state.num_clauses].size() == 0))
@@ -160,11 +159,12 @@ namespace  green_tsetlin
 
                         for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                         {
-                            if (pos_clause[ta_k] == literals->at(lit_k))
+                            if (literals->at(lit_k) > pos_clause[ta_k])
                             {
-                                
-                                ta_found = true;
-                                break;
+                                state.clause_outputs[clause_k] = 0;
+                                goto endclause;
+                                // break;
+
                             }
 
                             else if (literals->at(lit_k) < pos_clause[ta_k])
@@ -173,12 +173,11 @@ namespace  green_tsetlin
                                 continue;
                             }
 
-                            else if (literals->at(lit_k) > pos_clause[ta_k])
+                            else if (pos_clause[ta_k] == literals->at(lit_k))
                             {
-                                state.clause_outputs[clause_k] = 0;
-                                goto endclause;
-                                // break;
-
+                                
+                                ta_found = true;
+                                break;
                             }
                             
                         }
@@ -546,7 +545,7 @@ namespace  green_tsetlin
                 // loop literals
                 for (int lit_k = 0; lit_k < literals->size(); ++lit_k)
                 {
-                    const int8_t literal = literals->at(lit_k);
+                    const uint32_t literal = literals->at(lit_k);
                     int8_t literal_state_pos = 1;
                     int8_t literal_state_neg = 1;
 
