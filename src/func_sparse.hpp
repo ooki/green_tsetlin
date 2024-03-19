@@ -55,6 +55,17 @@ namespace  green_tsetlin
                 }
 
 
+                state.al_replace_index.resize(state.num_classes*2);
+                for (int i = 0; i < state.num_classes*2; ++i)
+                {
+                    state.al_replace_index[i] = 0;
+                }
+
+                // state.al_replace_index = new uint32_t[state.num_classes*2];
+                // memset(state.al_replace_index, 0, sizeof(uint32_t) * state.active_literals_size);
+
+
+
                 if (do_literal_budget)
                     state.literal_counts = new uint32_t[state.num_clauses];
                 
@@ -103,6 +114,9 @@ namespace  green_tsetlin
 
                 delete[] state.clause_weights;
                 state.clause_weights = nullptr;
+
+                state.al_replace_index.clear();
+                state.al_replace_index.shrink_to_fit();
 
                 if(do_literal_budget)
                 {
@@ -415,13 +429,13 @@ namespace  green_tsetlin
                     if (state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_positive_class, neg_active_literals_positive_class, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_positive_class, neg_active_literals_positive_class, clause_weights + positive_class, 1, positive_class, literals, state.clause_outputs[clause_k]);
                     }
 
                     if (state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_negative_class, neg_active_literals_negative_class, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_negative_class, neg_active_literals_negative_class, clause_weights + negative_class, -1, negative_class, literals, state.clause_outputs[clause_k]);
 
                     }
                 }
@@ -434,7 +448,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, WeightInt* clause_weight, int target, SparseLiterals* literals, ClauseOutputUint clause_output)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, WeightInt* clause_weight, int target, int class_k, SparseLiterals* literals, ClauseOutputUint clause_output)
             {
                 int32_t sign = (*clause_weight) >= 0 ? +1 : -1;
 
@@ -445,7 +459,7 @@ namespace  green_tsetlin
                         (*clause_weight) += sign;
 
                         _T1aFeedback t1a;
-                        t1a(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals, neg_active_literals, literals);
+                        t1a(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals, neg_active_literals, literals, class_k);
                         prune_clause(state, pos_clause_row, pos_clause_states);
                         prune_clause(state, neg_clause_row, neg_clause_states);
                     }
@@ -531,7 +545,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals, int class_k)
             {
                 const double s_inv = (1.0 / state.s);
                 const double s_min1_inv = (state.s - 1.0) / state.s;
@@ -575,7 +589,7 @@ namespace  green_tsetlin
                     // no ta for literal found in clause, add to AL
                     if (literal_state_pos == 1 && state.fast_rng.next_u() <= s_inv)
                     {
-                        update_al(state, pos_active_literals, literal);
+                        update_al(state, pos_active_literals, literal, class_k);
                     }
 
                     // loop neg clauses
@@ -594,7 +608,7 @@ namespace  green_tsetlin
                     // no ta for literal found in clause, add to AL
                     if (literal_state_neg == 1 && state.fast_rng.next_u() <= s_inv)
                     {
-                        update_al(state, neg_active_literals, literal);
+                        update_al(state, neg_active_literals, literal, class_k + state.num_classes);
                     }
                 }
             
@@ -787,7 +801,7 @@ namespace  green_tsetlin
     class UpdateAL
     {
         public:
-            void operator()(_State& state, SparseLiterals* active_literals_class_k, uint32_t literal) // active_literals_class_k might need to be pointer
+            void operator()(_State& state, SparseLiterals* active_literals_class_k, uint32_t literal, int class_k) // active_literals_class_k might need to be pointer
             {
                 // Function to update active literals
 
@@ -805,8 +819,17 @@ namespace  green_tsetlin
                 }
                 else
                 {
-                    if (dynamic_AL)
-                        active_literals_class_k->at(state.fast_rng.next_u() * state.active_literals_size) = literal;
+                    // if (dynamic_AL)
+                    //     active_literals_class_k->at(state.fast_rng.next_u() * state.active_literals_size) = literal;
+
+                    if (dynamic_AL){
+                        active_literals_class_k->at(state.al_replace_index[class_k]) = literal;
+                        state.al_replace_index[class_k] ++;
+                        
+                        if(state.al_replace_index[class_k] == state.active_literals_size)
+                            state.al_replace_index[class_k] = 0;
+                    }
+
                 }
                 // dynamic al stuff, think need diff datatype for active_literals to do this effectively
                 // else
@@ -892,7 +915,7 @@ namespace  green_tsetlin
         for (int i = 0; i < n_clauses; i++)
         {
             _T1aFeedback t1a;
-            t1a(state, &state.clauses[i], &state.clauses[i + state.num_clauses], &state.clause_states[i], &state.clause_states[i + state.num_clauses], &state.active_literals[class_num], &state.active_literals[class_num + 1], lits);
+            t1a(state, &state.clauses[i], &state.clauses[i + state.num_clauses], &state.clause_states[i], &state.clause_states[i + state.num_clauses], &state.active_literals[class_num], &state.active_literals[class_num + 1], lits, 0); // remember that test now needs to accunt for new al indexing. 
         }
 
 

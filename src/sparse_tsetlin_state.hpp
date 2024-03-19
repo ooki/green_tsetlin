@@ -26,6 +26,7 @@ namespace green_tsetlin
 
             int num_literals = 0;
             int active_literals_size = 0;
+            SparseLiterals al_replace_index;
 
             // want this as percentage or just as number of states in clauses?
             int clause_size = 0;
