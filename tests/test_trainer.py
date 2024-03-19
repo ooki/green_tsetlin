@@ -322,7 +322,11 @@ def test_sparse_imdb():
     rng = np.random.default_rng(seed)  
 
 
+<<<<<<< HEAD
+    x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(seed=seed)    
+=======
     x_train, y_train, x_val, y_val = gt.dataset_generator.imdb_dataset(train_size=5000, test_size=800, seed=seed)    
+>>>>>>> 6e2f3578a6b431e8085392dbcef09e380f207d61
     lits = x_train.shape[1]
 
     x_train = csr_matrix(x_train)
@@ -358,8 +362,8 @@ def test_sparse_imdb():
 
     n_clauses = 1000
     s = 2.0
-    threshold = 1234
-    literal_budget = 7
+    threshold = 4000
+    literal_budget = 14
     n_classes = 2
     n_epochs = 20
 
@@ -454,8 +458,8 @@ if __name__ == "__main__":
     test_select_backend_ib()
     test_set_backend_py_gtc_sparse()
 
-    # test_sparse_imdb()
-    test_train_simple_xor_uniform_feedback()
+    test_sparse_imdb()
+    # test_train_simple_xor_uniform_feedback()
 
     # test_trainer_with_kfold()
 
