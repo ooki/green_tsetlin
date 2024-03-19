@@ -21,7 +21,7 @@ try:
     
     impl["cb"] = gtc.ClauseBlockTM
     impl["conv_cb"] = gtc.ClauseBlockConvTM,
-    impl["sparse_cb"] = gtc.ClauseBlockSparse # fallback
+    # impl["sparse_cb"] = gtc.ClauseBlockSparse # fallback
     impl["feedback"] = gtc.FeedbackBlock
     impl["feedback_uniform"] = gtc.FeedbackBlockUniform
     impl["feedback_multi"] = gtc.FeedbackBlockMultiLabel
@@ -29,6 +29,15 @@ try:
     impl["thread_executor"] =  gtc.MultiThreadExecutor
     impl["dense_input"] = gtc.DenseInputBlock
     impl["sparse_input"] = gtc.SparseInputBlock
+
+    impl["sparse_cb_Lt_Dt_Bt"] = gtc.ClauseBlockSparse_Lt_Dt_Bt # (L)lit_budget = true, (D)dynamic_AL = true, (B)boost_true_positives = true
+    impl["sparse_cb_Lt_Dt_Bf"] = gtc.ClauseBlockSparse_Lt_Dt_Bf
+    impl["sparse_cb_Lt_Df_Bt"] = gtc.ClauseBlockSparse_Lt_Df_Bt
+    impl["sparse_cb_Lt_Df_Bf"] = gtc.ClauseBlockSparse_Lt_Df_Bf
+    impl["sparse_cb_Lf_Dt_Bt"] = gtc.ClauseBlockSparse_Lf_Dt_Bt
+    impl["sparse_cb_Lf_Dt_Bf"] = gtc.ClauseBlockSparse_Lf_Dt_Bf
+    impl["sparse_cb_Lf_Df_Bt"] = gtc.ClauseBlockSparse_Lf_Df_Bt
+    impl["sparse_cb_Lf_Df_Bf"] = gtc.ClauseBlockSparse_Lf_Df_Bf
 
     impl["Inference8u_Ff_Lf_Wf"] = gtc.Inference8u_Ff_Lf_Wf
     impl["Inference8u_Ff_Lt_Wf"] = gtc.Inference8u_Ff_Lt_Wf

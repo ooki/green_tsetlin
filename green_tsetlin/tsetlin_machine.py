@@ -67,7 +67,7 @@ class TMState:
 
 class TsetlinMachine:
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
-                 literal_budget:Optional[int]=None, multi_label:bool=False):
+                 literal_budget:Optional[int]=None, boost_true_positives: bool = False, multi_label:bool=False):
 
         self.n_literals = n_literals
         self.n_clauses = n_clauses
@@ -76,6 +76,7 @@ class TsetlinMachine:
         self._cbs : list = None
         self._state : TMState = None                
                             
+        self.boost_true_positives = boost_true_positives
         if literal_budget is None:
             literal_budget = 32700
             
@@ -105,9 +106,11 @@ class TsetlinMachine:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
         # sparse specific
-        self.clause_size = n_literals
-        self.active_literals_size = n_literals
-        self.lower_ta_threshold = -20
+        # self._sparse_params_set = False
+        # self.clause_size = n_literals
+        # self.active_literals_size = n_literals
+        # self.lower_ta_threshold = -20
+        # self.dynamic_AL = False
         
         self._backend_clause_block_cls = _backend_impl["cb"]
 
@@ -274,6 +277,8 @@ class TsetlinMachine:
             trainable_flags = [True] * len(self._clause_block_sizes)
             
 
+        self._backend_clause_block_cls = self._get_backend()
+
         self._cbs = []
         for k, (s_k, literal_budget, n_clauses_in_block, is_trainable) in enumerate(zip(itertools.cycle(self.s), itertools.cycle(self.literal_budgets), self._clause_block_sizes, trainable_flags)):            
             cb = self._backend_clause_block_cls(self.n_literals, n_clauses_in_block, self.n_classes)
@@ -290,10 +295,12 @@ class TsetlinMachine:
     
     def _set_extra_params_on_cb(self, cb, k:int):
         
-        if self._backend_clause_block_cls == _backend_impl["sparse_cb"]:
-            cb.set_active_literals_size(self.active_literals_size)
-            cb.set_clause_size(self.clause_size)
-            cb.set_lower_ta_threshold(self.lower_ta_threshold)
+        pass
+        # if self._sparse_params_set:
+        #     cb.set_active_literals_size(self.active_literals_size)
+        #     cb.set_clause_size(self.clause_size)
+        #     cb.set_lower_ta_threshold(self.lower_ta_threshold)
+
 
 
     def get_predictor(self, explanation: str = "none") -> "gt.Predictor":
@@ -308,32 +315,122 @@ class TsetlinMachine:
         return predictor
 
 
-    def set_clause_size(self, clause_size:int):
-        
-        # check if cb is sparse
-        if self._backend_clause_block_cls == _backend_impl["cb"]:
-            raise ValueError("Cannot set clause size on a dense clause block")
-        
-        self.clause_size = clause_size
+    def _get_backend(self):
 
-    def set_active_literals_size(self, active_literals_size:int):
+        
+
+        #     imp_dict = {
+        #         (True, True, True):     "sparse_cb_Lt_Dt_Bt",
+        #         (True, True, False):    "sparse_cb_Lt_Dt_Bf",
+        #         (True, False, True):    "sparse_cb_Lt_Df_Bt",
+        #         (True, False, False):   "sparse_cb_Lt_Df_Bf",
+        #         (False, True, True):    "sparse_cb_Lf_Dt_Bt",
+        #         (False, True, False):   "sparse_cb_Lf_Dt_Bf",
+        #         (False, False, True):   "sparse_cb_Lf_Df_Bt",
+        #         (False, False, False):  "sparse_cb_Lf_Df_Bf"
+        #     }
+
+        #     lb_temp = True
+        #     if self.literal_budgets is None:
+        #         lb_temp = False
+
+        #     backend_cb = _backend_impl[imp_dict[(lb_temp, self.dynamic_AL, self.boost_true_positives)]]
+        
+        # else:
+        backend_cb = _backend_impl["cb"]
+
+
+        return backend_cb
+
+
+
+
+    # def set_clause_size(self, clause_size:int):
+        
+    #     # check if cb is sparse
+    #     # if self._backend_clause_block_cls == _backend_impl["cb"]:
+    #     #     raise ValueError("Cannot set clause size on a dense clause block")
+
+    #     if clause_size < 1:
+    #         raise ValueError("Cannot have a clause size under 1 (currently: {}))".format(clause_size))
+        
+    #     self._sparse_params_set = True
+    #     self.clause_size = clause_size
+
+    # def set_active_literals_size(self, active_literals_size:int):
             
-        # check if cb is sparse
-        if self._backend_clause_block_cls == _backend_impl["cb"]:
-            raise ValueError("Cannot set active literals size on a dense clause block")
+    #     # check if cb is sparse
+    #     # if self._backend_clause_block_cls == _backend_impl["cb"]:
+    #     #     raise ValueError("Cannot set active literals size on a dense clause block")
+
+    #     if active_literals_size < 1:
+    #         raise ValueError("Cannot have a active literals size under 1 (currently: {}))".format(active_literals_size))
         
-        self.active_literals_size = active_literals_size
+    #     self._sparse_params_set = True
+    #     self.active_literals_size = active_literals_size
 
 
-    def set_lower_ta_threshold(self, lower_ta_threshold:int):
+    # def set_lower_ta_threshold(self, lower_ta_threshold:int):
         
-        # check if cb is sparse
-        if self._backend_clause_block_cls == _backend_impl["cb"]:
-            raise ValueError("Cannot set lower ta threshold on a dense clause block")
+    #     # check if cb is sparse
+    #     # if self._backend_clause_block_cls == _backend_impl["cb"]:
+    #     #     raise ValueError("Cannot set lower ta threshold on a dense clause block")
 
-        self.lower_ta_threshold = lower_ta_threshold
-    
-    
+    #     self._sparse_params_set = True
+    #     self.lower_ta_threshold = lower_ta_threshold
+
+    # def set_dynamic_AL(self, dynamic_AL:bool):
+    #     # check if cb is sparse
+    #     # if self._backend_clause_block_cls == _backend_impl["cb"]:
+    #     #     raise ValueError("Cannot set dynamic AL on a dense clause block")
+
+    #     self._sparse_params_set = True
+    #     self.dynamic_AL = dynamic_AL
+
+
+
+class SparseTsetlinMachine(TsetlinMachine):
+    def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
+                 literal_budget:Optional[int]=None, boost_true_positives: bool = False, multi_label:bool=False):
+        
+        super().__init__(n_literals, n_clauses, n_classes, s, threshold, literal_budget, boost_true_positives, multi_label)
+        
+        self._backend_clause_block_cls = _backend_impl["sparse_cb"]
+        self._sparse_params_set = False
+        self.clause_size = n_literals
+        self.active_literals_size = n_literals
+        self.lower_ta_threshold = -20
+        self.dynamic_AL = False
+
+
+    def _set_extra_params_on_cb(self, cb, k:int):
+        cb.set_active_literals_size(self.active_literals_size)
+        cb.set_clause_size(self.clause_size)
+        cb.set_lower_ta_threshold(self.lower_ta_threshold)
+
+    def _get_backend(self):
+
+        
+
+        imp_dict = {
+            (True, True, True):     "sparse_cb_Lt_Dt_Bt",
+            (True, True, False):    "sparse_cb_Lt_Dt_Bf",
+            (True, False, True):    "sparse_cb_Lt_Df_Bt",
+            (True, False, False):   "sparse_cb_Lt_Df_Bf",
+            (False, True, True):    "sparse_cb_Lf_Dt_Bt",
+            (False, True, False):   "sparse_cb_Lf_Dt_Bf",
+            (False, False, True):   "sparse_cb_Lf_Df_Bt",
+            (False, False, False):  "sparse_cb_Lf_Df_Bf"
+        }
+
+        lb_temp = True
+        if self.literal_budgets is None:
+            lb_temp = False
+
+        backend_cb = _backend_impl[imp_dict[(lb_temp, self.dynamic_AL, self.boost_true_positives)]]
+
+        return backend_cb
+
 
 class ConvolutionalTsetlinMachine(TsetlinMachine):
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,

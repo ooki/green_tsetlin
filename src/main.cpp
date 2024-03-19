@@ -109,30 +109,51 @@ typedef typename gt::ClauseBlockT<
 
 typedef typename gt::SparseTsetlinState SparseTsetlinState;
 
-typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
-                                    gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>, // dynamic_AL = true, boost_true_positive = false
-                                    gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
-                                    gt::Type2FeedbackSparseTM<SparseTsetlinState>>
-                                ClauseUpdateSparseTMImpl;
+// typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
+//                                     gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>, // dynamic_AL = true, boost_true_positive = false
+//                                     gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
+//                                     gt::Type2FeedbackSparseTM<SparseTsetlinState>>
+//                                 ClauseUpdateSparseTMImpl;
 
 
-typedef typename gt::TrainUpdateSparseTM<SparseTsetlinState,
-                                   ClauseUpdateSparseTMImpl,
-                                   true > // do_literal_budget = true
-                                TrainUpdateSparseTMImpl;
+// typedef typename gt::TrainUpdateSparseTM<SparseTsetlinState,
+//                                    ClauseUpdateSparseTMImpl,
+//                                    true > // do_literal_budget = true
+//                                 TrainUpdateSparseTMImpl;
 
-typedef typename gt::ClauseBlockSparseT<
+// typedef typename gt::ClauseBlockSparseT<
+//                                     SparseTsetlinState,
+//                                     gt::InitializeSparseTM<SparseTsetlinState, true>,       // do_literal_budget = true
+//                                     gt::CleanupSparseTM<SparseTsetlinState, true>,          // do_literal_budget = true
+//                                     gt::SetClauseOutputSparseTM<SparseTsetlinState, true>,  // do_literal_budget = true
+//                                     gt::EvalClauseOutputSparseTM<SparseTsetlinState>,
+//                                     gt::CountVotesSparseTM<SparseTsetlinState>,
+//                                     TrainUpdateSparseTMImpl,
+//                                     SparseInputBlock32u
+//                                     >
+//                                 ClauseBlockSparseImpl;
+
+
+template<bool lit_budget, bool btp, bool dynamic_AL>
+using ClauseBlockSparseImpl = gt::ClauseBlockSparseT<
                                     SparseTsetlinState,
-                                    gt::InitializeSparseTM<SparseTsetlinState, true>,       // do_literal_budget = true
-                                    gt::CleanupSparseTM<SparseTsetlinState, true>,          // do_literal_budget = true
-                                    gt::SetClauseOutputSparseTM<SparseTsetlinState, true>,  // do_literal_budget = true
+                                    gt::InitializeSparseTM<SparseTsetlinState, lit_budget>,       // do_literal_budget = true
+                                    gt::CleanupSparseTM<SparseTsetlinState, lit_budget>,          // do_literal_budget = true
+                                    gt::SetClauseOutputSparseTM<SparseTsetlinState, lit_budget>,  // do_literal_budget = true
                                     gt::EvalClauseOutputSparseTM<SparseTsetlinState>,
                                     gt::CountVotesSparseTM<SparseTsetlinState>,
-                                    TrainUpdateSparseTMImpl,
+                                    gt::TrainUpdateSparseTM<SparseTsetlinState,
+                                                            gt::ClauseUpdateSparseTM<SparseTsetlinState,
+                                                                                        gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, dynamic_AL>, btp>, // dynamic_AL = true, boost_true_positive = false
+                                                                                        gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
+                                                                                        gt::Type2FeedbackSparseTM<SparseTsetlinState>
+                                                                                    >,
+                                                            lit_budget
+                                                            >,
                                     SparseInputBlock32u
-                                    >
-                                ClauseBlockSparseImpl;
- 
+                                    >;
+
+
 
 //-------------------- AVX 2 TM ---------------------
 
@@ -275,8 +296,8 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     m.def("has_avx2", has_avx2);
     m.def("has_neon", has_neon);
     // m.def("test_train_set_clause_output_sparse", &gt::test_train_set_clause_output<SparseTsetlinState, gt::SetClauseOutputSparseTM<SparseTsetlinState, true>>);
-    m.def("test_type2_feedback", &gt::test_Type2FeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type2FeedbackSparseTM<SparseTsetlinState>>);
-    m.def("test_type1a_feedback", &gt::test_Type1aFeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>>);
+    // m.def("test_type2_feedback", &gt::test_Type2FeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type2FeedbackSparseTM<SparseTsetlinState>>);
+    // m.def("test_type1a_feedback", &gt::test_Type1aFeedbackSparse<SparseTsetlinState, ClauseBlockSparseImpl, gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>>);
 
 
     
@@ -394,8 +415,15 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
-    // Sparse TM tentative
-    define_clause_block_sparse<ClauseBlockSparseImpl>(m, "ClauseBlockSparse"); // Sparse TM
+    // Sparse TM tentative    
+    define_clause_block_sparse<ClauseBlockSparseImpl<true, true, true>>(m, "ClauseBlockSparse_Lt_Dt_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = true
+    define_clause_block_sparse<ClauseBlockSparseImpl<true, true, false>>(m, "ClauseBlockSparse_Lt_Dt_Bf"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = false
+    define_clause_block_sparse<ClauseBlockSparseImpl<true, false, true>>(m, "ClauseBlockSparse_Lt_Df_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = false, (B)btp = true
+    define_clause_block_sparse<ClauseBlockSparseImpl<true, false, false>>(m, "ClauseBlockSparse_Lt_Df_Bf"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = false, (B)btp = false
+    define_clause_block_sparse<ClauseBlockSparseImpl<false, true, true>>(m, "ClauseBlockSparse_Lf_Dt_Bt"); // Sparse TM, (L)lit_budget = false, (D)dynamic_AL = true, (B)btp = true
+    define_clause_block_sparse<ClauseBlockSparseImpl<false, true, false>>(m, "ClauseBlockSparse_Lf_Dt_Bf"); // Sparse TM, (L)lit_budget = false, (D)dynamic_AL = true, (B)btp = false
+    define_clause_block_sparse<ClauseBlockSparseImpl<false, false, true>>(m, "ClauseBlockSparse_Lf_Df_Bt"); // Sparse TM, (L)lit_budget = false, (D)dynamic_AL = false, (B)btp = true
+    define_clause_block_sparse<ClauseBlockSparseImpl<false, false, false>>(m, "ClauseBlockSparse_Lf_Df_Bf"); // Sparse TM, (L)lit_budget = false, (D)dynamic_AL = false, (B)btp = false
 
 
     typedef typename gt::Inference<uint8_t, false, false, false>    Inference8u_Ff_Lf_Wf;
