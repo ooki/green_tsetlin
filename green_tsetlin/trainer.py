@@ -85,6 +85,14 @@ class Trainer:
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
         
+        # raise error if data is sparse and cb is dense, and vice versa
+        if isinstance(x_train, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
+            raise ValueError("x_train can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
+
+        if isinstance(x_train, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+            raise ValueError("x_train can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
+
+        
         y_train = np.atleast_1d(y_train)
         if x_train.shape[0] != y_train.shape[0]:
             raise ValueError("Data x_train and y_train must have the same number of examples: {} != {}".format(x_train.shape[0], y_train.shape[0]))
@@ -108,6 +116,13 @@ class Trainer:
 
     def set_test_data(self, x_test:np.array, y_test:np.array):
         
+        if isinstance(x_test, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
+            raise ValueError("x_test can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
+
+        if isinstance(x_test, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+            raise ValueError("x_test can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
+
+
         y_test = np.atleast_1d(y_test)
         if x_test.shape[0] != y_test.shape[0]:
             raise ValueError("Data x_test and y_test must have the same number of examples: {} != {}".format(x_test.shape[0], y_test.shape[0]))
@@ -130,6 +145,12 @@ class Trainer:
 
 
     def set_validation_data(self, x_val:np.array, y_val:np.array):
+
+        if isinstance(x_val, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
+            raise ValueError("x_val can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
+
+        if isinstance(x_val, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+            raise ValueError("x_val can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
 
         y_val = np.atleast_1d(y_val)       
 

@@ -77,11 +77,11 @@ class TsetlinMachine:
         self._state : TMState = None                
                             
         self.boost_true_positives = boost_true_positives
-        if literal_budget is None:
-            literal_budget = 32700
+        # if literal_budget is None:
+        #     literal_budget = 32700
             
-        elif isinstance(literal_budget, list):
-            raise ValueError("Cannot set a list-version of literal_budgets in the constructor. Use set_literal_budget() instead.")
+        # elif isinstance(literal_budget, list):
+        #     raise ValueError("Cannot set a list-version of literal_budgets in the constructor. Use set_literal_budget() instead.")
                 
         self.literal_budgets = [literal_budget] # high value, should really be set.
             
@@ -106,11 +106,11 @@ class TsetlinMachine:
             self.n_classes *= 2 # since each class can now be both ON and OFF (each has its own TM weight)
 
         # sparse specific
-        self._sparse_params_set = False
-        self.clause_size = n_literals
-        self.active_literals_size = n_literals
-        self.lower_ta_threshold = -20
-        self.dynamic_AL = False
+        # self._sparse_params_set = False
+        # self.clause_size = n_literals
+        # self.active_literals_size = n_literals
+        # self.lower_ta_threshold = -20
+        # self.dynamic_AL = False
         
         self._backend_clause_block_cls = _backend_impl["cb"]
 
@@ -277,31 +277,23 @@ class TsetlinMachine:
             trainable_flags = [True] * len(self._clause_block_sizes)
             
 
-        # self._backend_clause_block_cls = self._get_backend()
+        self._backend_clause_block_cls = self._get_backend()
 
         self._cbs = []
         for k, (s_k, literal_budget, n_clauses_in_block, is_trainable) in enumerate(zip(itertools.cycle(self.s), itertools.cycle(self.literal_budgets), self._clause_block_sizes, trainable_flags)):            
             cb = self._backend_clause_block_cls(self.n_literals, n_clauses_in_block, self.n_classes)
             
             cb.set_s(s_k)
-            cb.set_literal_budget(literal_budget)
+            if self.literal_budgets[0] is not None:
+                cb.set_literal_budget(literal_budget)
             
 
             # cb.set_trainable(is_trainable) # TODO: add in backend
-            self._cbs.append(cb)
             self._set_extra_params_on_cb(cb, k)
+            self._cbs.append(cb)
         
         return copy.copy(self._cbs)
     
-    def _set_extra_params_on_cb(self, cb, k:int):
-        
-        # pass
-        if self._sparse_params_set:
-            cb.set_active_literals_size(self.active_literals_size)
-            cb.set_clause_size(self.clause_size)
-            cb.set_lower_ta_threshold(self.lower_ta_threshold)
-
-
 
     def get_predictor(self, explanation: str = "none") -> "gt.Predictor":
 
@@ -315,102 +307,57 @@ class TsetlinMachine:
         return predictor
 
 
+    def _set_extra_params_on_cb(self, cb, k:int):
+        pass
+
+
     def _get_backend(self):
-
-        
-
-        #     imp_dict = {
-        #         (True, True, True):     "sparse_cb_Lt_Dt_Bt",
-        #         (True, True, False):    "sparse_cb_Lt_Dt_Bf",
-        #         (True, False, True):    "sparse_cb_Lt_Df_Bt",
-        #         (True, False, False):   "sparse_cb_Lt_Df_Bf",
-        #         (False, True, True):    "sparse_cb_Lf_Dt_Bt",
-        #         (False, True, False):   "sparse_cb_Lf_Dt_Bf",
-        #         (False, False, True):   "sparse_cb_Lf_Df_Bt",
-        #         (False, False, False):  "sparse_cb_Lf_Df_Bf"
-        #     }
-
-        #     lb_temp = True
-        #     if self.literal_budgets is None:
-        #         lb_temp = False
-
-        #     backend_cb = _backend_impl[imp_dict[(lb_temp, self.dynamic_AL, self.boost_true_positives)]]
-        
-        # else:
         backend_cb = _backend_impl["cb"]
 
+        # _backend_impl["cb"] = backend_cb
 
         return backend_cb
 
 
 
 
-    def set_clause_size(self, clause_size:int):
-        
-        # check if cb is sparse
-        # if self._backend_clause_block_cls == _backend_impl["cb"]:
-        #     raise ValueError("Cannot set clause size on a dense clause block")
-
-        if clause_size < 1:
-            raise ValueError("Cannot have a clause size under 1 (currently: {}))".format(clause_size))
-        
-        self._sparse_params_set = True
-        self.clause_size = clause_size
-
-    def set_active_literals_size(self, active_literals_size:int):
-            
-        # check if cb is sparse
-        # if self._backend_clause_block_cls == _backend_impl["cb"]:
-        #     raise ValueError("Cannot set active literals size on a dense clause block")
-
-        if active_literals_size < 1:
-            raise ValueError("Cannot have a active literals size under 1 (currently: {}))".format(active_literals_size))
-        
-        self._sparse_params_set = True
-        self.active_literals_size = active_literals_size
-
-
-    def set_lower_ta_threshold(self, lower_ta_threshold:int):
-        
-        # check if cb is sparse
-        # if self._backend_clause_block_cls == _backend_impl["cb"]:
-        #     raise ValueError("Cannot set lower ta threshold on a dense clause block")
-
-        self._sparse_params_set = True
-        self.lower_ta_threshold = lower_ta_threshold
-
-    def set_dynamic_AL(self, dynamic_AL:bool):
-        # check if cb is sparse
-        # if self._backend_clause_block_cls == _backend_impl["cb"]:
-        #     raise ValueError("Cannot set dynamic AL on a dense clause block")
-
-        self._sparse_params_set = True
-        self.dynamic_AL = dynamic_AL
-
-
-
 class SparseTsetlinMachine(TsetlinMachine):
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
-                 literal_budget:Optional[int]=None, boost_true_positives: bool = False, multi_label:bool=False):
+                 literal_budget:Optional[int]=None, boost_true_positives: bool = False, dynamic_AL: bool = True, multi_label:bool=False):
         
         super().__init__(n_literals, n_clauses, n_classes, s, threshold, literal_budget, boost_true_positives, multi_label)
         
-        self._backend_clause_block_cls = _backend_impl["sparse_cb"]
-        self._sparse_params_set = False
+        
         self.clause_size = n_literals
         self.active_literals_size = n_literals
         self.lower_ta_threshold = -20
-        self.dynamic_AL = False
+        self.dynamic_AL = dynamic_AL
+        
+        self._backend_clause_block_cls = _backend_impl["sparse_cb"]
 
 
     def _set_extra_params_on_cb(self, cb, k:int):
+
+        if self.active_literals_size < 1:
+            raise ValueError("Active literals size must be greater than 0, current value: {}".format(self.active_literals_size))
+        
+        if self.clause_size < 1:
+            raise ValueError("Clause size must be greater than 0, current value: {}".format(self.clause_size))
+
+        # want this?
+        if self.lower_ta_threshold > 0:
+            raise ValueError("Cannot have a positive lower_ta_threshold ({}). Should be set to a negative number.".format(self.lower_ta_threshold))
+
+
         cb.set_active_literals_size(self.active_literals_size)
         cb.set_clause_size(self.clause_size)
         cb.set_lower_ta_threshold(self.lower_ta_threshold)
 
-    def _get_backend(self):
 
-        
+    def _get_backend(self):
+        """
+        Select the correct backend implementation based on the current settings.
+        """
 
         imp_dict = {
             (True, True, True):     "sparse_cb_Lt_Dt_Bt",
@@ -424,12 +371,17 @@ class SparseTsetlinMachine(TsetlinMachine):
         }
 
         lb_temp = True
-        if self.literal_budgets is None:
+        if self.literal_budgets[0] is None:
             lb_temp = False
 
+        # print(imp_dict[(lb_temp, self.dynamic_AL, self.boost_true_positives)])
         backend_cb = _backend_impl[imp_dict[(lb_temp, self.dynamic_AL, self.boost_true_positives)]]
 
+        _backend_impl["sparse_cb"] = backend_cb
+
         return backend_cb
+
+
 
 
 class ConvolutionalTsetlinMachine(TsetlinMachine):

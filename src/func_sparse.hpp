@@ -61,10 +61,6 @@ namespace  green_tsetlin
                     state.al_replace_index[i] = 0;
                 }
 
-                // state.al_replace_index = new uint32_t[state.num_classes*2];
-                // memset(state.al_replace_index, 0, sizeof(uint32_t) * state.active_literals_size);
-
-
 
                 if (do_literal_budget)
                     state.literal_counts = new uint32_t[state.num_clauses];
@@ -822,7 +818,8 @@ namespace  green_tsetlin
                     // if (dynamic_AL)
                     //     active_literals_class_k->at(state.fast_rng.next_u() * state.active_literals_size) = literal;
 
-                    if (dynamic_AL){
+                    if (dynamic_AL)
+                    {
                         active_literals_class_k->at(state.al_replace_index[class_k]) = literal;
                         state.al_replace_index[class_k] ++;
                         

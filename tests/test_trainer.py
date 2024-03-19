@@ -89,6 +89,14 @@ def test_train_simple_xor():
 
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+
+    print("BACKEND:")
+    print(tm._backend_clause_block_cls)
+    print(trainer._cls_feedback_block)
+    print(trainer._cls_dense_ib)
+    print(trainer._cls_sparse_ib)
+    print(trainer._cls_exec_singlethread)
+
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
     trainer.train()    
@@ -235,15 +243,15 @@ def test_train_simple_xor_sparse():
     n_classes = 2
     s = 3.0
     threshold = 42
-    tm = gt.SparseTsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=True)        
+    tm = gt.SparseTsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=True, dynamic_AL=False)        
     
-    # tm._backend_clause_block_cls = gtc.ClauseBlockSparse
+    # tm._backend_clause_block_cls = gtc.ClauseBlockSparse_Lt_Dt_Bt
     tm.active_literals_size = n_literals
     tm.clause_size = n_literals
     tm.lower_ta_threshold = -20
     # tm.set_dynamic_AL(True)
 
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100, load_best_state=False)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40, load_best_state=False)
     
     print("BACKEND:")
     print(tm._backend_clause_block_cls)
@@ -323,8 +331,8 @@ if __name__ == "__main__":
     # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
-    # test_train_simple_xor_sparse()
-    test_train_simple_xor()
+    test_train_simple_xor_sparse()
+    # test_train_simple_xor()
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
