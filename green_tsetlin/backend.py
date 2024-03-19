@@ -21,7 +21,7 @@ try:
     
     impl["cb"] = gtc.ClauseBlockTM
     impl["conv_cb"] = gtc.ClauseBlockConvTM,
-    # impl["sparse_cb"] = gtc.ClauseBlockSparse # fallback
+    impl["sparse_cb"] = gtc.ClauseBlockSparse_Lt_Dt_Bf # fallback
     impl["feedback"] = gtc.FeedbackBlock
     impl["feedback_uniform"] = gtc.FeedbackBlockUniform
     impl["feedback_multi"] = gtc.FeedbackBlockMultiLabel

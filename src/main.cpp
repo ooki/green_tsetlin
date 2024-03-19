@@ -110,7 +110,7 @@ typedef typename gt::ClauseBlockT<
 typedef typename gt::SparseTsetlinState SparseTsetlinState;
 
 // typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
-//                                     gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, false>, // dynamic_AL = true, boost_true_positive = false
+//                                     gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, true>, // dynamic_AL = true, boost_true_positive = false
 //                                     gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
 //                                     gt::Type2FeedbackSparseTM<SparseTsetlinState>>
 //                                 ClauseUpdateSparseTMImpl;
@@ -131,10 +131,10 @@ typedef typename gt::SparseTsetlinState SparseTsetlinState;
 //                                     TrainUpdateSparseTMImpl,
 //                                     SparseInputBlock32u
 //                                     >
-//                                 ClauseBlockSparseImpl;
+//                                 ClauseBlockSparseImpl_old;
 
 
-template<bool lit_budget, bool btp, bool dynamic_AL>
+template<bool lit_budget, bool dynamic_AL, bool btp>
 using ClauseBlockSparseImpl = gt::ClauseBlockSparseT<
                                     SparseTsetlinState,
                                     gt::InitializeSparseTM<SparseTsetlinState, lit_budget>,       // do_literal_budget = true
@@ -416,6 +416,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
     // Sparse TM tentative    
+    // define_clause_block_sparse<ClauseBlockSparseImpl_old>(m, "ClauseBlockSparse"); // Sparse TM
     define_clause_block_sparse<ClauseBlockSparseImpl<true, true, true>>(m, "ClauseBlockSparse_Lt_Dt_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = true
     define_clause_block_sparse<ClauseBlockSparseImpl<true, true, false>>(m, "ClauseBlockSparse_Lt_Dt_Bf"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = false
     define_clause_block_sparse<ClauseBlockSparseImpl<true, false, true>>(m, "ClauseBlockSparse_Lt_Df_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = false, (B)btp = true

@@ -86,7 +86,7 @@ def test_train_simple_xor():
     threshold = 42    
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     tm._backend_clause_block_cls = gtc.ClauseBlockTM
-    
+
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
@@ -230,7 +230,7 @@ def test_select_backend_ib():
 
 def test_train_simple_xor_sparse():
     print("SPARSE\n")
-    n_literals = 6
+    n_literals = 4
     n_clauses = 5
     n_classes = 2
     s = 3.0
@@ -239,18 +239,18 @@ def test_train_simple_xor_sparse():
     
     # tm._backend_clause_block_cls = gtc.ClauseBlockSparse
     tm.active_literals_size = n_literals
-    tm.clause_size = 4
-    tm.lower_ta_threshold = -40
+    tm.clause_size = n_literals
+    tm.lower_ta_threshold = -20
     # tm.set_dynamic_AL(True)
 
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40, load_best_state=False)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100, load_best_state=False)
     
-    # print("BACKEND:")
-    # print(tm._backend_clause_block_cls)
-    # print(trainer._cls_feedback_block)
-    # print(trainer._cls_dense_ib)
-    # print(trainer._cls_sparse_ib)
-    # print(trainer._cls_exec_singlethread)
+    print("BACKEND:")
+    print(tm._backend_clause_block_cls)
+    print(trainer._cls_feedback_block)
+    print(trainer._cls_dense_ib)
+    print(trainer._cls_sparse_ib)
+    print(trainer._cls_exec_singlethread)
 
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    # seed=6
 
