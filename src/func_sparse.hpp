@@ -820,6 +820,13 @@ namespace  green_tsetlin
 
                     if (dynamic_AL)
                     {
+                        for (size_t i = 0; i < active_literals_class_k->size(); ++i)
+                        {
+                            if (active_literals_class_k->at(i) == literal)
+                            {
+                                return;
+                            }
+                        }
                         active_literals_class_k->at(state.al_replace_index[class_k]) = literal;
                         state.al_replace_index[class_k] ++;
                         
