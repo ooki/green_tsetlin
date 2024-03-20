@@ -143,33 +143,34 @@ using ClauseBlockSparseImpl = gt::ClauseBlockSparseT<
 
 typedef typename gt::AlignedTsetlinState<32, 256 / sizeof(gt::WeightInt)> TsetlinStateAVX2;
 
-typedef typename gt::ClauseUpdateAVX2<TsetlinStateAVX2,
-                                    gt::Type1aFeedbackAVX2<TsetlinStateAVX2>,
-                                    gt::Type1bFeedbackAVX2<TsetlinStateAVX2>,
-                                    gt::Type2FeedbackAVX2<TsetlinStateAVX2>>
-                                ClauseUpdateAVX2Impl;
 
-typedef typename gt::TrainUpdateAVX2<TsetlinStateAVX2,
-                                   ClauseUpdateAVX2Impl,
-                                   true > // do_literal_budget = true
-                                TrainUpdateAVX2Impl;
-
-
-typedef typename gt::ClauseBlockT<
+template<bool lit_budget, bool btp>
+using ClauseBlockAVX2Impl = gt::ClauseBlockT<
                                     TsetlinStateAVX2,
-                                    gt::InitializeAVX2<TsetlinStateAVX2, true, true>, // pad_class (weights) = true, do_literal_budget = true
-                                    gt::CleanupAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
-                                    gt::SetClauseOutputAVX2<TsetlinStateAVX2, true>, // do_literal_budget = true
+                                    gt::InitializeAVX2<TsetlinStateAVX2, false, lit_budget>, // pad_class (weights) = false
+                                    gt::CleanupAVX2<TsetlinStateAVX2, lit_budget>, 
+                                    gt::SetClauseOutputAVX2<TsetlinStateAVX2, lit_budget>, 
                                     gt::EvalClauseOutputAVX2<TsetlinStateAVX2>,
                                     gt::CountVotesAVX2<TsetlinStateAVX2>,
-                                    TrainUpdateAVX2Impl,
+                                    gt::TrainUpdateAVX2<TsetlinStateAVX2,
+                                                        gt::ClauseUpdateAVX2<TsetlinStateAVX2,
+                                                                            gt::Type1aFeedbackAVX2<TsetlinStateAVX2, btp>,
+                                                                            gt::Type1bFeedbackAVX2<TsetlinStateAVX2>,
+                                                                            gt::Type2FeedbackAVX2<TsetlinStateAVX2>
+                                                                            >,
+                                                        lit_budget 
+                                                        >,
                                     DenseInputBlock8u
-                                >
-                                ClauseBlockAVX2Impl;
+                                >;
 
+typedef typename gt::ClauseUpdateAVX2<TsetlinStateAVX2,
+                                    gt::Type1aFeedbackAVX2<TsetlinStateAVX2, false>,
+                                    gt::Type1bFeedbackAVX2<TsetlinStateAVX2>,
+                                    gt::Type2FeedbackAVX2<TsetlinStateAVX2>>
+                                ClauseUpdateConvAVX2Impl;
 
 typedef typename gt::TrainUpdateConvAVX2<TsetlinStateAVX2,
-                                   ClauseUpdateAVX2Impl,
+                                   ClauseUpdateConvAVX2Impl,
                                    true > // do_literal_budget = true
                                 TrainUpdateConvAVX2Impl;
 
@@ -360,48 +361,28 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_feedback", &gt::ClauseBlock::set_feedback)
     ;
 
-    // py::class_<gt::ClauseBlock>(m, "ClauseBlockSparse")
-    //     .def("get_number_of_literals", &gt::ClauseBlock::get_number_of_literals)
-    //     .def("get_number_of_clauses", &gt::ClauseBlock::get_number_of_clauses)
-    //     .def("get_number_of_classes", &gt::ClauseBlock::get_number_of_classes)
-
-    //     .def("get_s", &gt::ClauseBlock::get_s)
-    //     .def("set_s", &gt::ClauseBlock::set_s)
-
-    //     .def("get_number_of_patches_per_example", &gt::ClauseBlock::get_number_of_patches_per_example)
-    //     .def("set_number_of_patches_per_example", &gt::ClauseBlock::set_number_of_patches_per_example)
-
-    //     .def("set_trainable", &gt::ClauseBlock::set_trainable)
-    //     .def("is_trainable", &gt::ClauseBlock::is_trainable)
-        
-    //     .def("get_literal_budget", &gt::ClauseBlock::get_literal_budget)
-    //     .def("set_literal_budget", &gt::ClauseBlock::set_literal_budget)
-        
-    //     .def("initialize", &gt::ClauseBlock::initialize, py::arg("seed") = 42)
-    //     .def("is_initialized", &gt::ClauseBlock::is_init)        
-    //     .def("cleanup", &gt::ClauseBlock::cleanup)       
-        
-    //     .def("set_feedback", &gt::ClauseBlock::set_feedback)
-
-    // ;
-
 
     
 
-    // Clause Block Impl's
+    // Dense TM non-vectorized implementations
     define_clause_block<ClauseBlockTMImpl<true, true>>(m, "ClauseBlockTM_Lt_Bt"); // Vanilla TM, (L)lit_budget = true, (B)btp = true
     define_clause_block<ClauseBlockTMImpl<true, false>>(m, "ClauseBlockTM_Lt_Bf"); // Vanilla TM, (L)lit_budget = true, (B)btp = false
     define_clause_block<ClauseBlockTMImpl<false, true>>(m, "ClauseBlockTM_Lf_Bt"); // Vanilla TM, (L)lit_budget = false, (B)btp = true
     define_clause_block<ClauseBlockTMImpl<false, false>>(m, "ClauseBlockTM_Lf_Bf"); // Vanilla TM, (L)lit_budget = false, (B)btp = false
 
-
-    define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla TM with Convolutional TM
+    // Conv TM non-vectorized implementations
+    define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla Convolutional TM
     
-    define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM
+    // AVX2 TM implementations
+    define_clause_block<ClauseBlockAVX2Impl<true, true>>(m, "ClauseBlockAVX2_Lt_Bt"); // AVX2 TM, (L)lit_budget = true, (B)btp = true
+    define_clause_block<ClauseBlockAVX2Impl<true, false>>(m, "ClauseBlockAVX2_Lt_Bf"); // AVX2 TM, (L)lit_budget = true, (B)btp = false
+    define_clause_block<ClauseBlockAVX2Impl<false, true>>(m, "ClauseBlockAVX2_Lf_Bt"); // AVX2 TM, (L)lit_budget = false, (B)btp = true
+    define_clause_block<ClauseBlockAVX2Impl<false, false>>(m, "ClauseBlockAVX2_Lf_Bf"); // AVX2 TM, (L)lit_budget = false, (B)btp = false
+    
+    // AVX2 Conv TM implementations
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 
-    // Sparse TM tentative    
-    // define_clause_block_sparse<ClauseBlockSparseImpl_old>(m, "ClauseBlockSparse"); // Sparse TM
+    // Sparse TM implementations
     define_clause_block_sparse<ClauseBlockSparseImpl<true, true, true>>(m, "ClauseBlockSparse_Lt_Dt_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = true
     define_clause_block_sparse<ClauseBlockSparseImpl<true, true, false>>(m, "ClauseBlockSparse_Lt_Dt_Bf"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = false
     define_clause_block_sparse<ClauseBlockSparseImpl<true, false, true>>(m, "ClauseBlockSparse_Lt_Df_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = false, (B)btp = true

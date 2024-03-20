@@ -51,9 +51,14 @@ try:
     impl["Inference8u_Ft_Lf_Wt"] = gtc.Inference8u_Ft_Lf_Wt
     
     if gtc.has_avx2():
-        impl["cb"] = gtc.ClauseBlockAVX2
+        impl["cb"] = gtc.ClauseBlockAVX2_Lt_Bt
         impl["conv_cb"] = gtc.ClauseBlockConvAVX2
-        
+    
+        impl["cb_Lt_Bt"] = gtc.ClauseBlockAVX2_Lt_Bt # (L)lit_budget = true, (B)boost_true_positives = true
+        impl["cb_Lt_Bf"] = gtc.ClauseBlockAVX2_Lt_Bf
+        impl["cb_Lf_Bt"] = gtc.ClauseBlockAVX2_Lf_Bt
+        impl["cb_Lf_Bf"] = gtc.ClauseBlockAVX2_Lf_Bf
+
     if gtc.has_neon():
         impl["cb"] = gtc.ClauseBlockNeon
         impl["conv_cb"] = gtc.ClauseBlockConvNeon

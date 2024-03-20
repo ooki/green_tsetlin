@@ -10,3 +10,4 @@ TODO:
 
 - Dense TM:
     - vectorized count votes
+    - convolutional?

@@ -87,14 +87,15 @@ def test_train_simple_xor():
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=False)        
     #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
-    print("BACKEND:")
-    print(tm._backend_clause_block_cls)
-
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
+
     trainer.train()    
+    # print("BACKEND:")
+    # print(tm._backend_clause_block_cls)
+
 
 def test_train_simple_xor_consistency():
     
