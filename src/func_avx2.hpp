@@ -463,13 +463,12 @@ namespace green_tsetlin
             }
     };
 
-    template <typename _State>
+    template <typename _State, bool use_boost_true_positive>
     class Type1aFeedbackAVX2
     {
         public:
             void operator()(_State& state, int8_t* clause_row, const uint8_t* literals_in)
             {
-                constexpr bool use_boost_true_positive = false;
 
                  int8_t* clause = (int8_t*)__builtin_assume_aligned(clause_row, 32);
                  const uint8_t* literals = (uint8_t*)__builtin_assume_aligned(literals_in, 32);
