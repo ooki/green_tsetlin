@@ -100,7 +100,83 @@ def test_train_simple_xor():
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
     trainer.train()    
+
+def test_train_simple_xor_consistency():
     
+    train_logs = []
+    best_accs = []
+    seed = 42
+    other_seed = 43
+    for i in range(4):
+
+        n_literals = 6
+        n_clauses = 5
+        n_classes = 2
+        s = 3.0
+        threshold = 42    
+        tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+        tm._backend_clause_block_cls = gtc.ClauseBlockTM
+
+        x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, seed=seed)    
+        if i == 3:
+            seed = other_seed
+        trainer = gt.Trainer(tm, seed=seed, n_jobs=1, progress_bar=False, n_epochs=2)
+        trainer.set_train_data(x, y)
+        trainer.set_test_data(ex, ey)
+        trainer.train()
+
+        train_logs.append(trainer.results["train_log"])
+        best_accs.append(trainer.results["best_test_score"])
+
+
+    assert np.array_equal(train_logs[0], train_logs[1])
+    assert np.array_equal(train_logs[1], train_logs[2])
+    assert np.array_equal(best_accs[0], best_accs[1])
+    assert np.array_equal(best_accs[1], best_accs[2])
+
+    assert not np.array_equal(train_logs[0], train_logs[-1])
+    assert not np.array_equal(best_accs[0], best_accs[-1])
+
+
+def test_train_simple_xor_consistency_sparse():
+    
+    train_logs = []
+    best_accs = []
+    seed = 42
+    other_seed = 44
+    for i in range(4):
+
+        n_literals = 6
+        n_clauses = 5
+        n_classes = 2
+        s = 3.0
+        threshold = 42    
+        tm = gt.SparseTsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=True, dynamic_AL=True)        
+        # tm._backend_clause_block_cls = gtc.ClauseBlockTM
+
+        x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, seed=seed)    
+        if i == 3:
+            seed = other_seed
+        trainer = gt.Trainer(tm, seed=seed, n_jobs=1, progress_bar=False, load_best_state=False, n_epochs=2)
+        trainer.set_train_data(csr_matrix(x), y)
+        trainer.set_test_data(csr_matrix(ex), ey)
+        trainer.train()
+
+        train_logs.append(trainer.results["train_log"])
+        best_accs.append(trainer.results["best_test_score"])
+
+
+    assert np.array_equal(train_logs[0], train_logs[1])
+    assert np.array_equal(train_logs[1], train_logs[2])
+    assert np.array_equal(best_accs[0], best_accs[1])
+    assert np.array_equal(best_accs[1], best_accs[2])
+
+    assert not np.array_equal(train_logs[0], train_logs[-1]), (train_logs[0], train_logs[-1])
+    assert not np.array_equal(best_accs[0], best_accs[-1]), (best_accs[0], best_accs[-1])
+
+
+
+
 def test_train_simple_xor_uniform_feedback():
     
     n_literals = 6
@@ -367,7 +443,9 @@ if __name__ == "__main__":
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
-    test_wrong_data_formats()
+    # test_wrong_data_formats()
+    test_train_simple_xor_consistency()
+    test_train_simple_xor_consistency_sparse()
 
     # test_train_simple_xor_uniform_feedback()
 

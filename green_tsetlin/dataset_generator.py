@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def xor_dataset(noise: float = 0.15, n_train: int = 200, n_test: int = 100, n_literals: int = 4,
-                seed: Optional[int] = None) -> Tuple[np.array, np.array, np.array, np.array]:
+                seed: int = 42) -> Tuple[np.array, np.array, np.array, np.array]:
     """
     Generate a dataset where y = x[0] XOR x[1], with the rest of the features being dummy variables.
     :param noise:   the probability for a noisy training example
