@@ -61,25 +61,6 @@ typedef typename gt::AlignedTsetlinState<-1,-1> VanillaTsetlinState;
 
 
 
-// typedef typename gt::TrainUpdateTM<VanillaTsetlinState,
-//                                    ClauseUpdateTMImpl,
-//                                    true > // do_literal_budget = true
-//                                 TrainUpdateTMImpl;
-
-
-// typedef typename gt::ClauseBlockT<
-//                                     VanillaTsetlinState,
-//                                     gt::InitializeTM<VanillaTsetlinState, true>, // do_literal_budget = true
-//                                     gt::CleanupTM<VanillaTsetlinState, true>, // do_literal_budget = true
-//                                     gt::SetClauseOutputTM<VanillaTsetlinState, true>, // do_literal_budget = true
-//                                     gt::EvalClauseOutputTM<VanillaTsetlinState>,
-//                                     gt::CountVotesTM<VanillaTsetlinState>,
-//                                     TrainUpdateTMImpl,
-//                                     DenseInputBlock8u
-//                                 >
-//                                 ClauseBlockTMImpl;
-
-
 template<bool lit_budget, bool btp>
 using ClauseBlockTMImpl = gt::ClauseBlockT<
                                     VanillaTsetlinState,
@@ -408,7 +389,6 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     
 
     // Clause Block Impl's
-    // define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
     define_clause_block<ClauseBlockTMImpl<true, true>>(m, "ClauseBlockTM_Lt_Bt"); // Vanilla TM, (L)lit_budget = true, (B)btp = true
     define_clause_block<ClauseBlockTMImpl<true, false>>(m, "ClauseBlockTM_Lt_Bf"); // Vanilla TM, (L)lit_budget = true, (B)btp = false
     define_clause_block<ClauseBlockTMImpl<false, true>>(m, "ClauseBlockTM_Lf_Bt"); // Vanilla TM, (L)lit_budget = false, (B)btp = true
