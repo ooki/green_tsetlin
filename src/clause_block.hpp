@@ -358,6 +358,23 @@ namespace green_tsetlin
 
             }
 
+            virtual pybind11::list get_active_literals_npy()
+            {
+                pybind11::list out;
+
+                for (int i = 0; i < m_state.num_classes*2; ++i)
+                {
+                    std::vector<uint32_t> temp_active_literals;
+                    for (size_t j = 0; j < m_state.active_literals[i].size(); ++j)
+                    {
+                        temp_active_literals.push_back(m_state.active_literals[i][j]);
+                    }
+                    out.append(pybind11::cast(temp_active_literals));
+
+                }
+
+            }
+
             virtual void get_clause_weights_npy(pybind11::array_t<WeightInt> out_array, int clause_offset)
             {
                 pybind11::buffer_info buffer_info = out_array.request();                            

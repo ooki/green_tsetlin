@@ -9,7 +9,7 @@ def test_getset():
     n_literals = 12
     n_clauses = 42 
     n_classes = 3   
-    cb = gtc.ClauseBlockTM(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockTM_Lt_Bt(n_literals, n_clauses, n_classes)
     
     assert n_literals == cb.get_number_of_literals()
     assert n_clauses == cb.get_number_of_clauses()
@@ -32,7 +32,7 @@ def test_initialize_cleanup_flags():
     n_literals = 12
     n_clauses = 42 
     n_classes = 3   
-    cb = gtc.ClauseBlockTM(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockTM_Lt_Bt(n_literals, n_clauses, n_classes)
     
     assert cb.is_initialized() is False
     cb.initialize(seed=42)
@@ -46,7 +46,7 @@ def test_getset_state_and_weights():
     n_literals = 12
     n_clauses = 42 
     n_classes = 3   
-    cb = gtc.ClauseBlockTM(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockTM_Lt_Bt(n_literals, n_clauses, n_classes)
     cb.initialize(seed=42)
     
     rng = np.random.default_rng(42)

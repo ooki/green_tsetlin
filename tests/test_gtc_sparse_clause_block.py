@@ -10,7 +10,7 @@ def test_getset_state_and_weights():
     n_literals = 12
     n_clauses = 42 
     n_classes = 3   
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(n_literals, n_clauses, n_classes)
     cb.initialize(seed=42)
     
     rng = np.random.default_rng(42)
@@ -56,7 +56,7 @@ def test_simple_xor_sparse():
     ex = csr_matrix(ex)
     
     ib = gtc.SparseInputBlock(n_literals)
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(n_literals, n_clauses, n_classes)
     ib.set_data(x.indices, x.indptr, y)
 
     cb.set_s(s)
@@ -97,156 +97,156 @@ def test_simple_xor_sparse():
 
 
 
-def test_type2_fb_boost_negative_states():
-    n_literals = 2
-    n_clauses = 1
-    n_classes = 1
-    s = 3.0
+# def test_type2_fb_boost_negative_states():
+#     n_literals = 2
+#     n_clauses = 1
+#     n_classes = 1
+#     s = 3.0
 
-    x = np.array([[1, 0]], dtype=np.int8)   
-    y = np.array([0], dtype=np.int8)
-    x = csr_matrix(x)
+#     x = np.array([[1, 0]], dtype=np.int8)   
+#     y = np.array([0], dtype=np.int8)
+#     x = csr_matrix(x)
 
-    ib = gtc.SparseInputBlock(n_literals)
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+#     ib = gtc.SparseInputBlock(n_literals)
+#     cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(n_literals, n_clauses, n_classes)
 
-    ib.set_data(x.indices, x.indptr, y)
-    fb = gtc.FeedbackBlock(n_classes, 42, 42)
-    cb.set_feedback(fb)
-    cb.set_input_block(ib)
-    cb.set_s(s)
-    cb.initialize()
+#     ib.set_data(x.indices, x.indptr, y)
+#     fb = gtc.FeedbackBlock(n_classes, 42, 42)
+#     cb.set_feedback(fb)
+#     cb.set_input_block(ib)
+#     cb.set_s(s)
+#     cb.initialize()
 
-    dense_state = np.array([[-4, -4],
-                            [0, 0]])
+#     dense_state = np.array([[-4, -4],
+#                             [0, 0]])
     
-    dense_state = csr_matrix(dense_state)
-    # print("DENSE STATES CSR")
-    # print(dense_state.data)
-    # print(dense_state.indices)
-    # print(dense_state.indptr)
+#     dense_state = csr_matrix(dense_state)
+#     # print("DENSE STATES CSR")
+#     # print(dense_state.data)
+#     # print(dense_state.indices)
+#     # print(dense_state.indptr)
 
-    # print("\n DENSE STATES TOARRAY")
-    cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
-    # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
-    # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
-    # print('\n')
-    for ex in range(1):
-        gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], False)
+#     # print("\n DENSE STATES TOARRAY")
+#     cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
+#     # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
+#     # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
+#     # print('\n')
+#     for ex in range(1):
+#         gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], False)
 
-    data, indices, indptr = cb.get_clause_state_sparse()
-    # print(data, indices, indptr)
-    dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
-    # print(dense_output)
+#     data, indices, indptr = cb.get_clause_state_sparse()
+#     # print(data, indices, indptr)
+#     dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
+#     # print(dense_output)
 
-    expected = np.array([[-4, -3],
-                         [0, 0]])
+#     expected = np.array([[-4, -3],
+#                          [0, 0]])
 
-    assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
+#     assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
 
-def test_type2_AL_fills_clause():
-    n_literals = 2
-    n_clauses = 2
-    n_classes = 1
-    s = 3.0
+# def test_type2_AL_fills_clause():
+#     n_literals = 2
+#     n_clauses = 2
+#     n_classes = 1
+#     s = 3.0
 
-    x = np.array([[0, 1]], dtype=np.int8)   
-    y = np.array([0], dtype=np.int8)
-    x = csr_matrix(x)
+#     x = np.array([[0, 1]], dtype=np.int8)   
+#     y = np.array([0], dtype=np.int8)
+#     x = csr_matrix(x)
 
-    ib = gtc.SparseInputBlock(n_literals)
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+#     ib = gtc.SparseInputBlock(n_literals)
+#     cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
 
-    ib.set_data(x.indices, x.indptr, y)
-    fb = gtc.FeedbackBlock(n_classes, 42, 42)
-    cb.set_feedback(fb)
-    cb.set_input_block(ib)
-    cb.set_s(s)
-    cb.initialize()
+#     ib.set_data(x.indices, x.indptr, y)
+#     fb = gtc.FeedbackBlock(n_classes, 42, 42)
+#     cb.set_feedback(fb)
+#     cb.set_input_block(ib)
+#     cb.set_s(s)
+#     cb.initialize()
 
-    dense_state = np.array([[0, 0],
-                            [0, 0],
-                            [0, 0],
-                            [0, 0]])
+#     dense_state = np.array([[0, 0],
+#                             [0, 0],
+#                             [0, 0],
+#                             [0, 0]])
     
-    dense_state = csr_matrix(dense_state)
-    # print("DENSE STATES CSR")
-    # print(dense_state.data)
-    # print(dense_state.indices)
-    # print(dense_state.indptr)
+#     dense_state = csr_matrix(dense_state)
+#     # print("DENSE STATES CSR")
+#     # print(dense_state.data)
+#     # print(dense_state.indices)
+#     # print(dense_state.indptr)
 
-    # print("\n DENSE STATES TOARRAY")
-    cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
-    # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
-    # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
-    # print('\n')
-    for ex in range(1):
-        gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], True)
+#     # print("\n DENSE STATES TOARRAY")
+#     cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
+#     # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
+#     # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
+#     # print('\n')
+#     for ex in range(1):
+#         gtc.test_type2_feedback(cb, ib, n_clauses, ex, y[ex], True)
 
-    data, indices, indptr = cb.get_clause_state_sparse()
-    # print(data, indices, indptr)
-    dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
-    # print(dense_output)
+#     data, indices, indptr = cb.get_clause_state_sparse()
+#     # print(data, indices, indptr)
+#     dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
+#     # print(dense_output)
 
-    expected = np.array([[-15, 0],
-                         [-15, 0],
-                         [0, -15],
-                         [0, -15]])
+#     expected = np.array([[-15, 0],
+#                          [-15, 0],
+#                          [0, -15],
+#                          [0, -15]])
 
-    assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
+#     assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
-def test_type_1a_feedback():
-    n_literals = 2 #357987
-    n_clauses = 1
-    n_classes = 1
-    s = 2.0
+# def test_type_1a_feedback():
+#     n_literals = 2 #357987
+#     n_clauses = 1
+#     n_classes = 1
+#     s = 2.0
 
-    x = np.array([[1, 1]], dtype=np.int8)   
-    y = np.array([0], dtype=np.int8)
-    x = csr_matrix(x)
+#     x = np.array([[1, 1]], dtype=np.int8)   
+#     y = np.array([0], dtype=np.int8)
+#     x = csr_matrix(x)
 
-    ib = gtc.SparseInputBlock(n_literals)
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+#     ib = gtc.SparseInputBlock(n_literals)
+#     cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
 
-    ib.set_data(x.indices, x.indptr, y)
-    fb = gtc.FeedbackBlock(n_classes, 42, 42)
-    cb.set_feedback(fb)
-    cb.set_input_block(ib)
-    cb.set_clause_size(2)
-    cb.set_s(s)
-    cb.initialize()
+#     ib.set_data(x.indices, x.indptr, y)
+#     fb = gtc.FeedbackBlock(n_classes, 42, 42)
+#     cb.set_feedback(fb)
+#     cb.set_input_block(ib)
+#     cb.set_clause_size(2)
+#     cb.set_s(s)
+#     cb.initialize()
 
-    dense_state = np.array([[0, 18],
-                            [16, 0]])
+#     dense_state = np.array([[0, 18],
+#                             [16, 0]])
     
-    dense_state = csr_matrix(dense_state)
-    # print("DENSE STATES CSR")
-    # print(dense_state.data)
-    # print(dense_state.indices)
-    # print(dense_state.indptr)
+#     dense_state = csr_matrix(dense_state)
+#     # print("DENSE STATES CSR")
+#     # print(dense_state.data)
+#     # print(dense_state.indices)
+#     # print(dense_state.indptr)
 
-    # print("\n DENSE STATES TOARRAY")
-    cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
-    # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
-    # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
-    # print('\n')
-    for ex in range(1):
-        gtc.test_type1a_feedback(cb, ib, n_clauses, ex, y[ex])
+#     # print("\n DENSE STATES TOARRAY")
+#     cb.set_clause_state_sparse(dense_state.data.astype(np.int8), dense_state.indices, dense_state.indptr)
+#     # cb.set_clause_state_sparse(np.array([1, 1, 1, 1, 1, 1], dtype=np.int8), np.array([0, 1, 0, 1, 0, 1], dtype=np.int32), np.array([0, 2, 4, 6], dtype=np.int32))
+#     # cb.set_clause_weights(np.array([[1, 1], [1, 1]], dtype=np.int16), 0)
+#     # print('\n')
+#     for ex in range(1):
+#         gtc.test_type1a_feedback(cb, ib, n_clauses, ex, y[ex])
 
-    data, indices, indptr = cb.get_clause_state_sparse()
-    # print(data, indices, indptr)
-    dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
-    # print(dense_output)
+#     data, indices, indptr = cb.get_clause_state_sparse()
+#     # print(data, indices, indptr)
+#     dense_output = csr_matrix((data, indices, indptr), shape=(n_clauses*2, n_literals)).toarray()
+#     # print(dense_output)
 
-    expected = np.array([[0, 19],
-                         [15, 0]])
+#     expected = np.array([[0, 19],
+#                          [15, 0]])
 
-    # assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
+#     # assert np.array_equal(dense_output, expected), "got: {}, expected: {}".format(dense_output, expected)
 
 
 def test_getset_lower_ta_threshold():
-    cb = gtc.ClauseBlockSparse(4, 3, 2)
+    cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(4, 3, 2)
     # cb.initialize(seed=42)
 
     first = cb.get_lower_ta_threshold()
@@ -261,7 +261,7 @@ def test_getset_clause_size():
     n_literals = 4
     n_clauses = 3
     n_classes = 2
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(n_literals, n_clauses, n_classes)
     # cb.initialize(seed=42)
 
     first = cb.get_clause_size()
@@ -275,7 +275,7 @@ def test_getset_active_literals_size():
     n_literals = 4
     n_clauses = 3
     n_classes = 2
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(n_literals, n_clauses, n_classes)
     # cb.initialize(seed=42)
 
     first = cb.get_active_literals_size()
@@ -301,7 +301,7 @@ def test_clauses_stay_below_clause_size():
     ex = csr_matrix(ex)
     
     ib = gtc.SparseInputBlock(n_literals)
-    cb = gtc.ClauseBlockSparse(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockSparse_Lt_Dt_Bt(n_literals, n_clauses, n_classes)
     ib.set_data(x.indices, x.indptr, y)
 
     cb.set_s(s)

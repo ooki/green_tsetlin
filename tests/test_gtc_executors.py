@@ -13,7 +13,7 @@ def test_single_exec_throws_if_threads_is_not_1():
     seed = 42
     
     ib = gtc.DenseInputBlock(n_literals)        
-    cb = gtc.ClauseBlockTM(n_literals, n_clauses, n_classes)
+    cb = gtc.ClauseBlockTM_Lt_Bt(n_literals, n_clauses, n_classes)
     cb.initialize(seed)
         
     feedback_block = gtc.FeedbackBlock(n_classes, threshold, seed)

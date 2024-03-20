@@ -37,7 +37,7 @@ def test_train_simple_xor():
     threshold = 42    
 
     tm_flat = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)         
-    tm_flat._backend_clause_block_cls = gtc.ClauseBlockTM
+    tm_flat._backend_clause_block_cls = gtc.ClauseBlockTM_Lt_Bt
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm_flat, seed=32, n_jobs=1, n_epochs=100)

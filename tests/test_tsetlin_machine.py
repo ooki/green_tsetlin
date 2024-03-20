@@ -47,7 +47,7 @@ def test_vanilla_cb_load_state_from_backend():
     threshold = 10    
     
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold)
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    tm._backend_clause_block_cls = gtc.ClauseBlockTM_Lt_Bt
     tm.set_num_clause_blocks(2)
     tm.construct_clause_blocks()
 
@@ -75,7 +75,7 @@ def test_vanilla_cb_store_state():
     threshold = 10    
     
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold)
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    tm._backend_clause_block_cls = gtc.ClauseBlockTM_Lt_Bt
     tm.set_num_clause_blocks(2)
     tm.construct_clause_blocks()
 
