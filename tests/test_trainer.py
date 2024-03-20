@@ -79,24 +79,19 @@ def test_trainer_throws_on_wrong_number_of_examples_between_x_and_y():
 
 def test_train_simple_xor():
     
-    n_literals = 6
+    n_literals = 4
     n_clauses = 5
     n_classes = 2
     s = 3.0
     threshold = 42    
-    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
-
-    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=False)        
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
     print("BACKEND:")
     print(tm._backend_clause_block_cls)
-    print(trainer._cls_feedback_block)
-    print(trainer._cls_dense_ib)
-    print(trainer._cls_sparse_ib)
-    print(trainer._cls_exec_singlethread)
 
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
     trainer.train()    
@@ -115,7 +110,7 @@ def test_train_simple_xor_consistency():
         s = 3.0
         threshold = 42    
         tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-        tm._backend_clause_block_cls = gtc.ClauseBlockTM
+        #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
         x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, seed=seed)    
         if i == 3:
@@ -152,7 +147,7 @@ def test_train_simple_xor_consistency_sparse():
         s = 3.0
         threshold = 42    
         tm = gt.SparseTsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=True, dynamic_AL=True)        
-        # tm._backend_clause_block_cls = gtc.ClauseBlockTM
+        # #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
         x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, seed=seed)    
         if i == 3:
@@ -185,7 +180,7 @@ def test_train_simple_xor_uniform_feedback():
     s = 3.0
     threshold = 42    
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
@@ -205,7 +200,7 @@ def test_train_simple_xor_gtc_tm_backend():
     s = 3.0
     threshold = 42
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40)
@@ -224,7 +219,7 @@ def test_train_set_best_state_and_results_afterwards():
     s = 3.0
     threshold = 42    
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
     
     assert tm._state is None
     
@@ -279,7 +274,7 @@ def test_select_backend_ib():
     threshold = 42    
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     
@@ -389,7 +384,7 @@ def test_trainer_with_kfold():
     s = 3.0
     threshold = 42    
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=False, k_folds=20, kfold_progress_bar=True)
@@ -439,13 +434,13 @@ if __name__ == "__main__":
     # test_train_set_best_state_and_results_afterwards()
     # test_train_simple_xor_py_gtc()
     # test_train_simple_xor_sparse()
-    # test_train_simple_xor()
+    test_train_simple_xor()
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
     # test_wrong_data_formats()
-    test_train_simple_xor_consistency()
-    test_train_simple_xor_consistency_sparse()
+    # test_train_simple_xor_consistency()
+    # test_train_simple_xor_consistency_sparse()
 
     # test_train_simple_xor_uniform_feedback()
 

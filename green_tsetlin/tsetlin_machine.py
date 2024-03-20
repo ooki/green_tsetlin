@@ -312,11 +312,26 @@ class TsetlinMachine:
 
 
     def _get_backend(self):
-        backend_cb = _backend_impl["cb"]
+       
+        imp_dict = {
+            (True, True): "cb_Lt_Bt",
+            (True, False): "cb_Lt_Bf",
+            (False, True): "cb_Lf_Bt",
+            (False, False): "cb_Lf_Bf"
+        }
 
-        # _backend_impl["cb"] = backend_cb
 
+        lb_temp = True
+        if self.literal_budgets[0] is None:
+            lb_temp = False
+
+
+        # print(imp_dict[(lb_temp, self.boost_true_positives)])
+        backend_cb = _backend_impl[imp_dict[(lb_temp, self.boost_true_positives)]]
+       
+        _backend_impl["cb"] = backend_cb
         return backend_cb
+
 
 
 

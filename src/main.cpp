@@ -59,36 +59,59 @@ typedef gt::Executor<true, BS::thread_pool> MultiThreadExecutor;
 
 typedef typename gt::AlignedTsetlinState<-1,-1> VanillaTsetlinState;
 
-typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
-                                    gt::Type1aFeedbackTM<VanillaTsetlinState, false>, // boost_true_positive = false
-                                    gt::Type1bFeedbackTM<VanillaTsetlinState>,
-                                    gt::Type2FeedbackTM<VanillaTsetlinState>>
-                                ClauseUpdateTMImpl;
 
 
-typedef typename gt::TrainUpdateTM<VanillaTsetlinState,
-                                   ClauseUpdateTMImpl,
-                                   true > // do_literal_budget = true
-                                TrainUpdateTMImpl;
+// typedef typename gt::TrainUpdateTM<VanillaTsetlinState,
+//                                    ClauseUpdateTMImpl,
+//                                    true > // do_literal_budget = true
+//                                 TrainUpdateTMImpl;
 
 
-typedef typename gt::ClauseBlockT<
+// typedef typename gt::ClauseBlockT<
+//                                     VanillaTsetlinState,
+//                                     gt::InitializeTM<VanillaTsetlinState, true>, // do_literal_budget = true
+//                                     gt::CleanupTM<VanillaTsetlinState, true>, // do_literal_budget = true
+//                                     gt::SetClauseOutputTM<VanillaTsetlinState, true>, // do_literal_budget = true
+//                                     gt::EvalClauseOutputTM<VanillaTsetlinState>,
+//                                     gt::CountVotesTM<VanillaTsetlinState>,
+//                                     TrainUpdateTMImpl,
+//                                     DenseInputBlock8u
+//                                 >
+//                                 ClauseBlockTMImpl;
+
+
+template<bool lit_budget, bool btp>
+using ClauseBlockTMImpl = gt::ClauseBlockT<
                                     VanillaTsetlinState,
-                                    gt::InitializeTM<VanillaTsetlinState, true>, // do_literal_budget = true
-                                    gt::CleanupTM<VanillaTsetlinState, true>, // do_literal_budget = true
-                                    gt::SetClauseOutputTM<VanillaTsetlinState, true>, // do_literal_budget = true
+                                    gt::InitializeTM<VanillaTsetlinState, lit_budget>, // do_literal_budget = true
+                                    gt::CleanupTM<VanillaTsetlinState, lit_budget>, // do_literal_budget = true
+                                    gt::SetClauseOutputTM<VanillaTsetlinState, lit_budget>, // do_literal_budget = true
                                     gt::EvalClauseOutputTM<VanillaTsetlinState>,
                                     gt::CountVotesTM<VanillaTsetlinState>,
-                                    TrainUpdateTMImpl,
+                                    gt::TrainUpdateTM<VanillaTsetlinState,
+                                                        gt::ClauseUpdateTM<VanillaTsetlinState,
+                                                                            gt::Type1aFeedbackTM<VanillaTsetlinState, btp>, // boost_true_positive = false
+                                                                            gt::Type1bFeedbackTM<VanillaTsetlinState>,
+                                                                            gt::Type2FeedbackTM<VanillaTsetlinState>
+                                                                            >,
+                                                        lit_budget // do_literal_budget = true
+                                                        >,
                                     DenseInputBlock8u
-                                >
-                                ClauseBlockTMImpl;
+                                >;
+
 
 //-------------------- Vanilla Conv TM ---------------------
 
 
+typedef typename gt::ClauseUpdateTM<VanillaTsetlinState,
+                                    gt::Type1aFeedbackTM<VanillaTsetlinState, false>, // boost_true_positive = false
+                                    gt::Type1bFeedbackTM<VanillaTsetlinState>,
+                                    gt::Type2FeedbackTM<VanillaTsetlinState>>
+                                ClauseUpdateConvTMImpl;
+
+
 typedef typename gt::TrainUpdateConvTM<VanillaTsetlinState,
-                                   ClauseUpdateTMImpl,
+                                   ClauseUpdateConvTMImpl,
                                    true > // do_literal_budget = true
                                 TrainUpdateConvTMImpl;
 
@@ -108,30 +131,6 @@ typedef typename gt::ClauseBlockT<
 //-------------------- Sparse TM --------------------- tentative
 
 typedef typename gt::SparseTsetlinState SparseTsetlinState;
-
-// typedef typename gt::ClauseUpdateSparseTM<SparseTsetlinState,
-//                                     gt::Type1aFeedbackSparseTM<SparseTsetlinState, gt::UpdateAL<SparseTsetlinState, true>, true>, // dynamic_AL = true, boost_true_positive = false
-//                                     gt::Type1bFeedbackSparseTM<SparseTsetlinState>,
-//                                     gt::Type2FeedbackSparseTM<SparseTsetlinState>>
-//                                 ClauseUpdateSparseTMImpl;
-
-
-// typedef typename gt::TrainUpdateSparseTM<SparseTsetlinState,
-//                                    ClauseUpdateSparseTMImpl,
-//                                    true > // do_literal_budget = true
-//                                 TrainUpdateSparseTMImpl;
-
-// typedef typename gt::ClauseBlockSparseT<
-//                                     SparseTsetlinState,
-//                                     gt::InitializeSparseTM<SparseTsetlinState, true>,       // do_literal_budget = true
-//                                     gt::CleanupSparseTM<SparseTsetlinState, true>,          // do_literal_budget = true
-//                                     gt::SetClauseOutputSparseTM<SparseTsetlinState, true>,  // do_literal_budget = true
-//                                     gt::EvalClauseOutputSparseTM<SparseTsetlinState>,
-//                                     gt::CountVotesSparseTM<SparseTsetlinState>,
-//                                     TrainUpdateSparseTMImpl,
-//                                     SparseInputBlock32u
-//                                     >
-//                                 ClauseBlockSparseImpl_old;
 
 
 template<bool lit_budget, bool dynamic_AL, bool btp>
@@ -409,7 +408,13 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     
 
     // Clause Block Impl's
-    define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
+    // define_clause_block<ClauseBlockTMImpl>(m, "ClauseBlockTM"); // Vanilla TM
+    define_clause_block<ClauseBlockTMImpl<true, true>>(m, "ClauseBlockTM_Lt_Bt"); // Vanilla TM, (L)lit_budget = true, (B)btp = true
+    define_clause_block<ClauseBlockTMImpl<true, false>>(m, "ClauseBlockTM_Lt_Bf"); // Vanilla TM, (L)lit_budget = true, (B)btp = false
+    define_clause_block<ClauseBlockTMImpl<false, true>>(m, "ClauseBlockTM_Lf_Bt"); // Vanilla TM, (L)lit_budget = false, (B)btp = true
+    define_clause_block<ClauseBlockTMImpl<false, false>>(m, "ClauseBlockTM_Lf_Bf"); // Vanilla TM, (L)lit_budget = false, (B)btp = false
+
+
     define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla TM with Convolutional TM
     
     define_clause_block<ClauseBlockAVX2Impl>(m, "ClauseBlockAVX2"); // AVX2 TM

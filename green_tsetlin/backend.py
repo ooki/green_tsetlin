@@ -19,7 +19,7 @@ impl = {
 try: 
     import green_tsetlin_core as gtc
     
-    impl["cb"] = gtc.ClauseBlockTM
+    impl["cb"] = gtc.ClauseBlockTM_Lt_Bt
     impl["conv_cb"] = gtc.ClauseBlockConvTM,
     impl["sparse_cb"] = gtc.ClauseBlockSparse_Lt_Dt_Bf # fallback
     impl["feedback"] = gtc.FeedbackBlock
@@ -29,6 +29,11 @@ try:
     impl["thread_executor"] =  gtc.MultiThreadExecutor
     impl["dense_input"] = gtc.DenseInputBlock
     impl["sparse_input"] = gtc.SparseInputBlock
+
+    impl["cb_Lt_Bt"] = gtc.ClauseBlockTM_Lt_Bt # (L)lit_budget = true, (B)boost_true_positives = true
+    impl["cb_Lt_Bf"] = gtc.ClauseBlockTM_Lt_Bf
+    impl["cb_Lf_Bt"] = gtc.ClauseBlockTM_Lf_Bt
+    impl["cb_Lf_Bf"] = gtc.ClauseBlockTM_Lf_Bf
 
     impl["sparse_cb_Lt_Dt_Bt"] = gtc.ClauseBlockSparse_Lt_Dt_Bt # (L)lit_budget = true, (D)dynamic_AL = true, (B)boost_true_positives = true
     impl["sparse_cb_Lt_Dt_Bf"] = gtc.ClauseBlockSparse_Lt_Dt_Bf
