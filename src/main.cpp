@@ -218,6 +218,9 @@ void define_clause_block_sparse(py::module& m, const char* name)
         .def("get_clause_state_sparse", &_T::get_clause_state_sparse_npy)
         .def("set_clause_weights", &_T::set_clause_weights_npy)
         .def("get_clause_weights", &_T::get_clause_weights_npy)
+        .def("set_active_literals", &_T::set_active_literals_npy)
+        .def("get_active_literals", &_T::get_active_literals_npy)
+
 
         
         .def("get_lower_ta_threshold", &_T::get_lower_ta_threshold)
@@ -225,6 +228,7 @@ void define_clause_block_sparse(py::module& m, const char* name)
 
         .def("get_active_literals_size", &_T::get_active_literals_size)
         .def("set_active_literals_size", &_T::set_active_literals_size)
+
 
         .def("get_clause_size", &_T::get_clause_size)
         .def("set_clause_size", &_T::set_clause_size);
