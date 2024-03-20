@@ -61,8 +61,71 @@ class TMState:
         np.savez(file_path, w=self.w, c=self.c)
 
 
+class SparseState:
+    """
+    A storage object for a Tsetlin Machine state.
+    w : is the class Weights
+    c : is the Clauses
+
+    Will not create any copy of the underlying array, but will create a reference.
+     So the user is responsible for not changing the state after it has been loaded OR provide a copy.
+    """
+
+    def __init__(self, n_literals:Optional[int] = None, n_clauses:Optional[int] = None, n_classes:Optional[int] = None):
+        if n_literals is not None:
+            self.w = np.zeros(shape=(n_clauses, n_classes), dtype=np.int16)
+
+            # these are returned not filled like for dense_state, think not need to pre allocate space
+            self.c_data = None
+            self.c_indices = None
+            self.c_indptr = None
+            self.AL = None
+
+        else:
+            self.w:np.array = None
+            self.c_data:np.array = None
+            self.c_indices:np.array = None
+            self.c_indptr:np.array = None
+            self.AL:np.array = None
 
 
+    def copy(self) -> "SparseState":
+        tm = SparseState()
+        tm.w = self.w.copy()
+        tm.c = self.c.copy()
+        tm.AL = self.AL.copy()
+        return tm
+
+    @staticmethod
+    def load_from_file(file_path) -> "SparseState":
+        if not file_path.endswith(".npz"):
+            raise ValueError("State object must be a .npz file")
+        d = np.load(file_path)
+        tms = SparseState()
+
+        if tms["w"].shape[0] != d["c"].shape[0]:
+            raise ValueError("Cannot load state. w and c must have the same number of clauses")        
+
+        if tms["w"].dtype != np.int16:
+            raise ValueError("Clause Weights much be np.int16 is {}".format(tms["w"].dtype))
+        
+        if tms["c"].dtype != np.int8:
+            raise ValueError("Clause State much be np.int8 is {}".format(tms["c"].dtype))
+
+        if tms["AL"].dtype != np.uint32:
+            raise ValueError("Active Literals much be np.uint32 is {}".format(tms["AL"].dtype))
+
+
+        tms.w = d["w"]
+        tms.c = d["c"]
+        tms.AL = d["AL"]
+        return tms
+
+    def save_to_file(self, file_path) -> None:
+        if not file_path.endswith(".npz"):
+            raise ValueError("State object must be a .npz file")
+        
+        np.savez(file_path, w=self.w, c=self.c, AL=self.AL)
 
 
 class TsetlinMachine:
