@@ -86,7 +86,7 @@ def test_vanilla_cb_store_state():
         new_weights = np.arange(0, n_classes*n_clauses).astype(np.int16).reshape(n_clauses, n_classes)        
         new_clauses = np.arange(0, n_clauses*(n_literals*2)).astype(np.int8).reshape(n_clauses, n_literals*2)
 
-        tm._state = gt.TMState()
+        tm._state = gt.DenseState()
         tm._state.w = new_weights
         tm._state.c = new_clauses
         state0 = tm._state.copy()

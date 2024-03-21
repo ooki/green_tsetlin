@@ -12,7 +12,7 @@ from sklearn.model_selection import StratifiedKFold
 
 
 #import green_tsetlin_core as gtc
-from green_tsetlin import TsetlinMachine, TMState, allocate_clause_blocks
+from green_tsetlin import TsetlinMachine, DenseState, allocate_clause_blocks
 from green_tsetlin.backend import impl as _backend_impl
 
 def empty_epoch_callback(epoch, train_acc, test_score):
@@ -49,7 +49,7 @@ class Trainer:
 
         self.copy_training_data = copy_training_data
 
-        self._best_tm_state : TMState = None
+        self._best_tm_state : DenseState = None
         self.results : dict = None 
 
         self.kfold_progress_bar = kfold_progress_bar

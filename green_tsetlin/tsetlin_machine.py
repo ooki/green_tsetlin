@@ -10,7 +10,7 @@ import green_tsetlin as gt
 from green_tsetlin.backend import impl as _backend_impl
 
 
-class TMState:
+class DenseState:
     """
     A storage object for a Tsetlin Machine state.
     w : is the class Weights
@@ -28,18 +28,18 @@ class TMState:
             self.c:np.array = None        
 
 
-    def copy(self) -> "TMState":
-        tm = TMState()
+    def copy(self) -> "DenseState":
+        tm = DenseState()
         tm.w = self.w.copy()
         tm.c = self.c.copy()
         return tm
 
     @staticmethod
-    def load_from_file(file_path) -> "TMState":
+    def load_from_file(file_path) -> "DenseState":
         if not file_path.endswith(".npz"):
             raise ValueError("State object must be a .npz file")
         d = np.load(file_path)
-        tms = TMState()
+        tms = DenseState()
 
         if tms["w"].shape[0] != d["c"].shape[0]:
             raise ValueError("Cannot load state. w and c must have the same number of clauses")        
@@ -147,7 +147,7 @@ class TsetlinMachine:
         
         self.n_classes = n_classes
         self._cbs : list = None
-        self._state : TMState = None                
+        self._state : DenseState = None                
                             
         self.boost_true_positives = boost_true_positives
         # if literal_budget is None:
@@ -268,7 +268,7 @@ class TsetlinMachine:
             state = None
         
         if state is None: # allocate state
-            state = TMState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
+            state = DenseState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
         
         clause_offset = 0 
         for cb in self._cbs:
@@ -297,18 +297,18 @@ class TsetlinMachine:
             clause_offset += cb.get_number_of_clauses()
 
 
-    def load_state(self, path_or_state: Union[str, TMState]):
+    def load_state(self, path_or_state: Union[str, DenseState]):
         """
         Load the state from the given path or state object.
 
         Parameters:
-            path_or_state (Union[str, TMState]): The path to the state file or the TMState object.
+            path_or_state (Union[str, DenseState]): The path to the state file or the DenseState object.
 
         Returns:
             None
         """
         if isinstance(path_or_state, str):
-            self._state = TMState.load_from_file(path_or_state)
+            self._state = DenseState.load_from_file(path_or_state)
         else:
             self._state = path_or_state
 
@@ -470,12 +470,12 @@ class SparseTsetlinMachine(TsetlinMachine):
             clause_offset += cb.get_number_of_clauses()
 
 
-    def load_state(self, path_or_state: Union[str, TMState]):
+    def load_state(self, path_or_state: Union[str, SparseState]):
         """
         Load the state from the given path or state object.
 
         Parameters:
-            path_or_state (Union[str, TMState]): The path to the state file or the TMState object.
+            path_or_state (Union[str, SparseState]): The path to the state file or the SparseState object.
 
         Returns:
             None

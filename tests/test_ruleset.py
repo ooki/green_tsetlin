@@ -8,7 +8,7 @@ import green_tsetlin as gt
 
 
 def test_simple_rulset_from_dense():
-    dense = gt.TMState(n_literals=2, n_clauses=3, n_classes=2)
+    dense = gt.DenseState(n_literals=2, n_clauses=3, n_classes=2)
     dense.c = np.array([[1,1,-1,-1],[-1,-1,1,-1],[1,1,-1,-1]], dtype=np.int8)
     dense.w = np.array([[3,-2],[-1,4],[6,-7]], dtype=np.int16)
 
