@@ -76,10 +76,10 @@ class SparseState:
             self.w = np.zeros(shape=(n_clauses, n_classes), dtype=np.int16)
 
             # these are returned not filled like for dense_state, think not need to pre allocate space
-            self.c_data = None
-            self.c_indices = None
-            self.c_indptr = None
-            self.AL = None
+            self.c_data = []
+            self.c_indices = []
+            self.c_indptr = []
+            self.AL = []
 
         else:
             self.w:np.array = None
@@ -92,7 +92,9 @@ class SparseState:
     def copy(self) -> "SparseState":
         tm = SparseState()
         tm.w = self.w.copy()
-        tm.c = self.c.copy()
+        tm.c_data = self.c_data.copy()
+        tm.c_indices = self.c_indices.copy()
+        tm.c_indptr = self.c_indptr.copy()
         tm.AL = self.AL.copy()
         return tm
 
@@ -109,15 +111,23 @@ class SparseState:
         if tms["w"].dtype != np.int16:
             raise ValueError("Clause Weights much be np.int16 is {}".format(tms["w"].dtype))
         
-        if tms["c"].dtype != np.int8:
-            raise ValueError("Clause State much be np.int8 is {}".format(tms["c"].dtype))
+        if tms["c_data"].dtype != np.int8:
+            raise ValueError("Clause State much be np.int8 is {}".format(tms["c_data"].dtype))
+
+        if tms["c_indices"].dtype != np.uint32:
+            raise ValueError("Clause State much be np.uint32 is {}".format(tms["c_indices"].dtype))
+
+        if tms["c_indptr"].dtype != np.uint32:
+            raise ValueError("Clause State much be np.uint32 is {}".format(tms["c_indptr"].dtype))
 
         if tms["AL"].dtype != np.uint32:
             raise ValueError("Active Literals much be np.uint32 is {}".format(tms["AL"].dtype))
 
 
         tms.w = d["w"]
-        tms.c = d["c"]
+        tms.c_data = d["c_data"]
+        tms.c_indices = d["c_indices"]
+        tms.c_indptr = d["c_indptr"]
         tms.AL = d["AL"]
         return tms
 
@@ -412,6 +422,89 @@ class SparseTsetlinMachine(TsetlinMachine):
         self.dynamic_AL = dynamic_AL
         
         self._backend_clause_block_cls = _backend_impl["sparse_cb"]
+
+
+    def _load_state_from_backend(self, only_return_copy:bool=False):
+        """ Collects the state from the backend.
+        if only_return_copy is True => just return the state, else set it to state_ in the TM                        
+        """
+        
+        state = self._state
+        if only_return_copy:
+            state = None
+        
+        # if state is None: # allocate state
+        state = SparseState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
+        
+        clause_offset = 0 
+        for cb in self._cbs:
+            _c_state = cb.get_clause_state_sparse()
+            state.c_data.append(_c_state[0])
+            state.c_indices.append(_c_state[1])
+            state.c_indptr.append(_c_state[2])
+
+            state.AL.append(cb.get_active_literals())
+
+            cb.get_clause_weights(state.w, clause_offset)
+            clause_offset += cb.get_number_of_clauses()
+
+        if only_return_copy:
+            return state
+        else:
+            self._state = state
+    
+    def _save_state_in_backend(self):
+        """ Set the internal state
+        """
+        if self._cbs is None:
+            raise ValueError("There is no clauseblocks in the backend, cannot save state")
+        
+        if self._state is None:
+            raise ValueError("Cannot save a empty Tsetlin Machine into the backend. Please load a state first.")
+        
+        clause_offset = 0 
+        for index, cb in enumerate(self._cbs):
+            cb.set_clause_state_sparse(self._state.c_data[index], self._state.c_indices[index], self._state.c_indptr[index])
+            cb.set_clause_weights(self._state.w, clause_offset)
+            cb.set_active_literals(self._state.AL[index])
+            clause_offset += cb.get_number_of_clauses()
+
+
+    def load_state(self, path_or_state: Union[str, TMState]):
+        """
+        Load the state from the given path or state object.
+
+        Parameters:
+            path_or_state (Union[str, TMState]): The path to the state file or the TMState object.
+
+        Returns:
+            None
+        """
+        if isinstance(path_or_state, str):
+            self._state = SparseState.load_from_file(path_or_state)
+        else:
+            self._state = path_or_state
+
+
+    def save_state(self, path:str):
+        """
+        Save the state of the Tsetlin Machine to the specified file path.
+
+        Parameters:
+            path (str): The file path to save the state to.
+
+        Returns:
+            None
+        """        
+        if self._state is None:
+
+            if self._cbs is not None:
+                self._load_state_from_backend()
+            else:
+                raise ValueError("Cannot save a empty Tsetlin Machine without a stored state. Is the Tsetlin Machine trained?")
+                    
+        self._state.save_to_file(path)
+
 
 
     def _set_extra_params_on_cb(self, cb, k:int):

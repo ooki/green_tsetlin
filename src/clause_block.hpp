@@ -343,9 +343,7 @@ namespace green_tsetlin
 
                 for (int i = 0; i < _num_clauses; ++i)
                 {
-                    
-                
-                
+                                    
                     for (uint32_t j = indptr_p[i]; j < indptr_p[i+1]; ++j)
                     {
                         clause_states[i].push_back(data_p[j]);
@@ -365,11 +363,7 @@ namespace green_tsetlin
 
                 for (int i = 0; i < m_state.num_classes*2; ++i)
                 {
-                    std::vector<uint32_t> temp_active_literals;
-                    for (size_t j = 0; j < m_state.active_literals[i].size(); ++j)
-                    {
-                        temp_active_literals.push_back(m_state.active_literals[i][j]);
-                    }
+                    std::vector<uint32_t> temp_active_literals = m_state.active_literals[i];
                     pybind11::list to_add = pybind11::cast(temp_active_literals);
                     out.append(to_add);
                 }
@@ -386,10 +380,8 @@ namespace green_tsetlin
                 for (int i = 0; i < m_state.num_classes*2; ++i)
                 {
                     m_state.active_literals[i].clear();
-                    for (int j = 0; j < shape[1]; ++j)
-                    {
-                        m_state.active_literals[i].push_back(p[j]);
-                    }
+                    m_state.active_literals[i] = std::vector<uint32_t>(p, p + shape[1]);
+                    p += shape[1];
                 }
             }
 

@@ -288,6 +288,7 @@ class Trainer:
                         best_test_score = test_score
                         best_test_epoch = epoch
                         if self.load_best_state:
+                            print("Saving best state")
                             self._best_tm_state = self.tm._load_state_from_backend(only_return_copy=True)                                                
 
                     if test_score >= self.early_exit_acc:                                    
