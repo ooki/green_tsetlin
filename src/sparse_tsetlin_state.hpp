@@ -25,11 +25,11 @@ namespace green_tsetlin
             int lower_ta_threshold = 0;
 
             int num_literals = 0;
-            int active_literals_size = 0;
+            size_t active_literals_size = 0;
             SparseLiterals al_replace_index;
 
             // want this as percentage or just as number of states in clauses?
-            int clause_size = 0;
+            size_t clause_size = 0;
 
             uint32_t* literal_counts = nullptr;
             uint32_t literal_budget = 0xFFFF;

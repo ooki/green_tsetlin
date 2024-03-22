@@ -276,11 +276,11 @@ namespace green_tsetlin
             virtual int get_lower_ta_threshold() { return m_state.lower_ta_threshold; }
             virtual void set_lower_ta_threshold(int lower_ta_threshold) { m_state.lower_ta_threshold = lower_ta_threshold; }
 
-            virtual int get_active_literals_size() { return m_state.active_literals_size; }
-            virtual void set_active_literals_size(int active_literals_size) { m_state.active_literals_size = active_literals_size; }
+            virtual int get_active_literals_size() { return (int)m_state.active_literals_size; }
+            virtual void set_active_literals_size(int active_literals_size) { m_state.active_literals_size = (size_t)active_literals_size; }
 
-            virtual int get_clause_size() { return m_state.clause_size; }
-            virtual void set_clause_size(int clause_size) { m_state.clause_size = clause_size; }
+            virtual int get_clause_size() { return (int)m_state.clause_size; }
+            virtual void set_clause_size(int clause_size) { m_state.clause_size = (size_t)clause_size; }
 
 
             virtual pybind11::list get_clause_state_sparse_npy() // pybind11::array_t<int8_t> out_array, int clause_offset

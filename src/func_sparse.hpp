@@ -754,7 +754,7 @@ namespace  green_tsetlin
                         }
                     }
 
-                    if (pos_clause_row->size() < (size_t)state.clause_size)
+                    if (pos_clause_row->size() < state.clause_size)
                     {
                         pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
                         pos_clause_states->push_back(state.lower_ta_threshold + 5);
@@ -776,7 +776,7 @@ namespace  green_tsetlin
                     {
                         if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
                         {   
-                            if (neg_clause_row->size() < (size_t)state.clause_size)
+                            if (neg_clause_row->size() < state.clause_size)
                             {    
                                 neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
                                 neg_clause_states->push_back(state.lower_ta_threshold + 5);
@@ -801,7 +801,7 @@ namespace  green_tsetlin
             {
                 // Function to update active literals
 
-                if (active_literals_class_k->size() < (size_t)state.active_literals_size)
+                if (active_literals_class_k->size() < state.active_literals_size)
                 {
                     // check if literal is already in active_literals
                     for (size_t i = 0; i < active_literals_class_k->size(); ++i)
