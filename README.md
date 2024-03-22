@@ -10,3 +10,7 @@ TODO:
 - Dense TM:
     - vectorized count votes
     - convolutional?
+
+- examples
+    - implement a non trainer example
+    - do a california housing example
