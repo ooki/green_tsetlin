@@ -65,13 +65,19 @@ class SparseState:
     """
     A storage object for a Tsetlin Machine state.
     w : is the class Weights
-    c : is the Clauses
+    c_data : is the Clauses data
+    c_indices : is the Clauses indices
+    c_indptr : is the Clauses indptr
+    AL : is the Active Literals
+
+    c_data, c_indices and c_indptr are the data, indices and indptr of a CSR matrix.
 
     Will not create any copy of the underlying array, but will create a reference.
      So the user is responsible for not changing the state after it has been loaded OR provide a copy.
     """
 
     def __init__(self, n_literals:Optional[int] = None, n_clauses:Optional[int] = None, n_classes:Optional[int] = None):
+        self.n_literals = n_literals
         if n_literals is not None:
             self.w = np.zeros(shape=(n_clauses, n_classes), dtype=np.int16)
 
