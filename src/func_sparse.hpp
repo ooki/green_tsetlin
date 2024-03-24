@@ -48,15 +48,15 @@ namespace  green_tsetlin
                 }
 
 
-                state.active_literals.resize(state.num_classes*2);
-                for (int i = 0; i < state.num_classes*2; ++i)
+                state.active_literals.resize(state.num_classes);
+                for (int i = 0; i < state.num_classes; ++i)
                 {
                     state.active_literals[i].reserve(state.active_literals_size);
                 }
 
 
-                state.al_replace_index.resize(state.num_classes*2);
-                for (int i = 0; i < state.num_classes*2; ++i)
+                state.al_replace_index.resize(state.num_classes);
+                for (int i = 0; i < state.num_classes; ++i)
                 {
                     state.al_replace_index[i] = 0;
                 }
@@ -403,11 +403,11 @@ namespace  green_tsetlin
                     SparseClauseStates* pos_clause_states = &state.clause_states[clause_k];
                     SparseClauseStates* neg_clause_states = &state.clause_states[clause_k + state.num_clauses];
                     
-                    SparseLiterals* pos_active_literals_positive_class = &state.active_literals[positive_class];
-                    SparseLiterals* neg_active_literals_positive_class = &state.active_literals[positive_class + state.num_classes];
+                    SparseLiterals* active_literals_positive_class = &state.active_literals[positive_class];
+                    // SparseLiterals* neg_active_literals_positive_class = &state.active_literals[positive_class + state.num_classes];
 
-                    SparseLiterals* pos_active_literals_negative_class = &state.active_literals[negative_class];
-                    SparseLiterals* neg_active_literals_negative_class = &state.active_literals[negative_class + state.num_classes];
+                    SparseLiterals* active_literals_negative_class = &state.active_literals[negative_class];
+                    // SparseLiterals* neg_active_literals_negative_class = &state.active_literals[negative_class + state.num_classes];
 
 
                     WeightInt* clause_weights = &state.clause_weights[clause_k * state.num_classes];
@@ -425,13 +425,13 @@ namespace  green_tsetlin
                     if (state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_positive_class, neg_active_literals_positive_class, clause_weights + positive_class, 1, positive_class, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, active_literals_positive_class, clause_weights + positive_class, 1, positive_class, literals, state.clause_outputs[clause_k]);
                     }
 
                     if (state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate clause_update;
-                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals_negative_class, neg_active_literals_negative_class, clause_weights + negative_class, -1, negative_class, literals, state.clause_outputs[clause_k]);
+                        clause_update(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, active_literals_negative_class, clause_weights + negative_class, -1, negative_class, literals, state.clause_outputs[clause_k]);
 
                     }
                 }
@@ -444,7 +444,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, WeightInt* clause_weight, int target, int class_k, SparseLiterals* literals, ClauseOutputUint clause_output)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* active_literals, WeightInt* clause_weight, int target, int class_k, SparseLiterals* literals, ClauseOutputUint clause_output)
             {
                 int32_t sign = (*clause_weight) >= 0 ? +1 : -1;
 
@@ -455,7 +455,7 @@ namespace  green_tsetlin
                         (*clause_weight) += sign;
 
                         _T1aFeedback t1a;
-                        t1a(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals, neg_active_literals, literals, class_k);
+                        t1a(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, active_literals, literals, class_k);
                         prune_clause(state, pos_clause_row, pos_clause_states);
                         prune_clause(state, neg_clause_row, neg_clause_states);
                     }
@@ -472,7 +472,7 @@ namespace  green_tsetlin
                     (*clause_weight) -= sign;
 
                     _T2Feedback t2;
-                    t2(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, pos_active_literals, neg_active_literals, literals);
+                    t2(state, pos_clause_row, neg_clause_row, pos_clause_states, neg_clause_states, active_literals, literals);
                     sort_clauses_and_states(state, pos_clause_row, pos_clause_states);
                     sort_clauses_and_states(state, neg_clause_row, neg_clause_states);
                 }
@@ -541,7 +541,7 @@ namespace  green_tsetlin
     {
         public:
             // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals, int class_k)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* active_literals, SparseLiterals* literals, int class_k)
             {
                 const double s_inv = (1.0 / state.s);
                 const double s_min1_inv = (state.s - 1.0) / state.s;
@@ -583,9 +583,9 @@ namespace  green_tsetlin
                         }
                     }
                     // no ta for literal found in clause, add to AL
-                    if (literal_state_pos == 1 && state.fast_rng.next_u() <= s_inv)
+                    if (literal_state_pos == 1) //  && state.fast_rng.next_u() <= s_inv
                     {
-                        update_al(state, pos_active_literals, literal, class_k);
+                        update_al(state, active_literals, literal, class_k);
                     }
 
                     // loop neg clauses
@@ -602,10 +602,10 @@ namespace  green_tsetlin
                         }
                     }
                     // no ta for literal found in clause, add to AL
-                    if (literal_state_neg == 1 && state.fast_rng.next_u() <= s_inv)
-                    {
-                        update_al(state, neg_active_literals, literal, class_k + state.num_classes);
-                    }
+                    // if (literal_state_neg == 1 && state.fast_rng.next_u() <= s_inv)
+                    // {
+                    //     update_al(state, neg_active_literals, literal, class_k + state.num_classes);
+                    // }
                 }
             
 
@@ -697,7 +697,7 @@ namespace  green_tsetlin
         public:
             // Assume that clause_output == 1 (check ClauseUpdate)
             // // TODO: clause_row needs a sparse type
-            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* pos_active_literals, SparseLiterals* neg_active_literals, SparseLiterals* literals)
+            void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* active_literals, SparseLiterals* literals)
             {
 
                 // loop pos clauses, check if ta is not in literals, if so, increment ta state if its above threshold
@@ -737,18 +737,34 @@ namespace  green_tsetlin
                 }
 
 
-                for (size_t pos_lit_k = 0; pos_lit_k < pos_active_literals->size(); ++pos_lit_k)
+                for (size_t pos_lit_k = 0; pos_lit_k < active_literals->size(); ++pos_lit_k)
                 {
                     for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
                     {
-                        if (pos_active_literals->at(pos_lit_k) == literals->at(lit_k))
+                        if (active_literals->at(pos_lit_k) == literals->at(lit_k))
                         {
+                            // goto endloop_pos_al;
+                            for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                            {
+                                if (active_literals->at(pos_lit_k) == neg_clause_row->at(ta_k))
+                                {
+                                    goto endloop_pos_al;
+                                }
+                            }
+
+                            if (neg_clause_row->size() < state.clause_size)
+                                {    
+                                neg_clause_row->push_back(active_literals->at(pos_lit_k));
+                                neg_clause_states->push_back(state.lower_ta_threshold + 5);
+                                }
+
                             goto endloop_pos_al;
+
                         }
                     }
                     for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                     {
-                        if (pos_active_literals->at(pos_lit_k) == pos_clause_row->at(ta_k))
+                        if (active_literals->at(pos_lit_k) == pos_clause_row->at(ta_k))
                         {
                             goto endloop_pos_al;
                         }
@@ -756,39 +772,39 @@ namespace  green_tsetlin
 
                     if (pos_clause_row->size() < state.clause_size)
                     {
-                        pos_clause_row->push_back(pos_active_literals->at(pos_lit_k));
+                        pos_clause_row->push_back(active_literals->at(pos_lit_k));
                         pos_clause_states->push_back(state.lower_ta_threshold + 5);
                     }
 
                     endloop_pos_al:;
                 }
 
-                for (size_t neg_lit_k = 0; neg_lit_k < neg_active_literals->size(); ++neg_lit_k)
-                {
-                    for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
-                    {
-                        if (neg_active_literals->at(neg_lit_k) == neg_clause_row->at(ta_k))
-                        {
-                            goto endloop_neg_al;
-                        }
-                    }
-                    for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
-                    {
-                        if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
-                        {   
-                            if (neg_clause_row->size() < state.clause_size)
-                            {    
-                                neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
-                                neg_clause_states->push_back(state.lower_ta_threshold + 5);
-                            }
-                            goto endloop_neg_al;
-                        }
-                    }
+                // for (size_t neg_lit_k = 0; neg_lit_k < neg_active_literals->size(); ++neg_lit_k)
+                // {
+                //     for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
+                //     {
+                //         if (neg_active_literals->at(neg_lit_k) == neg_clause_row->at(ta_k))
+                //         {
+                //             goto endloop_neg_al;
+                //         }
+                //     }
+                //     for (size_t lit_k = 0; lit_k < literals->size(); ++lit_k)
+                //     {
+                //         if (neg_active_literals->at(neg_lit_k) == literals->at(lit_k))
+                //         {   
+                            // if (neg_clause_row->size() < state.clause_size)
+                            // {    
+                            //     neg_clause_row->push_back(neg_active_literals->at(neg_lit_k));
+                            //     neg_clause_states->push_back(state.lower_ta_threshold + 5);
+                            // }
+                            // goto endloop_neg_al;
+                //         }
+                //     }
 
 
 
-                    endloop_neg_al:;
-                }
+                //     endloop_neg_al:;
+                // }
 
             }
     };

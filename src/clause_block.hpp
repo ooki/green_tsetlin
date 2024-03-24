@@ -360,8 +360,8 @@ namespace green_tsetlin
             virtual pybind11::list get_active_literals_npy()
             {
                 pybind11::list out;
-
-                for (int i = 0; i < m_state.num_classes*2; ++i)
+                
+                for (int i = 0; i < m_state.num_classes; ++i)
                 {
                     std::vector<uint32_t> temp_active_literals = m_state.active_literals[i];
                     pybind11::list to_add = pybind11::cast(temp_active_literals);
@@ -377,7 +377,7 @@ namespace green_tsetlin
                 std::vector<ssize_t> shape = buffer_info.shape;
 
                 uint32_t* p = static_cast<uint32_t*>(buffer_info.ptr);                
-                for (int i = 0; i < m_state.num_classes*2; ++i)
+                for (int i = 0; i < m_state.num_classes; ++i)
                 {
                     m_state.active_literals[i].clear();
                     m_state.active_literals[i] = std::vector<uint32_t>(p, p + shape[1]);

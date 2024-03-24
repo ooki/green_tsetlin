@@ -118,8 +118,8 @@ def test_sparse_cb_load_state_from_backend():
     new_weights = rng.integers(low=-1000, high=1000, size=(n_clauses, n_classes)).astype(np.int16)
     tmp_w = new_weights.copy()
 
-    new_AL_1 = rng.integers(low=0, high=100, size=(n_classes*2, n_literals)).astype(np.uint32)
-    new_AL_2 = rng.integers(low=0, high=100, size=(n_classes*2, n_literals)).astype(np.uint32)
+    new_AL_1 = rng.integers(low=0, high=100, size=(n_classes, n_literals)).astype(np.uint32)
+    new_AL_2 = rng.integers(low=0, high=100, size=(n_classes, n_literals)).astype(np.uint32)
     new_AL = [new_AL_1, new_AL_2]
     tmp_AL = new_AL.copy()
 
@@ -176,8 +176,8 @@ def test_sparse_cb_store_state():
         new_clauses_indices = [new_clauses_1.indices, new_clauses_2.indices]
         new_clauses_indptr = [new_clauses_1.indptr, new_clauses_2.indptr]
 
-        new_AL_1 = np.arange(0, (n_classes*2)*n_literals).astype(np.uint32).reshape((n_classes*2), n_literals)
-        new_AL_2 = np.arange(0, (n_classes*2)*n_literals).astype(np.uint32).reshape((n_classes*2), n_literals)
+        new_AL_1 = np.arange(0, (n_classes)*n_literals).astype(np.uint32).reshape((n_classes), n_literals)
+        new_AL_2 = np.arange(0, (n_classes)*n_literals).astype(np.uint32).reshape((n_classes), n_literals)
         new_AL = [new_AL_1, new_AL_2]
 
         tm._state = gt.SparseState()
@@ -205,6 +205,6 @@ if __name__ == "__main__":
     # test_vanilla_cb_load_state_from_backend()
 
     # test_sparse_cb_load_state_from_backend()
-    # test_sparse_cb_store_state()
+    test_sparse_cb_store_state()
 
     print("<done:", __file__, ">")
