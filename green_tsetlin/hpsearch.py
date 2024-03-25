@@ -5,7 +5,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import numpy as np
-import datasets
 import optuna
 
 from green_tsetlin.tsetlin_machine import TsetlinMachine
@@ -121,7 +120,8 @@ class HyperparameterSearch:
 
 
 if __name__ == "__main__":
-
+    import datasets
+    
     s_space = (2.0, 10.0)
     clause_space = (100, 500)
     threshold_space = (50, 1000)
