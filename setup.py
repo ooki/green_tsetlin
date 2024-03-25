@@ -38,7 +38,8 @@ if sys.platform.startswith('darwin') and has_neon:
 
 
 elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and has_neon is False):    
-    compile_args =["-mavx2", "-mfma", "-O3", "-pthread"]
+    # compile_args =["-mavx2", "-mfma", "-O3", "-pthread"]
+    compile_args =["-mavx2", "-mfma", "-O0", "-pthread", "-g"]
 
     if has_avx2:
         define_macros.append(("USE_AVX2", 1))
@@ -96,7 +97,8 @@ setup(
           'numpy >= 1.24',
           'scipy >= 1.10.1',
           'scikit-learn >= 1.2',
-          'tqdm >= 4.65'
+          'tqdm >= 4.65',
+          'optuna'
           
       ],
     

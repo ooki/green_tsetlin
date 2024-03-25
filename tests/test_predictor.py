@@ -21,33 +21,32 @@ def test_init():
     p = gt.Predictor(multi_label=False, explanation="none")
     m = MockRuleset()
     p._set_ruleset(m)    
-    p.init()
+    p._allocate_backend()
 
     assert p.n_literals == 2
     assert p.n_classes == 2
 
 
-def test_sets_correct_backend_based_on_exploration():
+def test_sets_correct_backend_based_on_exploration_and_enw():
     e_and_backend = [
-        ("none", gtc.Inference8u_Ff_Lf_Wf),
-        ("literals", gtc.Inference8u_Ff_Lt_Wf),
-        # ("features", gtc.Inference8u_Ft_Lf_Wf),
-        ("features", None),
-        ("positive_weighted_literals", gtc.Inference8u_Ff_Lt_Wt),
-        # ("positive_weighted_features", gtc.Inference8u_Ft_Lf_Wt),
-        ("positive_weighted_features", None),
+        ("none", False, gtc.Inference8u_Ff_Lf_Wf),
+        ("literals", True, gtc.Inference8u_Ff_Lt_Wt),
+        ("literals", False, gtc.Inference8u_Ff_Lt_Wf),
+        ("features", True, gtc.Inference8u_Ft_Lf_Wt),
+        ("features", False, gtc.Inference8u_Ft_Lf_Wf),
+        ("both", True, gtc.Inference8u_Ft_Lt_Wt),
+        ("both", False, gtc.Inference8u_Ft_Lt_Wf),
     ]
 
-    for explanation, backend_cls in e_and_backend:
-        p = gt.Predictor(multi_label=False, explanation=explanation)
+    for explanation, enc, backend_cls in e_and_backend:
+        p = gt.Predictor(explanation=explanation, exclude_negative_clauses=enc, multi_label=False)
         m = MockRuleset()
         p._set_ruleset(m)
-        if backend_cls is None:
-            with pytest.raises(NotImplementedError):
-                p.init()
-            continue
-
-        p.init()
+        
+        def empty_alloc():
+            pass 
+        p._allocate_backend = empty_alloc # since we dont set features, dont alloc anything
+        
         assert p._get_backend() == backend_cls
     
 
@@ -58,48 +57,36 @@ def test_prediction_with_target_names():
     
     m = MockRuleset()
     p._set_ruleset(m)    
-    p.init()
+    p._allocate_backend()
 
     assert p.predict(np.array([0,0], dtype=np.uint8)) == "a"
     assert p.predict(np.array([1,0], dtype=np.uint8)) == "b"
 
 
-def test_prediction_literal_explanation():
-    p = gt.Predictor(multi_label=False, explanation="literals")
+def test_prediction_clauses_literal_explanation():
     
-    m = MockRuleset()
-    p._set_ruleset(m)    
-    p.init()
+    for enc, single, all in [(False, [2, 0, 0, 0], [[-1, 0, 0, 0], [2, 0, 0, 0]]),
+                             (True, [2, 0, 0, 0],  [ [0, 0, 0, 0], [2, 0, 0, 0]])]:
+        p = gt.Predictor(multi_label=False, explanation="literals", exclude_negative_clauses=enc)    
+        m = MockRuleset()
+        p._set_ruleset(m)    
+        p._allocate_backend()
 
-    p.predict(np.array([0,0], dtype=np.uint8))
-
-    x = np.array([1,0], dtype=np.uint8)
-    p.predict(x)
-    assert np.array_equal(p.explain(explain="target"), [2, 0, 0, 0])
-    assert np.array_equal(p.explain(explain="all"), [[-1, 0, 0, 0], [2, 0, 0, 0]])
-
-
-def test_prediction_positive_clauses_literal_explanation():
-    p = gt.Predictor(multi_label=False, explanation="positive_weighted_literals")
-    
-    m = MockRuleset()
-    p._set_ruleset(m)    
-    p.init()
-
-    p.predict(np.array([0,0], dtype=np.uint8))
-
-    x = np.array([1,0], dtype=np.uint8)
-    p.predict(x)
-    assert np.array_equal(p.explain(explain="target"), [2, 0, 0, 0])
-    assert np.array_equal(p.explain(explain="all"), [[0, 0, 0, 0], [2, 0, 0, 0]])
+        x = np.array([1,0], dtype=np.uint8)
+        p.predict(x)
+        
+        assert np.array_equal(p.explain(explain="target").literals, single)
+        e_all = p.explain(explain="all")
+        assert np.array_equal(e_all[0].literals, all[0])
+        assert np.array_equal(e_all[1].literals, all[1])
 
 
 
 if __name__ == "__main__":
     test_init()
-    test_sets_correct_backend_based_on_exploration()
-    test_prediction_with_target_names()
-    test_prediction_literal_explanation()
-    test_prediction_positive_clauses_literal_explanation()
+    test_sets_correct_backend_based_on_exploration_and_enw()
+    # test_prediction_with_target_names()
+    # test_prediction_literal_explanation()
+    test_prediction_clauses_literal_explanation()
     print("<done tests:", __file__, ">")
 

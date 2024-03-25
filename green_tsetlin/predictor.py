@@ -1,5 +1,6 @@
 
 from typing import Optional, Tuple, Union, List
+from collections import namedtuple
 
 import numpy as np
 
@@ -8,15 +9,16 @@ from green_tsetlin.backend import impl as _backend_impl
 from green_tsetlin.ruleset import RuleSet
 
 
-
+Explanation = namedtuple('Explanation', ['literals', 'features'])
 
 class Predictor:
-    def __init__(self, multi_label:bool=False, explanation:str="none"):        
+    def __init__(self, explanation:str="none", exclude_negative_clauses:bool=False, multi_label:bool=False):        
         self.is_multi_label = multi_label
         self.empty_class_output = 0
         self.explanation = explanation
+        self.exclude_negative_clauses = exclude_negative_clauses
 
-        valid_explanations = set(["none", "literals", "features", "positive_weighted_literals", "positive_weighted_features"])
+        valid_explanations = set(["none", "literals", "features", "both"])
         if explanation not in valid_explanations:
             raise ValueError("explanation must be one of the following: {}".format(", ".join(valid_explanations)))
         
@@ -60,7 +62,7 @@ class Predictor:
     
     
     def predict(self, x : np.array) -> Union[Union[int, str], List[Union[int, str]]]:
-        self.init()
+        self._allocate_backend()
 
         self._predict_if_target_is_none = self._inf.predict(x)
         predicted_class = self._predict_if_target_is_none
@@ -69,52 +71,63 @@ class Predictor:
             predicted_class = self.target_names[predicted_class]
 
         return predicted_class
+    
+    def _get_explanation_from_backend(self):
+        if self.explanation == "literals":
+            return Explanation(self._inf.get_literal_importance(), None)
+            
+        elif self.explanation == "features":
+            return Explanation(None, self._inf.get_feature_importance())
+            
+        elif self.explanation == "both":
+            return Explanation(self._inf.get_literal_importance(), self._inf.get_feature_importance())
+            
+        raise ValueError("Explain: '{}' not supported.".format(self.explanation))
+        
+            
 
-    def explain(self, explain="target", target=None):
+    def explain(self, explain="target", target=None) -> Explanation:
         if self.explanation == "none":
             raise ValueError("Cannot request explanation on a predictor that has explanation set to 'none'.")        
-        self.init()
-
+        self._allocate_backend()
+        
+        
         if explain == "target":
             if target is None:
-                expl = self._inf.calculate_importance(self._predict_if_target_is_none)
+                class_target = self._predict_if_target_is_none
             else:
-                if self.target_names is None:
-                    expl = self._inf.calculate_importance(target)
-                else:
+                class_target = target                            
+                if self.target_names is not None:
                     try:
-                        target = self.inv_target_names[target]
+                        class_target = self.inv_target_names[target]
                     except KeyError:
                         raise ValueError("Target must be one of the following: {}".format(", ".join(self.target_names)))
-                    
-                    expl = self._inf.calculate_importance(target)
+            
+            self._inf.calculate_explanations(class_target)
+            return self._get_explanation_from_backend()
                 
-            return expl
-
         elif explain == "all":
-            all_expl = []
-            for target_class in range(self.n_classes):
-                expl = self._inf.calculate_importance(target_class)
-                all_expl.append(expl)
+            all_expl = {}
+            for target_class in range(self.n_classes):                
+                self._inf.calculate_explanations(target_class)                                
+                all_expl[target_class] = self._get_explanation_from_backend()
             
             if self.target_names is not None:                
                 return dict( (self.target_names[k], v) for k, v in all_expl)
-
-            else:
-                # stack the list of lists
-                return np.stack(all_expl)            
-
-        return expl
+       
+            return all_expl
+        
+        else:
+            raise ValueError("Method {} not supported as a target, try: 'all' or a target. (Or None for last prediction).".format(explain))
     
     def predict_and_explain(self, x:np.array):
         y_hat = self.predict(x)
         return y_hat, self.explain()
     
 
-    def init(self):
+    def _allocate_backend(self):
         if self._inf is None:
             self._create_backend_inference()
-
 
     def _create_backend_inference(self):        
         backend_cls = self._get_backend()
@@ -123,27 +136,24 @@ class Predictor:
         self._inf.set_rules(self._ruleset.rules, self._ruleset.weights)
 
     def _get_backend(self):
+        weigth_flag = "Wt" if self.exclude_negative_clauses else "Wf"
+        backend_name = ""
         if self.explanation == "none":
-            backend_cls = _backend_impl["Inference8u_Ff_Lf_Wf"]
+            backend_name = "Inference8u_Ff_Lf_Wf"
 
         elif self.explanation == "literals":
-            backend_cls = _backend_impl["Inference8u_Ff_Lt_Wf"]
+            backend_name = "Inference8u_Ff_Lt_{}".format(weigth_flag)
 
         elif self.explanation == "features":
-            raise NotImplementedError("Not implemented backend for explanation 'features' yet!")
-            #backend_cls = _backend_impl["Inference8u_Ft_Lf_Wf"]
+            backend_name = "Inference8u_Ft_Lf_{}".format(weigth_flag)
 
-        elif self.explanation == "positive_weighted_literals":
-            backend_cls = _backend_impl["Inference8u_Ff_Lt_Wt"]
-
-        elif self.explanation == "positive_weighted_features":
-            #backend_cls = _backend_impl["Inference8u_Ft_Lf_Wt"]        
-            raise NotImplementedError("Not implemented backend for explanation 'positive_weighted_features' yet!")
+        elif self.explanation == "both":
+            backend_name = "Inference8u_Ft_Lt_{}".format(weigth_flag)
         
-        if backend_cls is None:
+        else:
             raise ValueError("Could not find a backend inference object with explanation set to '{}'".format(self.explanation))
 
-        return backend_cls
+        return _backend_impl[backend_name]
 
 
 

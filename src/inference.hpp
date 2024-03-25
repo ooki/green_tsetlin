@@ -31,15 +31,11 @@ namespace green_tsetlin
                 m_votes.resize(m_num_classes, 0);
 
                 if(calculate_literal_importance)
-                {
-                    m_num_explanations = m_num_literals*2;                    
-                    m_importance.resize(m_num_explanations, 0.0);
-                }
-                else if(calculate_feature_importance)                 
-                {
-                    m_importance.resize(num_explanations, 0.0);
-                }                                
+                    m_importance_literals.resize(m_num_literals*2, 0.0);                
 
+                if(calculate_feature_importance)                                 
+                    m_importance_features.resize(num_explanations, 0.0);                                   
+                
                 // change to aligned malloc?
                 m_example = new example_type[m_num_literals*2];
                 //m_clause_features = new uint32_t[]                
@@ -67,14 +63,23 @@ namespace green_tsetlin
 
             void set_rules(std::vector<InferenceRule>& l, std::vector<RuleWeights>& w)
             {
-                m_rules = l;
+                m_rules = l;                
                 m_weights = w;
             }
 
             void set_features(std::vector<InferenceRule>& f)
             {
                 if(calculate_feature_importance)
+                {
+                    if(f.size() != m_num_explanations)
+                        throw std::runtime_error("Number of features much match number of explanations set.");   
+
                     m_features = f;
+                }
+                else
+                {
+                    throw std::runtime_error("Cannot set features while note requesting feature importance.");   
+                }
             }
 
             uint32_t predict_npy(pybind11::array_t<example_type> examples)
@@ -84,9 +89,15 @@ namespace green_tsetlin
 
                 example_type* example_ptr = static_cast<example_type*>(buffer_info.ptr);
                 
-                uint32_t y_hat = predict(example_ptr);            
+                uint32_t y_hat = predict(example_ptr);
                 return y_hat;
             }
+
+            void calculate_explanations(uint32_t target_class)
+            {
+                calculate_importance(target_class); 
+            }
+
 
             pybind11::array_t<int32_t> get_votes_npy() 
             {
@@ -98,10 +109,14 @@ namespace green_tsetlin
                 return pybind11::cast(m_active_clauses);
             }
 
-            pybind11::array_t<int> calculate_importance_npy(uint32_t target_class)
+            pybind11::array_t<int32_t> get_literal_importance_npy()
+            {                               
+                return pybind11::cast(m_importance_literals);
+            }
+
+            pybind11::array_t<int32_t> get_feature_importance_npy()
             {   
-                calculate_importance(target_class);             
-                return pybind11::cast(m_importance);
+                return pybind11::cast(m_importance_features);
             }
 
             uint32_t predict(example_type* example)
@@ -149,7 +164,12 @@ namespace green_tsetlin
 
             void calculate_importance(uint32_t y)
             {
-                std::fill(m_importance.begin(), m_importance.end(), 0);
+                if(calculate_literal_importance)
+                    std::fill(m_importance_literals.begin(), m_importance_literals.end(), 0);
+
+                if(calculate_feature_importance)
+                    std::fill(m_importance_features.begin(), m_importance_features.end(), 0);
+
 
                 for(auto it = m_active_clauses.begin(); it != m_active_clauses.end(); it++)
                 {                                         
@@ -166,15 +186,16 @@ namespace green_tsetlin
                     {
                         for(uint32_t feature_index : m_features[clause_k])
                         {
-                            m_importance[feature_index] += w_i;
+                            m_importance_features[feature_index] += w_i;
                         }
 
                     }
-                    else if(calculate_literal_importance)
+
+                    if(calculate_literal_importance)
                     {
                         for(uint32_t literal_k : m_rules[clause_k])
                         {  
-                            m_importance[literal_k] += w_i;
+                            m_importance_literals[literal_k] += w_i;
                         }
                     }
                 }
@@ -186,15 +207,18 @@ namespace green_tsetlin
             int m_num_literals = 0;
             int m_num_clauses = 0;
             int m_num_classes = 0;
-            int m_num_explanations = 0;
+            size_t m_num_explanations = 0;
             uint32_t m_empty_class = 0;
+
+            size_t explanation_cache_counter = 0;
 
             std::vector<InferenceRule>  m_rules;
             std::vector<InferenceRule>  m_features;
 
             std::vector<RuleWeights> m_weights;
             std::vector<int>         m_active_clauses;
-            std::vector<int32_t>     m_importance;
+            std::vector<int32_t>     m_importance_literals;
+            std::vector<int32_t>     m_importance_features;
             std::vector<int32_t>     m_votes;
             example_type* m_example;
 

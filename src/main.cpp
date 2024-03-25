@@ -250,7 +250,9 @@ void define_inference_module(py::module& m, const char* name)
 
         .def("get_votes", &_T::get_votes_npy)
         .def("get_active_clauses", &_T::get_active_clauses_npy)
-        .def("calculate_importance", &_T::calculate_importance_npy);
+        .def("calculate_explanations", &_T::calculate_explanations)
+        .def("get_literal_importance", &_T::get_literal_importance_npy)
+        .def("get_feature_importance", &_T::get_feature_importance_npy);
 }
 
 
@@ -402,7 +404,10 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     typedef typename gt::Inference<uint8_t, false, true, true>      Inference8u_Ff_Lt_Wt;
     typedef typename gt::Inference<uint8_t, true, false, false>     Inference8u_Ft_Lf_Wf;
     typedef typename gt::Inference<uint8_t, true, false, true>      Inference8u_Ft_Lf_Wt;
+    typedef typename gt::Inference<uint8_t, true, true, false>      Inference8u_Ft_Lt_Wf;
+    typedef typename gt::Inference<uint8_t, true, true, true>       Inference8u_Ft_Lt_Wt;
 
+    //
     define_inference_module<Inference8u_Ff_Lf_Wf>(m, "Inference8u_Ff_Lf_Wf"); // Feature Importance : false , Literal Importance : false, Exclude Negative Clauses : false
     // Literal 
     define_inference_module<Inference8u_Ff_Lt_Wf>(m, "Inference8u_Ff_Lt_Wf"); 
@@ -410,7 +415,11 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
 
     // Feature
     define_inference_module<Inference8u_Ft_Lf_Wf>(m, "Inference8u_Ft_Lf_Wf"); 
-    define_inference_module<Inference8u_Ft_Lf_Wt>(m, "Inference8u_Ft_Lf_Wt"); 
+    define_inference_module<Inference8u_Ft_Lf_Wt>(m, "Inference8u_Ft_Lf_Wt");
+
+    // both
+    define_inference_module<Inference8u_Ft_Lt_Wf>(m, "Inference8u_Ft_Lt_Wf"); 
+    define_inference_module<Inference8u_Ft_Lt_Wt>(m, "Inference8u_Ft_Lt_Wt");
 
 
 

@@ -77,9 +77,13 @@ def test_literal_importance():
     
     for w in [(False, -1, 2), (True, 0, 2)]:
         n_literals, n_classes, n_features, inference = get_inference_cls(False, True, w[0])
-        inference.predict(np.array([1,0], dtype=np.uint8))                
-        lit_imp0 = inference.calculate_importance(0)
-        lit_imp1 = inference.calculate_importance(1)
+        inference.predict(np.array([1,0], dtype=np.uint8))     
+        
+        inference.calculate_explanations(0)                   
+        lit_imp0 = inference.get_literal_importance()
+        
+        inference.calculate_explanations(1)
+        lit_imp1 = inference.get_literal_importance()
         
         r = np.zeros(n_literals*2)
         r[0] = lit_imp0[0]

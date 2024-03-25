@@ -44,11 +44,13 @@ try:
     impl["sparse_cb_Lf_Df_Bt"] = gtc.ClauseBlockSparse_Lf_Df_Bt
     impl["sparse_cb_Lf_Df_Bf"] = gtc.ClauseBlockSparse_Lf_Df_Bf
 
-    impl["Inference8u_Ff_Lf_Wf"] = gtc.Inference8u_Ff_Lf_Wf
+    impl["Inference8u_Ff_Lf_Wf"] = gtc.Inference8u_Ff_Lf_Wf    
     impl["Inference8u_Ff_Lt_Wf"] = gtc.Inference8u_Ff_Lt_Wf
-    impl["Inference8u_Ff_Lt_Wt"] = gtc.Inference8u_Ff_Lt_Wt
+    impl["Inference8u_Ff_Lt_Wt"] = gtc.Inference8u_Ff_Lt_Wt    
     impl["Inference8u_Ft_Lf_Wf"] = gtc.Inference8u_Ft_Lf_Wf
-    impl["Inference8u_Ft_Lf_Wt"] = gtc.Inference8u_Ft_Lf_Wt
+    impl["Inference8u_Ft_Lf_Wt"] = gtc.Inference8u_Ft_Lf_Wt    
+    impl["Inference8u_Ft_Lt_Wf"] = gtc.Inference8u_Ft_Lt_Wf
+    impl["Inference8u_Ft_Lt_Wt"] = gtc.Inference8u_Ft_Lt_Wt
     
     if gtc.has_avx2():
         impl["cb"] = gtc.ClauseBlockAVX2_Lt_Bt
