@@ -82,11 +82,31 @@ def test_prediction_clauses_literal_explanation():
 
 
 
+def test_predictor_pass_xor():
+    n_literals = 4
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
+    
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40)
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+    r = trainer.train()    
+    print(r)
+    
+ 
+
+
 if __name__ == "__main__":
-    test_init()
-    test_sets_correct_backend_based_on_exploration_and_enw()
+    # test_init()
+    # test_sets_correct_backend_based_on_exploration_and_enw()
     # test_prediction_with_target_names()
     # test_prediction_literal_explanation()
-    test_prediction_clauses_literal_explanation()
+    # test_prediction_clauses_literal_explanation()
+    test_predictor_pass_xor()
     print("<done tests:", __file__, ">")
 

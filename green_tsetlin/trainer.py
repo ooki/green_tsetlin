@@ -290,9 +290,7 @@ class Trainer:
                         if self.load_best_state:
                             self._best_tm_state = self.tm._load_state_from_backend(only_return_copy=True)                                                
 
-                    if test_score >= self.early_exit_acc:                                    
-                        did_early_exit = True
-                        break
+                    
                     
                     progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best test score: {:.3f} (epoch: {})".format(epoch+1,
                                                                                                                                 self.n_epochs,
@@ -300,6 +298,10 @@ class Trainer:
                                                                                                                                 best_test_score,
                                                                                                                                 best_test_epoch))
                     progress_bar.update(1)
+                    
+                    if test_score >= self.early_exit_acc:                                    
+                        did_early_exit = True
+                        break
                     
                     if epoch < (self.n_epochs - 1):                   
                         _flexible_set_data(input_block, self.x_train, self.y_train)
