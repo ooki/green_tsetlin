@@ -74,9 +74,9 @@ class Writer:
         fp.write("        most_votes = votes[i];\n")
         fp.write("        output_class = i;\n")
         fp.write("    }\n")
-        fp.write("")
-        fp.write("    return output_class;\n")
+        fp.write("")        
         fp.write("}\n")
+        fp.write("    return output_class;\n")
         fp.write("}\n")
     
                 
