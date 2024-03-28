@@ -41,17 +41,17 @@ class DenseState:
         d = np.load(file_path)
         ds = DenseState()
 
-        if ds.w.shape[0] != d.c.shape[0]:
+        if d["w"].shape[0] != d["c"].shape[0]:
             raise ValueError("Cannot load state. w and c must have the same number of clauses")        
 
-        if ds.w.dtype != np.int16:
-            raise ValueError("Clause Weights much be np.int16 is {}".format(ds.w.dtype))
+        if d["w"].dtype != np.int16:
+            raise ValueError("Clause Weights much be np.int16 is {}".format(ds["w"].dtype))
         
-        if d.c.dtype != np.int8:
-            raise ValueError("Clause State much be np.int8 is {}".format(d.c.dtype))
+        if d["c"].dtype != np.int8:
+            raise ValueError("Clause State much be np.int8 is {}".format(ds["c"].dtype))
 
-        ds.w = d.w
-        ds.c = d.c
+        ds.w = d["w"]
+        ds.c = d["c"]
         return ds
 
     def save_to_file(self, file_path) -> None:
