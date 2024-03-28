@@ -39,20 +39,20 @@ class DenseState:
         if not file_path.endswith(".npz"):
             raise ValueError("State object must be a .npz file")
         d = np.load(file_path)
-        tms = DenseState()
+        ds = DenseState()
 
-        if tms["w"].shape[0] != d["c"].shape[0]:
+        if ds.w.shape[0] != d.c.shape[0]:
             raise ValueError("Cannot load state. w and c must have the same number of clauses")        
 
-        if tms["w"].dtype != np.int16:
-            raise ValueError("Clause Weights much be np.int16 is {}".format(tms["w"].dtype))
+        if ds.w.dtype != np.int16:
+            raise ValueError("Clause Weights much be np.int16 is {}".format(ds.w.dtype))
         
-        if tms["c"].dtype != np.int8:
-            raise ValueError("Clause State much be np.int8 is {}".format(tms["c"].dtype))
+        if d.c.dtype != np.int8:
+            raise ValueError("Clause State much be np.int8 is {}".format(d.c.dtype))
 
-        tms.w = d["w"]
-        tms.c = d["c"]
-        return tms
+        ds.w = d.w
+        ds.c = d.c
+        return ds
 
     def save_to_file(self, file_path) -> None:
         if not file_path.endswith(".npz"):
@@ -338,9 +338,11 @@ class TsetlinMachine:
                     
         self._state.save_to_file(path)
 
+    def get_ruleset(self):        
+        rs = gt.RuleSet(self._is_multi_label)
+        rs.compile_from_dense_state(self._state)        
+        return rs
     
-    
-
     def construct_clause_blocks(self) -> list:
         """ Creates the backend clause blocks, will not allocate them (use allocate_clause_blocks Context Manager).
         The clause blocks are found in the _cbs attribute, and a copy of this list returned (sharing the cb's, but not the list).
@@ -511,7 +513,10 @@ class SparseTsetlinMachine(TsetlinMachine):
                     
         self._state.save_to_file(path)
 
-
+    def get_ruleset(self):        
+        rs = gt.RuleSet(self._is_multi_label)
+        rs.compile_from_sparse_state(self._state)
+        return rs
 
     def _set_extra_params_on_cb(self, cb, k:int):
 

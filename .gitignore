@@ -5,9 +5,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions / and compiled binaries
+# C extensions / and compiled binaries (and test binary data)
 *.so
 *.out  
+*.test_bin   
+
 
 # Distribution / packaging
 .Python

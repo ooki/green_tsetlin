@@ -5,8 +5,8 @@ from green_tsetlin.ruleset import RuleSet
 
 
 
-class HppWriter:
-    def __init__(self, rs: RuleSet):
+class Writer:
+    def __init__(self, rs: RuleSet, ):
         self.rs = rs         
         
         
@@ -18,9 +18,7 @@ class HppWriter:
                 self._write_rule(fp, k)
             
             self._write_find_output(fp)    
-            
-    
-    
+                    
     
     def _write_header(self, fp):
         fp.write("#include <inttypes.h>\n")
@@ -94,7 +92,7 @@ if __name__ == "__main__":
     
 
     rs = MockRuleset()
-    w = HppWriter(rs)
+    w = Writer(rs)
     w.to_file("./generator/out.h")
     
     print("<done>")
