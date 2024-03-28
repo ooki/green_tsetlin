@@ -1,6 +1,7 @@
 
 
-#include "tm.h"
+//#include "tm.h"
+#include "out.h"
 #include <stdio.h>
 
 
