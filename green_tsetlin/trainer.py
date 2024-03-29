@@ -291,7 +291,6 @@ class Trainer:
                             self._best_tm_state = self.tm._load_state_from_backend(only_return_copy=True)                                                
 
                     
-                    
                     progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best test score: {:.3f} (epoch: {})".format(epoch+1,
                                                                                                                                 self.n_epochs,
                                                                                                                                 train_acc,

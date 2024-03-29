@@ -133,8 +133,11 @@ namespace green_tsetlin
                 {                    
                     for(uint32_t lit_index : m_rules[clause_k])
                     {
-                        if(m_example[lit_index] == 0)                        
+                        if(m_example[lit_index] == 0)       
+                        {
+                            //std::cout << "predict - exit: clause: " << clause_k << " l_i: " << lit_index << " x[.] == 0 (" << m_example[lit_index] << ")" << std::endl;
                             goto end_of_clause;                        
+                        }
                     }
 
                     m_active_clauses.push_back(clause_k);

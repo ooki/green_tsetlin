@@ -28,13 +28,13 @@ if __name__ == "__main__":
     x.astype(np.uint8).tofile("./generator_tests/mnist_x_{}_{}.test_bin".format(n_examples, n_literals))
     y.astype(np.uint32).tofile("./generator_tests/mnist_y_{}_{}.test_bin".format(n_examples, n_literals))
     
-    n_clauses = 2
+    n_clauses = 1000
     n_literals = x.shape[1]
     n_classes = 10
     s = 10.0
-    n_literal_budget = 5
+    n_literal_budget = 8
     threshold = 1000    
-    n_jobs = 1
+    n_jobs = 2
     seed = 42
     
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=n_literal_budget)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     total = 0
     p = tm.get_predictor()
     for k in range(0, x.shape[0]):
-        y_hat = p.predict(x[0, :])
+        y_hat = p.predict(x[k, :])
         if y_hat == y[k]:
             correct += 1
             

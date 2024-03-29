@@ -17,6 +17,14 @@ class MockRuleset:
         self.n_classes = 2
 
 
+class MockXorRuleset:
+    def __init__(self):
+        self.rules = [[1, 8], [8, 9], [0, 9]]
+        self.weights = [[-21, 21], [24, -21], [-26, 28]]
+        self.n_literals = 8
+        self.n_classes = 2
+    
+
 def test_init():    
     p = gt.Predictor(multi_label=False, explanation="none")
     m = MockRuleset()
@@ -83,22 +91,76 @@ def test_prediction_clauses_literal_explanation():
 
 
 def test_predictor_pass_xor():
-    n_literals = 4
-    n_clauses = 5
+    n_literals = 8
+    n_clauses = 50
     n_classes = 2
     s = 3.0
     threshold = 42
-    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    #tm._backend_clause_block_cls = gtc.ClauseBlockTM
-    
-    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40)
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)            
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, n_train=400, n_test=200)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100, progress_bar=False)
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
-    r = trainer.train()    
-    print(r)
+    trainer.train()
+        
+    correct = 0
+    total = 0
+    wrong_example = None
+    wrong_example_y = -1
+    wrong_example_pred = -2
+    p = tm.get_predictor()
+    for k, xk in enumerate(ex):
+        y_hat = p.predict(xk)
+        if y_hat == ey[k]:
+            correct += 1
+        else:
+            wrong_example = xk.copy()
+            wrong_example_y = ey[k].copy()
+            wrong_example_pred = y_hat
+            
+        total += 1
     
- 
+    assert trainer.results["did_early_exit"]
+    assert correct == total
+        
+    # if trainer.results["did_early_exit"]:           
+    #     print("total:", total, "correct:", correct)
+        
+    #     if total != correct:
+        
+    #         print(tm.get_ruleset().rules)
+    #         print(tm.get_ruleset().weights)
+            
+    #         print("xk:", wrong_example.tolist(), "y:", wrong_example_y, "pred:", wrong_example_pred)
+    #     else:
+    #         print("all good.")
+      
+            
+    
+# def test_mnist_predict():
+#     from sklearn.datasets import fetch_openml
+#     X, y = fetch_openml(
+#             "mnist_784",
+#             version=1,
+#             return_X_y=True,
+#             as_frame=False)
+    
+    
+    
+    
+    
+def test_xor_predict():     
+    p = gt.Predictor()    
+    m = MockXorRuleset()
+    p._set_ruleset(m)    
+    p._allocate_backend()
+    
+    for r, w in zip(m.rules, m.weights):
+        print("rules:", r,  " w:", w)
+
+    y_hat = p.predict(np.array([1, 1, 0, 1, 1, 1, 1, 1], dtype=np.uint8))
+    print("y_hat:", y_hat)
+
 
 
 if __name__ == "__main__":
@@ -108,5 +170,6 @@ if __name__ == "__main__":
     # test_prediction_literal_explanation()
     # test_prediction_clauses_literal_explanation()
     test_predictor_pass_xor()
+    # test_xor_predict()
     print("<done tests:", __file__, ">")
 
