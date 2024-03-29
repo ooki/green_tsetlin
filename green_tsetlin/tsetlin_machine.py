@@ -376,16 +376,11 @@ class TsetlinMachine:
         return copy.copy(self._cbs)
     
 
-    def get_predictor(self, explanation: str = "none") -> "gt.Predictor":
-
+    def get_predictor(self, explanation: str = "none", exclude_negative_clauses=False) -> "gt.Predictor":
         rs = gt.ruleset.RuleSet(is_multi_label=self._is_multi_label)
-        rs.compile_from_dense_state(self._state)
-        
-        predictor = gt.Predictor(explanation=explanation, multi_label=self._is_multi_label)
-        predictor._set_ruleset(rs)
-        predictor._allocate_backend()
-
-        return predictor
+        rs.compile_from_dense_state(self._state)        
+        return gt.Predictor.from_ruleset(rs, explanation, exclude_negative_clauses)
+    
 
 
     def _set_extra_params_on_cb(self, cb, k:int):
@@ -513,10 +508,10 @@ class SparseTsetlinMachine(TsetlinMachine):
                     
         self._state.save_to_file(path)
 
-    def get_ruleset(self):        
-        rs = gt.RuleSet(self._is_multi_label)
+    def get_predictor(self, explanation: str = "none", exclude_negative_clauses=False) -> "gt.Predictor":
+        rs = gt.RuleSet(is_multi_label=self._is_multi_label)
         rs.compile_from_sparse_state(self._state)
-        return rs
+        return gt.Predictor.from_ruleset(rs, explanation, exclude_negative_clauses)   
 
     def _set_extra_params_on_cb(self, cb, k:int):
 

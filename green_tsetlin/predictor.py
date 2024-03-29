@@ -35,6 +35,14 @@ class Predictor:
 
         self._inf = None
 
+    @staticmethod
+    def from_ruleset(ruleset: RuleSet, explanation="none", exclude_negative_clauses=False) -> "Predictor":
+        predictor = Predictor(explanation=explanation, exclude_negative_clauses=exclude_negative_clauses, multi_label=ruleset.is_multi_label)        
+        predictor._set_ruleset(ruleset)
+        predictor._allocate_backend()
+        
+        return predictor
+        
     
     def _set_ruleset(self, ruleset: RuleSet):
         self._ruleset = ruleset
