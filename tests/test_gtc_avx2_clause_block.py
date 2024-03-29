@@ -4,6 +4,8 @@ import green_tsetlin_core as gtc
 import green_tsetlin as gt
 
 
+if gtc.has_avx2() is False:
+    pytest.skip(allow_module_level=True)
 
 
 

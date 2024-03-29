@@ -50,6 +50,14 @@ int main() {
     }
     fclose(y_file);
 
+    int h = 0;
+    for(int k = 0;k < COLS; k++)
+    {
+        //h += ((int)(x_data[k] * (k+1))) % 113;
+        h += (int)x_data[k];
+    }
+    printf("hash: %d\n", h);
+
     
     int correct = 0;
     int total = 0;

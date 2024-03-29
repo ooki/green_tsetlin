@@ -62,8 +62,8 @@ def test_im2col_give_correct_shapes():
     assert np.array_equal(col.shape, [1, 1, 16])
 
 if __name__ == "__main__":
-    test_DenseInputBlock_check_multi_flag()
-    test_throws_on_wrong_size_arrays()
+    # test_DenseInputBlock_check_multi_flag()
+    # test_throws_on_wrong_size_arrays()
     test_im2col_give_correct_shapes()
 
     print("<done tests:", __file__, ">")

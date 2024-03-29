@@ -1,10 +1,12 @@
 #ifndef __INPUT_BLOCK_HPP_
 #define __INPUT_BLOCK_HPP_
 
-
+#include <iostream>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <stdint.h>
+
+#include <gt_common.hpp>
 
 namespace green_tsetlin
 {
@@ -295,10 +297,10 @@ namespace green_tsetlin
         const int position_emb_y_size = (height - patch_height);
 
         const int literals_per_patch = literals_features_per_patch + position_emb_x_size + position_emb_y_size;
-
         int total_mem = n_examples * n_patches * literals_per_patch * sizeof(uint8_t);
-        uint8_t* dst_root = (uint8_t*)aligned_alloc(32, total_mem);
-
+        //uint8_t* dst_root = (uint8_t*)aligned_alloc(32, total_mem);
+        //uint8_t* dst_root = (uint8_t*)malloc(total_mem);
+        uint8_t* dst_root = reinterpret_cast<uint8_t*>(safe_aligned_alloc(32, total_mem));
         
         for(int example_index = 0; example_index < n_examples; ++ example_index)
         {
@@ -309,7 +311,7 @@ namespace green_tsetlin
             for(int py = 0; py < n_patches_y; ++py)
             {
                 for(int px = 0; px < n_patches_x; ++px)
-                {                                        
+                {                                     
                     uint8_t* patch_dst = dst + (patch_index * literals_per_patch);
 
                     cumlative_encode(patch_dst, py, position_emb_y_size);
@@ -318,7 +320,6 @@ namespace green_tsetlin
                     cumlative_encode(patch_dst, px, position_emb_x_size);                
                     patch_dst += position_emb_x_size;
 
-                    
                     for(int y = 0; y < patch_height; ++y)
                     {
                         uint8_t* patch_row_start = example + ((py+y)*width*channels) + (px * channels);

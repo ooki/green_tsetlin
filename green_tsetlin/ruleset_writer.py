@@ -30,7 +30,7 @@ class Writer:
         fp.write("int predict_tm(uint8_t* x)\n")
         fp.write("{\n")
         fp.write("    static int16_t votes[NUM_CLASSES] = {0};\n")
-        fp.write("    memset(votes, sizeof(votes), 0);\n")
+        fp.write("    memset(votes, 0, sizeof(votes));\n")
         fp.write("\n")
         fp.write("\n")
 

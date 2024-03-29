@@ -52,7 +52,7 @@ namespace green_tsetlin
                 #endif 
 
                 int clause_mem = state.num_clauses * state.num_literals_mem * 2;
-                state.clauses = reinterpret_cast<int8_t*>(aligned_alloc(32, clause_mem));
+                state.clauses = reinterpret_cast<int8_t*>(safe_aligned_alloc(32, clause_mem));
 
                 if(do_literal_budget)
                     state.literal_counts = new uint32_t[state.num_clauses];

@@ -290,7 +290,7 @@ namespace green_tsetlin
 
             }
 
-            virtual std::vector<int> predict_multi() const
+            virtual bool predict_multi(uint32_t* out) const
             {               
                 std::vector<int> preds(m_num_classes, 0);
                 for(int i = 0; i < m_num_classes; ++i)
@@ -299,7 +299,8 @@ namespace green_tsetlin
                         preds[i] = 1;                          
                 }
 
-                return preds;
+                // return preds;
+                return false;
             }      
     };
 

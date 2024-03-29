@@ -379,6 +379,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     // Conv TM non-vectorized implementations
     define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla Convolutional TM
     
+#ifdef USE_AVX2
     // AVX2 TM implementations
     define_clause_block<ClauseBlockAVX2Impl<true, true>>(m, "ClauseBlockAVX2_Lt_Bt"); // AVX2 TM, (L)lit_budget = true, (B)btp = true
     define_clause_block<ClauseBlockAVX2Impl<true, false>>(m, "ClauseBlockAVX2_Lt_Bf"); // AVX2 TM, (L)lit_budget = true, (B)btp = false
@@ -387,6 +388,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     
     // AVX2 Conv TM implementations
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
+#endif // USE_AVX2
 
     // Sparse TM implementations
     define_clause_block_sparse<ClauseBlockSparseImpl<true, true, true>>(m, "ClauseBlockSparse_Lt_Dt_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = true
