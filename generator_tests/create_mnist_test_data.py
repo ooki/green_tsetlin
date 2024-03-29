@@ -37,20 +37,11 @@ if __name__ == "__main__":
     n_jobs = 2
     seed = 42
     
-    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=n_literal_budget)
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s,
+                           threshold=threshold, literal_budget=n_literal_budget)
     
     # ------
-    
-    y_hats = None
-    
-    def set_yh(a, b):
-        global y_hats
-        y_hats = b.copy()
-        print("SET CALLED!!!!!!")
-        return 0.5
-    
-    
-    trainer = gt.Trainer(tm, n_epochs=2, seed=seed, n_jobs=n_jobs, progress_bar=True, fn_test_score=set_yh)
+    trainer = gt.Trainer(tm, n_epochs=3, seed=seed, n_jobs=n_jobs, progress_bar=True)
     trainer.set_train_data(x, y)
     trainer.set_test_data(x.copy(), y.copy())
     trainer.train()        
@@ -59,9 +50,6 @@ if __name__ == "__main__":
     print("--- results ---")
     print(trainer.results)
     print("--")
-    
-    print(type(y_hats), "lenLll", len(y_hats))
-
     
     rs = tm.get_ruleset()
     writer = gt.Writer(rs)
@@ -77,18 +65,6 @@ if __name__ == "__main__":
         y_hat = p.predict(x[k, :])
         if y_hat == y[k]:
             correct += 1
-            
-        if y_hats[k] == y[k]:
-            correct2 += 1
-            
-        if y_hats[k] != y_hat and did_print is False:
-            did_print = True
-            print("--------------- miss match -----------")
-            print(x[k].tolist())
-            print("tm:", y_hats[k])
-            print("pred:", y_hat)
-            print("y:", y[k])
-
             
         total += 1
         

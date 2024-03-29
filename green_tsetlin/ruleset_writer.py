@@ -46,7 +46,7 @@ class Writer:
             if ta_k < self.rs.n_literals:
                 if_list.append("x[{}] > 0".format(ta_k))
             else:
-                if_list.append("x[{}] == 0".format(ta_k))
+                if_list.append("x[{}] == 0".format(ta_k - self.rs.n_literals))
                 
         clause_statements = " && ".join(if_list)
         if_statment = "if({}){{".format(clause_statements)
