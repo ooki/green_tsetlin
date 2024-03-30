@@ -1,13 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
 
 #define ROWS 70000
 #define COLS 784
 
 #include "mnist_tm.h"
 
+double get_time_diff(struct timespec *start, struct timespec *end) {
+    double start_sec = (double)start->tv_sec + ((double)start->tv_nsec / 1e9);
+    double end_sec = (double)end->tv_sec + ((double)end->tv_nsec / 1e9);
+    return end_sec - start_sec;
+}
+
+
 int main() {
+   
+
+     
+
     // Read x values
     FILE *x_file = fopen("mnist_x_70000_784.test_bin", "rb");
     if (x_file == NULL) {
@@ -51,37 +63,69 @@ int main() {
     fclose(y_file);
 
 
-    
     int correct = 0;
     int total = 0;
-    for(int k = 0;k < ROWS; ++k)
+    struct timespec start, end;
+
+
+    // for(int k = 0;k < ROWS; ++k)
+    const int n_total_predictions = 1000000;
+    int n_total_correct = 0;
+    double total_time = 0.0;
+
+    for(int k = 0; k < n_total_predictions; ++k)
     {
-        uint8_t* example = &x_data[k*COLS];
+        int i = k % ROWS;
+        uint8_t* example = &x_data[i*COLS];
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
         int y_hat = predict_tm(example);
+        clock_gettime(CLOCK_MONOTONIC, &end);
 
-
-        if(y_hat == y_data[k])
+        total_time += get_time_diff(&start, &end);
+    
+        if(y_hat == y_data[i])
             correct += 1;
         
         total += 1;
+
     }
  
-        
-
     printf("correct: %d, total: %d \n", correct, total);
-   
+    printf("total time: %f\n", total_time);
+    
     /*
-    tm: 0
-pred: 2
-y: 8
-    */
+    =====================================================================
+    gcc -o tm.out mnist_test.c    
+    -
+    correct: 973990, total: 1000000 
+    total time: 67.706492
 
-    // uint8_t x_miss[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    // int x_miss_hat = predict_tm(x_miss);
-    // printf("output: %d\n", x_miss_hat);
-    // Now the x data is loaded into the 1D array x_data
-    // and the y data is loaded into the 1D array y_data
-    // You can access them like x_data[row * COLS + col] and y_data[row]
+    =====================================================================
+    gcc -O3 -march=native -mtune=native -funroll-loops -fwhole-program -o tm.out mnist_test.c
+
+    correct: 973990, total: 1000000 
+    total time: 43.749774
+
+    =====================================================================
+    gcc -O3 -march=native -mtune=native -ftree-vectorize -ftree-vectorizer-verbose=2 -fopt-info-vec-optimized -fopt-info-vec-missed -o tm.out mnist_test.c
+
+    correct: 973990, total: 1000000 
+    total time: 54.481346
+
+    =====================================================================
+    gcc -O3 -march=native -mtune=native -o tm.out mnist_test.c
+
+    correct: 973990, total: 1000000 
+    total time: 54.149469
+
+    =====================================================================
+    gcc -O3 -mavx2 -mfma -ftree-vectorize -o tm.out mnist_test.c
+
+    correct: 973990, total: 1000000 
+    total time: 54.214224
+    
+    */    
 
     free(x_data);
 

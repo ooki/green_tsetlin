@@ -9,6 +9,7 @@ from green_tsetlin.backend import impl as _backend_impl
 from green_tsetlin.ruleset import RuleSet
 
 
+
 Explanation = namedtuple('Explanation', ['literals', 'features'])
 
 class Predictor:
@@ -42,7 +43,16 @@ class Predictor:
         predictor._allocate_backend()
         
         return predictor
+    
+    def export_as_program(self, to_file:str, exporter="simple_c"):
         
+        if exporter == "simple_c":
+            from green_tsetlin.writers.simple_c import SimpleC
+            writer = SimpleC(self._ruleset)
+            writer.to_file(to_file)
+            
+        else:
+            raise ValueError("Cannot find exporter: '{}' - Unable to export Predictor.".format(exporter))
     
     def _set_ruleset(self, ruleset: RuleSet):
         self._ruleset = ruleset

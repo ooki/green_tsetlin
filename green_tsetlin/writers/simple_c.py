@@ -5,22 +5,41 @@ from green_tsetlin.ruleset import RuleSet
 
 
 
-class Writer:
-    def __init__(self, rs: RuleSet, ):
+class SimpleC:
+    def __init__(self, rs: RuleSet, explanation="none", exclude_negative_clauses=False):
         self.rs = rs         
+        self.explanation = explanation
+        self.exclude_negative_clauses = exclude_negative_clauses
+        
+        if self.exclude_negative_clauses is True:
+            raise ValueError("Unsuported option, exclude_negative_clauses=True, Please set to Faluse to use this writer.")
+        
+        if self.explanation != "none":
+            raise ValueError("Unsported explanation: '{}', please use a supported explanation.".format(explanation))
         
         
     def to_file(self, path_to_file:str):        
         
         with open(path_to_file, "w") as fp:
+            fp.write("#ifndef __SIMPLE_C_OUTPUT__H_\n")
+            fp.write("#define __SIMPLE_C_OUTPUT__H_\n")
+            fp.write("// Export from green_tsetlin:SimpleC\n")
+            fp.write("\n")
             self._write_header(fp)
+            
+            fp.write("\n")
+            fp.write("// start clauses")
+            fp.write("\n")
+            
             for k in range(len(self.rs.rules)):
                 self._write_rule(fp, k)
             
             self._write_find_output(fp)    
+            fp.write("\n")
+            fp.write("#endif // #ifndef __SIMPLE_C_OUTPUT__H_\n")
                     
     
-    def _write_header(self, fp):
+    def _write_header(self, fp):                
         fp.write("#include <inttypes.h>\n")
         fp.write("#include <string.h>\n")
         fp.write("\n")

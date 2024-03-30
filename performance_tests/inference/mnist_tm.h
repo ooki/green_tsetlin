@@ -1,3 +1,7 @@
+#ifndef __SIMPLE_C_OUTPUT__H_
+#define __SIMPLE_C_OUTPUT__H_
+// Export from green_tsetlin:SimpleC
+
 #include <inttypes.h>
 #include <string.h>
 
@@ -9,6 +13,8 @@ int predict_tm(uint8_t* x)
     memset(votes, 0, sizeof(votes));
 
 
+
+// start clauses
 if(x[4] > 0){
 votes[0] += -37; votes[1] += -51; votes[2] += -48; votes[3] += -22; votes[4] += 22; votes[5] += -18; votes[6] += -27; votes[7] += 0; votes[8] += -38; votes[9] += -18;
 }
@@ -14907,3 +14913,5 @@ for(int i = 1; i < NUM_CLASSES; ++i)
 }
     return output_class;
 }
+
+#endif // #ifndef __SIMPLE_C_OUTPUT__H_
