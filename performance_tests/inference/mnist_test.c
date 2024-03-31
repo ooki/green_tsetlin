@@ -125,6 +125,33 @@ int main() {
     correct: 973990, total: 1000000 
     total time: 54.214224
     
+    =====================================================================
+    gcc -O3 -mavx2 -mfma -ftree-vectorize -o tm.out mnist_test.c
+    [TOPOLOGICAL v1]
+
+    correct: 973990, total: 1000000 
+    total time: 26.547865
+
+    =====================================================================
+    gcc -O3 -march=native -mtune=native -funroll-loops -fwhole-program -o tm.out mnist_test.c
+    [TOPOLOGICAL v1]
+
+    total time: 27.188897
+
+    =====================================================================
+    gcc -O3 -march=native -mtune=native -ftree-vectorize -funroll-loops -fwhole-program -o tm.out mnist_test.c
+    [TOPOLOGICAL v1]
+
+    total time: 28.748274
+
+    =====================================================================
+    gcc -O3 -mavx2 -mfma -o tm.out mnist_test.c
+    [TOPOLOGICAL v1]
+    
+    total time: 26.327967
+
+
+    
     */    
 
     free(x_data);
