@@ -44,7 +44,7 @@ class Predictor:
         
         return predictor
     
-    def export_as_program(self, to_file:str, exporter="simple_c"):
+    def export_as_program(self, to_file:str, exporter="topological_c"):
         
         if exporter == "simple_c":
             from green_tsetlin.writers.simple_c import SimpleC

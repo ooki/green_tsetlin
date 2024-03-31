@@ -14,12 +14,17 @@
 // PYBIND11_MAKE_OPAQUE(green_tsetlin::RuleVector);
 // PYBIND11_MAKE_OPAQUE(green_tsetlin::RuleWeights);
 
+#ifdef USE_AVX2
+#include <immintrin.h>
+#endif 
 
 
 bool has_avx2()
 {
     #ifdef USE_AVX2
-        return true;
+        int info[4];
+        __cpuid(info, 1);
+        return (info[2] & (1 << 5)) != 0; // ecx register (bit 5) is avx2 flag.
     #else
         return false;
     #endif
