@@ -48,8 +48,13 @@ class Predictor:
         
         if exporter == "simple_c":
             from green_tsetlin.writers.simple_c import SimpleC
-            writer = SimpleC(self._ruleset)
+            writer = SimpleC(self._ruleset)                        
             writer.to_file(to_file)
+            
+        elif exporter == "topological_c":
+            from green_tsetlin.writers.topographical_c import TopographicalC
+            writer = TopographicalC(self._ruleset)                        
+            writer.to_file(to_file)                        
             
         else:
             raise ValueError("Cannot find exporter: '{}' - Unable to export Predictor.".format(exporter))

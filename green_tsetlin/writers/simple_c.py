@@ -1,5 +1,3 @@
-
-import pathlib
 from green_tsetlin.ruleset import RuleSet
 
 
