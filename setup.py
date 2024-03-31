@@ -38,8 +38,7 @@ if sys.platform.startswith('darwin') and has_neon:
 
 
 elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and has_neon is False):    
-    # compile_args =["-mavx2", "-mfma", "-O3", "-pthread"]
-    compile_args =["-mavx2", "-mfma", "-O0", "-pthread", "-g"]
+    compile_args =["-mavx2", "-mfma", "-O3", "-pthread"]
 
     if has_avx2:
         define_macros.append(("USE_AVX2", 1))
