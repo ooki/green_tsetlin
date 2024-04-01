@@ -52,6 +52,10 @@ namespace green_tsetlin
             #ifdef USE_AVX2
             XorShift128plus4G           avx2_rng;
             #endif 
+
+            #ifdef USE_NEON
+            Xoshiro128Plus  rng_neon;
+            #endif 
             
             inline void set_s(double s_param)
             {

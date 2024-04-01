@@ -14,20 +14,23 @@
 // PYBIND11_MAKE_OPAQUE(green_tsetlin::RuleVector);
 // PYBIND11_MAKE_OPAQUE(green_tsetlin::RuleWeights);
 
+
+
 #ifdef USE_AVX2
-#include <immintrin.h>
+#include <cpuid.h>
 #endif 
 
 
 bool has_avx2()
 {
     #ifdef USE_AVX2
-        int info[4];
-        __cpuid(info, 1);
-        return (info[2] & (1 << 5)) != 0; // ecx register (bit 5) is avx2 flag.
-    #else
-        return false;
-    #endif
+    uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
+    if(__get_cpuid(0, &eax, &ebx, &ecx, &edx))
+        return (bit_AVX2 & edx) != 0;
+
+    #endif 
+    
+    return false;
 }
 
 bool has_neon()

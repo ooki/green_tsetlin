@@ -103,8 +103,15 @@ namespace green_tsetlin
                                         
                     for(int literal_k = 0; literal_k < state.num_literals; ++literal_k)
                     {
-                        clause_row[literal_k] = dist(state.rng); // pos
-                        clause_row[literal_k + state.num_literals_mem] = dist(state.rng); // neg
+                        if(state.fast_rng.next_u() > 0.5)
+                            clause_row[literal_k] = 0; // pos
+                        else
+                            clause_row[literal_k] = -1; 
+
+                        if(state.fast_rng.next_u() > 0.5) // negated
+                            clause_row[literal_k + state.num_literals_mem] = 0;
+                        else
+                            clause_row[literal_k + state.num_literals_mem] = -1;
                     }
 
                     // set filler states to -109 and -111 (pos and neg)
@@ -123,22 +130,12 @@ namespace green_tsetlin
                 {
                     for(int class_i = 0; class_i < state.num_classes; class_i++)
                     {
-                        if(dist(state.rng))
+                        if(state.fast_rng.next_u() > 0.5)
                             state.clause_weights[(clause_k * state.num_class_weights_mem) + class_i] = 1;
                         else
                             state.clause_weights[(clause_k * state.num_class_weights_mem) + class_i] = -1;
                     }
                 }
-                /*
-                const int num_weights_total = state.num_clauses * state.num_classes;
-                for(int k = 0; k < num_weights_total; ++k)
-                {
-                    if(dist(state.rng))
-                        state.clause_weights[k] = 1;
-                    else
-                        state.clause_weights[k] = -1;
-                }
-                */
             }        
     };
 
