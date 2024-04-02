@@ -364,7 +364,7 @@ namespace green_tsetlin
                 for (int i = 0; i < m_state.num_classes; ++i)
                 {
                     std::vector<uint32_t> temp_active_literals = m_state.active_literals[i];
-                    pybind11::list to_add = pybind11::cast(temp_active_literals);
+                    pybind11::array_t<uint32_t> to_add = pybind11::cast(temp_active_literals);
                     out.append(to_add);
                 }
                 

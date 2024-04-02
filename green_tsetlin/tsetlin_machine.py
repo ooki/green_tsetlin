@@ -111,23 +111,28 @@ class SparseState:
         d = np.load(file_path)
         tms = SparseState()
 
-        if tms["w"].shape[0] != d["c"].shape[0]:
-            raise ValueError("Cannot load state. w and c must have the same number of clauses")        
 
-        if tms["w"].dtype != np.int16:
-            raise ValueError("Clause Weights much be np.int16 is {}".format(tms["w"].dtype))
+
+        if d["w"].shape[0]*2 != d["c_indptr"][0].shape[0]-1:
+            raise ValueError("Cannot load state. w and c must have the same number of clauses, w_size: {}, c_size: {}".format(d["w"].shape[0], d["c_indptr"][0].shape[0]-1)) 
+
+        if d["w"].dtype != np.int16:
+            raise ValueError("Clause Weights much be np.int16 is {}".format(d["w"].dtype))
         
-        if tms["c_data"].dtype != np.int8:
-            raise ValueError("Clause State much be np.int8 is {}".format(tms["c_data"].dtype))
+        if d["c_data"][0].dtype != np.int8:
+            raise ValueError("Clause State much be np.int8 is {}".format(d["c_data"][0].dtype))
 
-        if tms["c_indices"].dtype != np.uint32:
-            raise ValueError("Clause State much be np.uint32 is {}".format(tms["c_indices"].dtype))
+        if d["c_indices"][0].dtype != np.uint32:
+            raise ValueError("Clause State much be np.uint32 is {}".format(d["c_indices"][0].dtype))
 
-        if tms["c_indptr"].dtype != np.uint32:
-            raise ValueError("Clause State much be np.uint32 is {}".format(tms["c_indptr"].dtype))
+        if d["c_indptr"][0].dtype != np.uint32:
+            raise ValueError("Clause State much be np.uint32 is {}".format(d["c_indptr"][0].dtype))
 
-        if tms["AL"].dtype != np.uint32:
-            raise ValueError("Active Literals much be np.uint32 is {}".format(tms["AL"].dtype))
+        print(d["AL"][0])
+        print(d["AL"][0].dtype)
+
+        if d["AL"][0].dtype != np.uint32:
+            raise ValueError("Active Literals much be np.uint32 is {}".format(d["AL"][0].dtype))
 
 
         tms.w = d["w"]
@@ -141,7 +146,7 @@ class SparseState:
         if not file_path.endswith(".npz"):
             raise ValueError("State object must be a .npz file")
         
-        np.savez(file_path, w=self.w, c=self.c, AL=self.AL)
+        np.savez(file_path, w=self.w, c_data=self.c_data, c_indices=self.c_indices, c_indptr=self.c_indptr, AL=self.AL)
 
 
 class TsetlinMachine:
@@ -431,13 +436,16 @@ class SparseTsetlinMachine(TsetlinMachine):
         """ Collects the state from the backend.
         if only_return_copy is True => just return the state, else set it to state_ in the TM                        
         """
-        
+
         state = self._state
         if only_return_copy:
             state = None
-        
+
         # if state is None: # allocate state
+        # need do this to clear the state, as the values are not replaced like in dense
         state = SparseState(n_literals=self.n_literals, n_clauses=self.n_clauses, n_classes=self.n_classes)
+
+
         
         clause_offset = 0 
         for cb in self._cbs:
@@ -445,9 +453,7 @@ class SparseTsetlinMachine(TsetlinMachine):
             state.c_data.append(_c_state[0])
             state.c_indices.append(_c_state[1])
             state.c_indptr.append(_c_state[2])
-
             state.AL.append(cb.get_active_literals())
-
             cb.get_clause_weights(state.w, clause_offset)
             clause_offset += cb.get_number_of_clauses()
 

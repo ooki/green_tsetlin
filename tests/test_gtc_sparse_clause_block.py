@@ -231,13 +231,13 @@ def test_getset_active_literals():
 
 
     first = cb.get_active_literals()
-    assert first == [[2, 0, 1, 3], [0, 1, 3, 2]], "got: {}, expected: {}".format(first, [[2, 0, 1, 3], [0, 1, 3, 2]])
+    assert np.array_equal(first, np.array([[2, 0, 1, 3], [0, 1, 3, 2]])), "got: {}, expected: {}".format(first, np.array([[2, 0, 1, 3], [0, 1, 3, 2]]))
 
 
     cb.set_active_literals(np.full((n_classes, n_literals), [1,2,3,4]))
 
     second = cb.get_active_literals()
-    assert second == [[1, 2, 3, 4], [1, 2, 3, 4]], "got: {}, expected: {}".format(second, [[1, 2, 3, 4], [1, 2, 3, 4]])
+    assert np.array_equal(second, np.array([[1, 2, 3, 4], [1, 2, 3, 4]])), "got: {}, expected: {}".format(second, np.array([[1, 2, 3, 4], [1, 2, 3, 4]]))
 
 
 

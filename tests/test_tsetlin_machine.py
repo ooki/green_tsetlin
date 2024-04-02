@@ -180,7 +180,10 @@ def test_sparse_cb_store_state():
         new_AL_2 = np.arange(0, (n_classes)*n_literals).astype(np.uint32).reshape((n_classes), n_literals)
         new_AL = [new_AL_1, new_AL_2]
 
-        tm._state = gt.SparseState()
+        print(new_clauses_indptr[0].shape)
+        print(new_clauses_indptr[1].shape)
+
+        tm._state = gt.SparseState(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes)
         tm._state.w = new_weights
         tm._state.c_data = new_clauses_data
         tm._state.c_indices = new_clauses_indices
@@ -193,12 +196,49 @@ def test_sparse_cb_store_state():
         tm._load_state_from_backend()
         state1 = tm._state.copy()
 
-        assert np.array_equal(state1.c_data, state0.c_data), (state1.c_data, state0.c_data)
-        assert np.array_equal(state1.c_indices, state0.c_indices)
-        assert np.array_equal(state1.c_indptr, state0.c_indptr)
+
+        assert np.array_equal(state1.c_data, state0.c_data), (state1.c_data, '\n',state0.c_data)
+        assert np.array_equal(state1.c_indices, state0.c_indices), (state1.c_indices, state0.c_indices)
+        assert np.array_equal(state1.c_indptr, state0.c_indptr), (state1.c_indptr, state0.c_indptr)
         assert np.array_equal(state1.AL, state0.AL), (state1.AL, state0.AL)
         assert np.array_equal(state1.w, state0.w)
 
+
+# def test_sparse_state_save_to_file():
+
+#     n_literals = 4
+#     n_clauses = 5
+#     n_classes = 2
+#     s = 3.0
+#     threshold = 42
+#     tm = gt.SparseTsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4, boost_true_positives=True, dynamic_AL=False)        
+    
+#     tm.active_literals_size = n_literals
+#     tm.clause_size = n_literals
+#     tm.lower_ta_threshold = -40
+
+#     trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40, load_best_state=True)
+    
+#     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    # seed=6
+#     x = csr_matrix(x)
+#     ex = csr_matrix(ex)
+#     trainer.set_train_data(x, y)
+#     trainer.set_test_data(ex, ey)
+#     r = trainer.train()
+    
+
+#     tm.save_state("/home/tobxtra/data/test_sparse_state_save_to_file.npz")
+
+# def test_sparse_state_load_from_file():
+
+#     state = gt.SparseState(n_literals=4, n_clauses=5, n_classes=2)
+
+#     state = state.load_from_file("/home/tobxtra/data/test_sparse_state_save_to_file.npz")
+#     print("w", state.w)
+#     print("c_data", state.c_data)
+#     print("c_indices", state.c_indices)
+#     print("c_indptr", state.c_indptr)
+#     print("AL", state.AL)
 
 if __name__ == "__main__":
     # test_vanilla_cb_store_state()
@@ -206,5 +246,8 @@ if __name__ == "__main__":
 
     # test_sparse_cb_load_state_from_backend()
     test_sparse_cb_store_state()
+
+    # test_sparse_state_save_to_file()
+    # test_sparse_state_load_from_file()
 
     print("<done:", __file__, ">")

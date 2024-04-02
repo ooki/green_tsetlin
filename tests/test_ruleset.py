@@ -36,9 +36,9 @@ def test_simple_ruleset_from_sparse():
     sparse = gt.SparseState(n_literals=2, n_clauses=3, n_classes=2)
     temp_dense = np.array([[1,1],[-1,-1],[1,1], [-1,-1], [1,0], [-1,-1]], dtype=np.int8)
     temp_sparse = csr_matrix(temp_dense)
-    sparse.c_data = temp_sparse.data
-    sparse.c_indices = temp_sparse.indices
-    sparse.c_indptr = temp_sparse.indptr
+    sparse.c_data = [temp_sparse.data]
+    sparse.c_indices = [temp_sparse.indices]
+    sparse.c_indptr = [temp_sparse.indptr]
 
 
     sparse.w = np.array([[3,-2],[-1,4],[6,-7]], dtype=np.int16)
@@ -64,9 +64,9 @@ def test_simple_ruleset_from_sparse():
     sparse = gt.SparseState(n_literals=None, n_clauses=3, n_classes=2)
     temp_dense = np.array([[1,1],[-1,-1],[1,1], [-1,-1], [1,0], [-1,-1]], dtype=np.int8)
     temp_sparse = csr_matrix(temp_dense)
-    sparse.c_data = temp_sparse.data
-    sparse.c_indices = temp_sparse.indices
-    sparse.c_indptr = temp_sparse.indptr
+    sparse.c_data = [temp_sparse.data]
+    sparse.c_indices = [temp_sparse.indices]
+    sparse.c_indptr = [temp_sparse.indptr]
 
     sparse.w = np.array([[3,-2],[-1,4],[6,-7]], dtype=np.int16)
     rs = gt.ruleset.RuleSet(is_multi_label=False)
@@ -77,7 +77,7 @@ def test_simple_ruleset_from_sparse():
 
 
 if __name__ == "__main__":
-    test_simple_rulset_from_dense()
+    # test_simple_rulset_from_dense()
     test_simple_ruleset_from_sparse()
     print("<done tests:", __file__, ">")
 
