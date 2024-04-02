@@ -3,7 +3,8 @@ TODO:
 
 - Fix before release:
     - Rename literal_budget to max_rule_length/size
-
+    - move s_inv and s_min1_inv to state for sparse and dense tm
+    - save last state if save_best_state is false
 
 - Inference
     - Rewrite Inference:predict() to user a sorted list of on literals (like sparse). 
@@ -17,6 +18,7 @@ TODO:
     - ruleset/predictor 
     - setup hpsearch.py so it works for sparseTM
     - convert sparse to dense in SparseTM
+    - fix clang bug on mac
     
 
 - Dense TM:
