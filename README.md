@@ -1,6 +1,10 @@
 TODO:
 ====
 
+- Fix before release:
+    - Rename literal_budget to max_rule_length/size
+
+
 - Inference
     - Rewrite Inference:predict() to user a sorted list of on literals (like sparse). 
     - Consider writing a "sparse" backend, that uses a map<> to track literal/feature importance
@@ -12,11 +16,13 @@ TODO:
     - vectorized count votes (as dense)
     - ruleset/predictor 
     - setup hpsearch.py so it works for sparseTM
+    - convert sparse to dense in SparseTM
     
 
 - Dense TM:
     - vectorized count votes
     - convolutional?
+    - convert dense to sparse in DenseTM
 
 - examples
     - implement a non trainer example
