@@ -235,37 +235,33 @@ def test_train_set_best_state_and_results_afterwards():
     assert trainer.results is not None
     assert tm._state is not None
 
+def mock_return_gtc_backend():
+    return py_gtc.ClauseBlock
 
-# def test_train_simple_xor_py_gtc():
+def test_train_simple_xor_py_gtc():
     
-#     n_literals = 7
-#     n_clauses = 5
-#     n_classes = 2
-#     s = 3.0
-#     threshold = 42   
-#     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42   
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    tm._get_backend = mock_return_gtc_backend
     
-#     tm._backend_clause_block_cls = py_gtc.ClauseBlock
 
-#     trainer = gt.Trainer(tm, seed=32, n_jobs=1 )
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1 )
 
-#     trainer._cls_feedback_block = py_gtc.FeedbackBlock
-#     trainer._cls_dense_ib = py_gtc.DenseInputBlock
-#     trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
+    trainer._cls_feedback_block = py_gtc.FeedbackBlock
+    trainer._cls_dense_ib = py_gtc.DenseInputBlock
+    trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
 
     
-#     # print("BACKEND:")
-#     # print(tm._backend_clause_block_cls)
-#     # print(tm._backend_clause_block_cls)
-#     # print(trainer._cls_feedback_block)
-#     # print(trainer._cls_dense_ib)
-#     # print(trainer._cls_exec_singlethread)
 
-#     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
-#     trainer.set_train_data(x, y)
-#     trainer.set_test_data(ex, ey)
-#     r = trainer.train()    
-#     print(r)
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+    r = trainer.train()    
+    print(r)
 
 def test_select_backend_ib_trainer_dense():
     n_literals = 7
@@ -373,7 +369,7 @@ def test_train_simple_xor_sparse():
 #     s = 3.0
 #     threshold = 42    
 #     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-
+#     tm._get_backend = mock_return_gtc_backend
 #     tm._backend_clause_block_cls = py_gtc.ClauseBlockSparse
 #     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
 
@@ -387,16 +383,16 @@ def test_train_simple_xor_sparse():
 #     print(trainer._cls_sparse_ib)
 #     print(trainer._cls_exec_singlethread)
     
-    # x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+#     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
 
-    # x = csr_matrix(x)
-    # ex = csr_matrix(ex)
+#     x = csr_matrix(x)
+#     ex = csr_matrix(ex)
 
-    # trainer.set_train_data(x, y)
-    # trainer.set_test_data(ex, ey)
+#     trainer.set_train_data(x, y)
+#     trainer.set_test_data(ex, ey)
 
-    # r = trainer.train()    
-    # print(r)
+#     r = trainer.train()    
+#     print(r)
 
 
 def test_trainer_with_kfold():
@@ -455,9 +451,9 @@ def test_wrong_data_formats():
 if __name__ == "__main__":
     # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     # test_train_set_best_state_and_results_afterwards()
-    # test_train_simple_xor_py_gtc()
-    test_train_simple_xor_sparse()
-    test_train_simple_xor()
+    test_train_simple_xor_py_gtc()
+    # test_train_simple_xor_sparse()
+    # test_train_simple_xor()
     # test_train_simple_xor_gtc_tm_backend()
     # test_select_backend_ib()
     # test_set_backend_py_gtc_sparse()
