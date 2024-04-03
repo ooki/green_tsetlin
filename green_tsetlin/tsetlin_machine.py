@@ -8,7 +8,7 @@ import numpy as np
 
 import green_tsetlin as gt
 from green_tsetlin.backend import impl as _backend_impl
-
+import pickle
 
 class DenseState:
     """
@@ -108,46 +108,37 @@ class SparseState:
     def load_from_file(file_path) -> "SparseState":
         if not file_path.endswith(".npz"):
             raise ValueError("State object must be a .npz file")
-        d = np.load(file_path)
+        d = np.load(file_path, allow_pickle=True)
         tms = SparseState()
 
 
+        
+        # temp_c_data = d["c_data"].astype(np.int8)
+        # temp_c_indices = d["c_indices"].astype(np.uint32)
+        # temp_c_indptr = d["c_indptr"].astype(np.uint32)
+        # temp_AL = d["AL"].astype(np.uint32)
 
-        if d["w"].shape[0]*2 != d["c_indptr"][0].shape[0]-1:
-            raise ValueError("Cannot load state. w and c must have the same number of clauses, w_size: {}, c_size: {}".format(d["w"].shape[0], d["c_indptr"][0].shape[0]-1)) 
+        # if d["w"].shape[0]*2 != d["c_indptr"][0].shape[0]-1:
+        #     raise ValueError("Cannot load state. w and c must have the same number of clauses, w_size: {}, c_size: {}".format(d["w"].shape[0], d["c_indptr"][0].shape[0]-1)) 
 
         if d["w"].dtype != np.int16:
             raise ValueError("Clause Weights much be np.int16 is {}".format(d["w"].dtype))
-        
-        if d["c_data"][0].dtype != np.int8:
-            raise ValueError("Clause State much be np.int8 is {}".format(d["c_data"][0].dtype))
-
-        if d["c_indices"][0].dtype != np.uint32:
-            raise ValueError("Clause State much be np.uint32 is {}".format(d["c_indices"][0].dtype))
-
-        if d["c_indptr"][0].dtype != np.uint32:
-            raise ValueError("Clause State much be np.uint32 is {}".format(d["c_indptr"][0].dtype))
-
-        print(d["AL"][0])
-        print(d["AL"][0].dtype)
-
-        if d["AL"][0].dtype != np.uint32:
-            raise ValueError("Active Literals much be np.uint32 is {}".format(d["AL"][0].dtype))
 
 
         tms.w = d["w"]
-        tms.c_data = d["c_data"]
-        tms.c_indices = d["c_indices"]
-        tms.c_indptr = d["c_indptr"]
-        tms.AL = d["AL"]
+        tms.c_data = d["c_data"].tolist()
+        tms.c_indices = d["c_indices"].tolist()
+        tms.c_indptr = d["c_indptr"].tolist()
+        tms.AL = d["AL"].tolist()
+        tms.n_literals = d["n_literals"]
         return tms
 
     def save_to_file(self, file_path) -> None:
         if not file_path.endswith(".npz"):
             raise ValueError("State object must be a .npz file")
         
-        np.savez(file_path, w=self.w, c_data=self.c_data, c_indices=self.c_indices, c_indptr=self.c_indptr, AL=self.AL)
-
+        np.savez(file_path, w=self.w, c_data=np.array(self.c_data, dtype=object), c_indices=np.array(self.c_indices, dtype=object), c_indptr=np.array(self.c_indptr, dtype=object), AL=np.array(self.AL, dtype=object), n_literals=self.n_literals)
+        
 
 class TsetlinMachine:
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
