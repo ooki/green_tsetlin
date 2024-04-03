@@ -6,7 +6,7 @@
 #define ROWS 70000
 #define COLS 784
 
-#include "mnist_tm.h"
+#include "mnist_tm_sparse.h"
 
 double get_time_diff(struct timespec *start, struct timespec *end) {
     double start_sec = (double)start->tv_sec + ((double)start->tv_nsec / 1e9);
