@@ -308,6 +308,8 @@ class Trainer:
                     
             if self.load_best_state is True:
                 self.tm._state = self._best_tm_state
+            else:
+                self.tm._state = self.tm._load_state_from_backend(only_return_copy=True) 
         
         r = {
             "train_time_of_epochs": train_time_of_epochs,

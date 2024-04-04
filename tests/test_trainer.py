@@ -448,10 +448,55 @@ def test_wrong_data_formats():
         trainer_s.set_validation_data(ex, y)
 
 
+def test_trainer_save_last_state_if_save_best_is_false():
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42    
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=True, load_best_state=False)
+
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+    r = trainer.train()
+
+    # print(r)
+
+    assert r["best_test_score"] == 1.0
+    assert tm._state is not None
+    assert trainer._best_tm_state is None
+
+def test_trainer_save_best_state_if_save_best_is_true():
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42    
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=True, load_best_state=True)
+
+    trainer.set_train_data(x, y)
+    trainer.set_test_data(ex, ey)
+    r = trainer.train()
+
+    # print(r)
+
+    assert r["best_test_score"] == 1.0
+    assert tm._state is not None
+    assert trainer._best_tm_state is not None
+    assert tm._state == trainer._best_tm_state
+
+
+
 if __name__ == "__main__":
     # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
     # test_train_set_best_state_and_results_afterwards()
-    test_train_simple_xor_py_gtc()
+    # test_train_simple_xor_py_gtc()
     # test_train_simple_xor_sparse()
     # test_train_simple_xor()
     # test_train_simple_xor_gtc_tm_backend()
@@ -464,5 +509,8 @@ if __name__ == "__main__":
     # test_train_simple_xor_uniform_feedback()
 
     # test_trainer_with_kfold()
+
+    # test_trainer_save_last_state_if_save_best_is_false()
+    test_trainer_save_best_state_if_save_best_is_true()
 
     print("<done: ", __file__, ">")
