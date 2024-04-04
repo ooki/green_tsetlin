@@ -298,8 +298,8 @@ namespace green_tsetlin
             {
                 std::uniform_real_distribution<double> u(0.0,1.0);
                 
-                const double s_inv = (1.0 / state.s);
-                const double s_min1_inv = (state.s - 1.0) / state.s;
+                // const double s_inv = (1.0 / state.s);
+                // const double s_min1_inv = (state.s - 1.0) / state.s;
 
                 const int8_t lower_state = -127;
                 const int8_t upper_state =  127;
@@ -319,7 +319,7 @@ namespace green_tsetlin
                         }
                         else
                         {
-                            if( u(state.rng) <= s_min1_inv)
+                            if( u(state.rng) <= state.s_min1_inv)
                             {
                                 if(clause_row[literal_k] < upper_state)
                                     clause_row[literal_k] += 1;
@@ -328,7 +328,7 @@ namespace green_tsetlin
                         
 
                         // NEG 3
-                        if( u(state.rng) <= s_inv )
+                        if( u(state.rng) <= state.s_inv )
                         {
                             if(neg_clause_row[literal_k] > lower_state)
                                 neg_clause_row[literal_k] -= 1;
@@ -337,14 +337,14 @@ namespace green_tsetlin
                     else
                     {
                         // POS 3
-                        if( u(state.rng) <= s_inv )
+                        if( u(state.rng) <= state.s_inv )
                         {
                             if(clause_row[literal_k] > lower_state)
                                 clause_row[literal_k] -= 1;
                         }
 
                         // NEG 2
-                        if( u(state.rng) <= s_min1_inv)
+                        if( u(state.rng) <= state.s_min1_inv)
                         {
                             if(neg_clause_row[literal_k] < upper_state)
                                 neg_clause_row[literal_k] += 1;
@@ -362,14 +362,14 @@ namespace green_tsetlin
             {
                 std::uniform_real_distribution<double> u(0.0,1.0);
                 
-                const double s_inv = (1.0 / state.s);
+                // const double s_inv = (1.0 / state.s);
                 const int8_t lower_state = -127;
                 
                 int8_t* neg_clause_row = &clause_row[state.num_literals]; 
                 for(int literal_k = 0; literal_k < state.num_literals; ++literal_k)
                 {
                     // POS 1
-                    if(u(state.rng) <= s_inv)
+                    if(u(state.rng) <= state.s_inv)
                     {
                         if(clause_row[literal_k] > lower_state)
                             clause_row[literal_k] -= 1;
@@ -377,7 +377,7 @@ namespace green_tsetlin
                     }
 
                     // NEG 1
-                    if(u(state.rng) <= s_inv)
+                    if(u(state.rng) <= state.s_inv)
                     {
                         if(neg_clause_row[literal_k] > lower_state)
                             neg_clause_row[literal_k] -= 1;

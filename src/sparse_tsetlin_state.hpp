@@ -18,6 +18,9 @@ namespace green_tsetlin
     {
         public:
             double s = -42.0;
+            double s_inv = 1.0 / s;
+            double s_min1_inv = (s - 1.0) / s;
+
             int num_clauses = 0;
             int num_classes = 0;        
             int num_class_weights_mem = 0;
@@ -53,6 +56,8 @@ namespace green_tsetlin
             inline void set_s(double s_param)
             {
                 s = s_param;
+                s_inv = 1.0 / s;
+                s_min1_inv = (s - 1.0) / s;
             }
             inline double get_s() const { return s; }
 

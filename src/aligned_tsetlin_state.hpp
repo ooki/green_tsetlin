@@ -20,6 +20,8 @@ namespace green_tsetlin
             constexpr const static int outputs_per_vector = _outputs_per_vector;
 
             double s = -42.0;
+            double s_inv = 1.0 / s;
+            double s_min1_inv = (s - 1.0) / s;
             int num_clauses = 0;
             int num_classes = 0;
             int num_class_weights_mem = 0;
@@ -60,6 +62,9 @@ namespace green_tsetlin
             inline void set_s(double s_param)
             {
                 s = s_param;
+                s_inv = 1.0 / s;
+                s_min1_inv = (s - 1.0) / s;
+
                 double p = 1 / s;
                 int32_t tmp = ((int32_t)(p * 255)) - 127;                
                 tmp += 1; // size we use < to compare and not <=

@@ -543,8 +543,8 @@ namespace  green_tsetlin
             // TODO: clause_row needs a sparse type
             void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states, SparseLiterals* active_literals, SparseLiterals* literals, int class_k)
             {
-                const double s_inv = (1.0 / state.s);
-                const double s_min1_inv = (state.s - 1.0) / state.s;
+                // const double s_inv = (1.0 / state.s);
+                // const double s_min1_inv = (state.s - 1.0) / state.s;
 
                 const int8_t lower_state = -127;
                 const int8_t upper_state = 127;
@@ -572,7 +572,7 @@ namespace  green_tsetlin
                                 }
                                 else
                                 {
-                                    if (state.fast_rng.next_u() <= s_min1_inv)
+                                    if (state.fast_rng.next_u() <= state.s_min1_inv)
                                     {
                                         pos_clause_states->at(ta_k) += 1;
                                     }
@@ -593,7 +593,7 @@ namespace  green_tsetlin
                     {
                         if (neg_clause_row->at(ta_k) == literal)
                         {
-                            if ((neg_clause_states->at(ta_k) > lower_state) && (state.fast_rng.next_u() <= s_inv))
+                            if ((neg_clause_states->at(ta_k) > lower_state) && (state.fast_rng.next_u() <= state.s_inv))
                             {
                                 neg_clause_states->at(ta_k) -= 1;
                             }
@@ -620,7 +620,7 @@ namespace  green_tsetlin
                             goto endloop_pos;
                         }
                     }
-                    if ((pos_clause_states->at(ta_k) > lower_state) && (state.fast_rng.next_u() <= s_inv))
+                    if ((pos_clause_states->at(ta_k) > lower_state) && (state.fast_rng.next_u() <= state.s_inv))
                         pos_clause_states->at(ta_k) -= 1;
 
                     endloop_pos:;
@@ -645,7 +645,7 @@ namespace  green_tsetlin
                         }
                         else
                         {
-                            if (state.fast_rng.next_u() <= s_min1_inv)
+                            if (state.fast_rng.next_u() <= state.s_min1_inv)
                                 neg_clause_states->at(ta_k) += 1;
                         }
                     }
@@ -664,14 +664,14 @@ namespace  green_tsetlin
             // TODO: clause_row needs a sparse type
             void operator()(_State& state, SparseClause* pos_clause_row, SparseClause* neg_clause_row, SparseClauseStates* pos_clause_states, SparseClauseStates* neg_clause_states)
             {
-                const double s_inv = (1.0 / state.s);
+                // const double s_inv = (1.0 / state.s);
                 const int8_t lower_state = -127;
 
 
                 // loop pos clauses
                 for (size_t ta_k = 0; ta_k < pos_clause_row->size(); ++ta_k)
                 {
-                    if (state.fast_rng.next_u() <= s_inv)
+                    if (state.fast_rng.next_u() <= state.s_inv)
                     {
                         if (pos_clause_states->at(ta_k) > lower_state)
                             pos_clause_states->at(ta_k) -= 1;
@@ -681,7 +681,7 @@ namespace  green_tsetlin
                 // loop neg clauses
                 for (size_t ta_k = 0; ta_k < neg_clause_row->size(); ++ta_k)
                 {
-                    if (state.fast_rng.next_u() <= s_inv)
+                    if (state.fast_rng.next_u() <= state.s_inv)
                     {
                         if (neg_clause_states->at(ta_k) > lower_state)
                             neg_clause_states->at(ta_k) -= 1;
