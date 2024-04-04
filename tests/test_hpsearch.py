@@ -70,14 +70,17 @@ def test_optimization_literals():
     hyperparam_search.set_train_data(train_x, train_y)
     hyperparam_search.set_test_data(test_x, test_y)
 
-    hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
-    
     vals = []
-    for trial in hyperparam_search.best_trials:
-        vals.append(trial.values)
+    literal_max = 3
+    
+    for i in range(5):
+
+        hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
+        
+        for trial in hyperparam_search.best_trials:
+            vals.append(trial.values)
 
     vals = np.array(vals)
-    literal_max = 3
 
     assert np.min(vals[:, 1]) < literal_max, f"mean literal budget should be less than {literal_max}, got literal values {vals[:, 1]}"
 
@@ -149,23 +152,28 @@ def test_with_kfold():
 
     train_x, train_y, test_x, test_y = xor_dataset(n_train=50, n_test=10, n_literals=8, seed=42, noise=0.05)
 
-    hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
-                                              clause_space=(5, 20),
-                                              threshold_space=(3, 20),
-                                              max_epoch_per_trial=20,
-                                              literal_budget=(1, train_x.shape[1]),
-                                              seed=42,
-                                              n_jobs=5,
-                                              k_folds=5)
-    
-    hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
-
-    hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
-    
     vals = []
-    for trial in hyperparam_search.best_trials:
-        vals.append(trial.values)
+    
+    for i in range(5):
+
+        seed = np.random.randint(1, 1000)
+
+        hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
+                                                clause_space=(5, 20),
+                                                threshold_space=(3, 20),
+                                                max_epoch_per_trial=20,
+                                                literal_budget=(1, train_x.shape[1]),
+                                                seed=seed,
+                                                n_jobs=5,
+                                                k_folds=5)
+        
+        hyperparam_search.set_train_data(train_x, train_y)
+        hyperparam_search.set_test_data(test_x, test_y)
+
+        hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
+        
+        for trial in hyperparam_search.best_trials:
+            vals.append(trial.values)
 
     assert np.max(vals) == 1.0
 
