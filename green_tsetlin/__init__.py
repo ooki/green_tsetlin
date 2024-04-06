@@ -6,7 +6,8 @@
 
 
 
-from green_tsetlin.tsetlin_machine import TsetlinMachine, SparseTsetlinMachine, DenseState, SparseState, allocate_clause_blocks
+from green_tsetlin.tsetlin_machine import TsetlinMachine, DenseState, allocate_clause_blocks
+from green_tsetlin.sparse_tsetlin_machine import SparseTsetlinMachine, SparseState
 from green_tsetlin.trainer import Trainer
 from green_tsetlin.predictor import Predictor
 
