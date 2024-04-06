@@ -104,7 +104,6 @@ namespace green_tsetlin
                 }
             }
     };  
-
     
 }; // namespace green_tsetlin
 
