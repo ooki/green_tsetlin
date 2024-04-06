@@ -160,15 +160,15 @@ namespace green_tsetlin
                             }
                         }
 
-                        endpatch:
-                            if(do_literal_budget)
-                                state.literal_counts[clause_k] = literal_count;                        
+                        endpatch:;
+                                                  
 
                         if(patch_output)
                         {
                             state.clause_outputs[clause_k] = 1;
                             state.active_patches_storage.push_back(patch_k);
-                            state.literal_counts_per_patch[patch_k] = literal_count;
+                            if(do_literal_budget)                                                            
+                                state.literal_counts_per_patch[patch_k] = literal_count;                            
                         }
                     }    
 
