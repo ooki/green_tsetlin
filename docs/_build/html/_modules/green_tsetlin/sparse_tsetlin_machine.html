@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>green_tsetlin.sparse_tsetlin_machine &mdash; green_tsetlin 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/fonts.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            green_tsetlin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../green_tsetlin.html">green_tsetlin</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">green_tsetlin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">green_tsetlin.sparse_tsetlin_machine</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for green_tsetlin.sparse_tsetlin_machine</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">green_tsetlin</span> <span class="k">as</span> <span class="nn">gt</span>
+<span class="kn">from</span> <span class="nn">green_tsetlin.backend</span> <span class="kn">import</span> <span class="n">impl</span> <span class="k">as</span> <span class="n">_backend_impl</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">green_tsetlin</span> <span class="kn">import</span> <span class="n">TsetlinMachine</span>
+
+
+<div class="viewcode-block" id="SparseState">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseState">[docs]</a>
+<span class="k">class</span> <span class="nc">SparseState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A storage object for a Tsetlin Machine state.</span>
+<span class="sd">    w : is the class Weights</span>
+<span class="sd">    c_data : is the Clauses data</span>
+<span class="sd">    c_indices : is the Clauses indices</span>
+<span class="sd">    c_indptr : is the Clauses indptr</span>
+<span class="sd">    AL : is the Active Literals</span>
+
+<span class="sd">    c_data, c_indices and c_indptr are the data, indices and indptr of a CSR matrix.</span>
+
+<span class="sd">    Will not create any copy of the underlying array, but will create a reference.</span>
+<span class="sd">     So the user is responsible for not changing the state after it has been loaded OR provide a copy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_literals</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_literals</span> <span class="o">=</span> <span class="n">n_literals</span>
+        <span class="k">if</span> <span class="n">n_literals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+
+            <span class="c1"># these are returned not filled like for dense_state, think not need to pre allocate space</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_indices</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_indptr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">AL</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_data</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_indices</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c_indptr</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">AL</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="SparseState.copy">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseState.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SparseState&quot;</span><span class="p">:</span>
+        <span class="n">tm</span> <span class="o">=</span> <span class="n">SparseState</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">c_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">c_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_indices</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">c_indptr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_indptr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">AL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">AL</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">tm</span></div>
+
+
+<div class="viewcode-block" id="SparseState.load_from_file">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseState.load_from_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SparseState&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;State object must be a .npz file&quot;</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">tms</span> <span class="o">=</span> <span class="n">SparseState</span><span class="p">()</span>
+
+
+        
+        <span class="c1"># temp_c_data = d[&quot;c_data&quot;].astype(np.int8)</span>
+        <span class="c1"># temp_c_indices = d[&quot;c_indices&quot;].astype(np.uint32)</span>
+        <span class="c1"># temp_c_indptr = d[&quot;c_indptr&quot;].astype(np.uint32)</span>
+        <span class="c1"># temp_AL = d[&quot;AL&quot;].astype(np.uint32)</span>
+
+        <span class="c1"># if d[&quot;w&quot;].shape[0]*2 != d[&quot;c_indptr&quot;][0].shape[0]-1:</span>
+        <span class="c1">#     raise ValueError(&quot;Cannot load state. w and c must have the same number of clauses, w_size: {}, c_size: {}&quot;.format(d[&quot;w&quot;].shape[0], d[&quot;c_indptr&quot;][0].shape[0]-1)) </span>
+
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Clause Weights much be np.int16 is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+
+
+        <span class="n">tms</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span>
+        <span class="n">tms</span><span class="o">.</span><span class="n">c_data</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;c_data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">tms</span><span class="o">.</span><span class="n">c_indices</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;c_indices&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">tms</span><span class="o">.</span><span class="n">c_indptr</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;c_indptr&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">tms</span><span class="o">.</span><span class="n">AL</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;AL&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">tms</span><span class="o">.</span><span class="n">n_literals</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;n_literals&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">tms</span></div>
+
+
+<div class="viewcode-block" id="SparseState.save_to_file">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseState.save_to_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;State object must be a .npz file&quot;</span><span class="p">)</span>
+        
+        <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">c_data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">),</span> <span class="n">c_indices</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_indices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">),</span> <span class="n">c_indptr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c_indptr</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">),</span> <span class="n">AL</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">AL</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">),</span> <span class="n">n_literals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_literals</span><span class="p">)</span></div>
+</div>
+
+        
+        
+
+<div class="viewcode-block" id="SparseTsetlinMachine">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine">[docs]</a>
+<span class="k">class</span> <span class="nc">SparseTsetlinMachine</span><span class="p">(</span><span class="n">TsetlinMachine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_literals</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">s</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">literal_budget</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">boost_true_positives</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dynamic_AL</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">multi_label</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">n_literals</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">literal_budget</span><span class="p">,</span> <span class="n">boost_true_positives</span><span class="p">,</span> <span class="n">multi_label</span><span class="p">)</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">clause_size</span> <span class="o">=</span> <span class="n">n_literals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_literals_size</span> <span class="o">=</span> <span class="n">n_literals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lower_ta_threshold</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dynamic_AL</span> <span class="o">=</span> <span class="n">dynamic_AL</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;sparse_cb&quot;</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">_load_state_from_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">only_return_copy</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Collects the state from the backend.</span>
+<span class="sd">        if only_return_copy is True =&gt; just return the state, else set it to state_ in the TM                        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span>
+        <span class="k">if</span> <span class="n">only_return_copy</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># if state is None: # allocate state</span>
+        <span class="c1"># need do this to clear the state, as the values are not replaced like in dense</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">SparseState</span><span class="p">(</span><span class="n">n_literals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_literals</span><span class="p">,</span> <span class="n">n_clauses</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span>
+
+
+        
+        <span class="n">clause_offset</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span><span class="p">:</span>
+            <span class="n">_c_state</span> <span class="o">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">get_clause_state_sparse</span><span class="p">()</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">c_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_state</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">c_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_state</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">c_indptr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_c_state</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">AL</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cb</span><span class="o">.</span><span class="n">get_active_literals</span><span class="p">())</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">get_clause_weights</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">clause_offset</span><span class="p">)</span>
+            <span class="n">clause_offset</span> <span class="o">+=</span> <span class="n">cb</span><span class="o">.</span><span class="n">get_number_of_clauses</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">only_return_copy</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">state</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">state</span>
+    
+    <span class="k">def</span> <span class="nf">_save_state_in_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Set the internal state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;There is no clauseblocks in the backend, cannot save state&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot save a empty Tsetlin Machine into the backend. Please load a state first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">clause_offset</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">cb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span><span class="p">):</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_clause_state_sparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c_data</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c_indices</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c_indptr</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_clause_weights</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">clause_offset</span><span class="p">)</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_active_literals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">AL</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="n">clause_offset</span> <span class="o">+=</span> <span class="n">cb</span><span class="o">.</span><span class="n">get_number_of_clauses</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="SparseTsetlinMachine.load_state">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.load_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_state</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">SparseState</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the state from the given path or state object.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            path_or_state (Union[str, SparseState]): The path to the state file or the SparseState object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_state</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">SparseState</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="n">path_or_state</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">path_or_state</span></div>
+
+
+
+<div class="viewcode-block" id="SparseTsetlinMachine.save_state">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.save_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the state of the Tsetlin Machine to the specified file path.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            path (str): The file path to save the state to.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_from_backend</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot save a empty Tsetlin Machine without a stored state. Is the Tsetlin Machine trained?&quot;</span><span class="p">)</span>
+                    
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SparseTsetlinMachine.get_predictor">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.get_predictor">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_predictor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">explanation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">exclude_negative_clauses</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;gt.Predictor&quot;</span><span class="p">:</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">RuleSet</span><span class="p">(</span><span class="n">is_multi_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_multi_label</span><span class="p">)</span>
+        <span class="n">rs</span><span class="o">.</span><span class="n">compile_from_sparse_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gt</span><span class="o">.</span><span class="n">Predictor</span><span class="o">.</span><span class="n">from_ruleset</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">explanation</span><span class="p">,</span> <span class="n">exclude_negative_clauses</span><span class="p">)</span>   </div>
+
+
+    <span class="k">def</span> <span class="nf">_set_extra_params_on_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cb</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="nb">int</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_literals_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Active literals size must be greater than 0, current value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_literals_size</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clause_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Clause size must be greater than 0, current value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clause_size</span><span class="p">))</span>
+
+        <span class="c1"># want this?</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_ta_threshold</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have a positive lower_ta_threshold (</span><span class="si">{}</span><span class="s2">). Should be set to a negative number.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_ta_threshold</span><span class="p">))</span>
+
+
+        <span class="n">cb</span><span class="o">.</span><span class="n">set_active_literals_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_literals_size</span><span class="p">)</span>
+        <span class="n">cb</span><span class="o">.</span><span class="n">set_clause_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clause_size</span><span class="p">)</span>
+        <span class="n">cb</span><span class="o">.</span><span class="n">set_lower_ta_threshold</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower_ta_threshold</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_get_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select the correct backend implementation based on the current settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">imp_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>     <span class="s2">&quot;sparse_cb_Lt_Dt_Bt&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>    <span class="s2">&quot;sparse_cb_Lt_Dt_Bf&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>    <span class="s2">&quot;sparse_cb_Lt_Df_Bt&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>   <span class="s2">&quot;sparse_cb_Lt_Df_Bf&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>    <span class="s2">&quot;sparse_cb_Lf_Dt_Bt&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>   <span class="s2">&quot;sparse_cb_Lf_Dt_Bf&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>   <span class="s2">&quot;sparse_cb_Lf_Df_Bt&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>  <span class="s2">&quot;sparse_cb_Lf_Df_Bf&quot;</span>
+        <span class="p">}</span>
+
+        <span class="n">lb_temp</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lb_temp</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># print(imp_dict[(lb_temp, self.dynamic_AL, self.boost_true_positives)])</span>
+        <span class="n">backend_cb</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="n">imp_dict</span><span class="p">[(</span><span class="n">lb_temp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamic_AL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boost_true_positives</span><span class="p">)]]</span>
+
+        <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;sparse_cb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend_cb</span>
+
+        <span class="k">return</span> <span class="n">backend_cb</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Sondre &#39;Ooki&#39; Glimsdal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

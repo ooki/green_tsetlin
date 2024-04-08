@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>green_tsetlin.trainer &mdash; green_tsetlin 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/fonts.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            green_tsetlin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../green_tsetlin.html">green_tsetlin</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">green_tsetlin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">green_tsetlin.trainer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for green_tsetlin.trainer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">perf_counter</span>
+
+    
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">StratifiedKFold</span>
+
+
+<span class="c1">#import green_tsetlin_core as gtc</span>
+<span class="kn">from</span> <span class="nn">green_tsetlin</span> <span class="kn">import</span> <span class="n">TsetlinMachine</span><span class="p">,</span> <span class="n">DenseState</span><span class="p">,</span> <span class="n">allocate_clause_blocks</span>
+<span class="kn">from</span> <span class="nn">green_tsetlin.backend</span> <span class="kn">import</span> <span class="n">impl</span> <span class="k">as</span> <span class="n">_backend_impl</span>
+
+
+<div class="viewcode-block" id="empty_epoch_callback">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.trainer.empty_epoch_callback">[docs]</a>
+<span class="k">def</span> <span class="nf">empty_epoch_callback</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">train_acc</span><span class="p">,</span> <span class="n">test_score</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Trainer">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.trainer.Trainer">[docs]</a>
+<span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">        import green_tsetlin as gt</span>
+<span class="sd">        </span>
+<span class="sd">        tm = gt.TsetlinMachine(n_literals=4, n_clauses=5, n_classes=2, s=3.0, threshold=42, literal_budget=4, boost_true_positives=False)        </span>
+<span class="sd">        </span>
+<span class="sd">        train_x, train_y, eval_x, eval_y = gt.dataset_generator.xor_dataset(n_literals=n_literals)    </span>
+<span class="sd">        </span>
+<span class="sd">        trainer = gt.Trainer(tm, seed=42, n_jobs=1)</span>
+<span class="sd">        trainer.set_train_data(train_x, train_y)</span>
+<span class="sd">        trainer.set_test_data(eval_x, eval_y)</span>
+<span class="sd">        </span>
+<span class="sd">        trainer.train()</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">tm</span><span class="p">:</span> <span class="n">TsetlinMachine</span><span class="p">,</span>
+                 <span class="n">feedback_type</span><span class="o">=</span><span class="s2">&quot;focused_negative_sampling&quot;</span><span class="p">,</span>
+                 <span class="n">n_jobs</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">n_epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+                 <span class="n">seed</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">early_exit_acc</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">load_best_state</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">fn_epoch_callback</span><span class="o">=</span><span class="n">empty_epoch_callback</span><span class="p">,</span>
+                 <span class="n">fn_test_score</span><span class="o">=</span><span class="s2">&quot;accuracy&quot;</span><span class="p">,</span>
+                 <span class="n">progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">copy_training_data</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">k_folds</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">kfold_progress_bar</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tm</span> <span class="o">=</span> <span class="n">tm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feedback_type</span> <span class="o">=</span> <span class="n">feedback_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span> <span class="o">=</span> <span class="n">n_epochs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_best_state</span> <span class="o">=</span> <span class="n">load_best_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">early_exit_acc</span> <span class="o">=</span> <span class="n">early_exit_acc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span> <span class="o">=</span> <span class="n">progress_bar</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn_epoch_callback</span> <span class="o">=</span> <span class="n">fn_epoch_callback</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn_test_score</span> <span class="o">=</span> <span class="n">fn_test_score</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">copy_training_data</span> <span class="o">=</span> <span class="n">copy_training_data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_best_tm_state</span> <span class="p">:</span> <span class="n">DenseState</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span> 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kfold_progress_bar</span> <span class="o">=</span> <span class="n">kfold_progress_bar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span> <span class="o">=</span> <span class="n">k_folds</span>
+
+        <span class="k">if</span> <span class="n">fn_test_score</span> <span class="o">==</span> <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fn_test_score</span> <span class="o">=</span> <span class="n">accuracy_score</span>        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fn_test_score</span> <span class="o">=</span> <span class="n">fn_test_score</span>
+        
+        <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n_cpus</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>                        
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_cpus</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">n_jobs</span> <span class="c1"># remember: n_jobs is negative</span>
+            
+        <span class="k">elif</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_dense_ib</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;dense_input&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_feedback_block</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;feedback&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_feedback_block_uniform</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;feedback_uniform&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_feedback_block_multi_label</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;feedback_multi&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_exec_singlethread</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;single_executor&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_exec_multithread</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;thread_executor&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_sparse_ib</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;sparse_input&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cls_input_block</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_train</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="Trainer.set_train_data">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.trainer.Trainer.set_train_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_train_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_train</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">y_train</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        
+        <span class="c1"># raise error if data is sparse and cb is dense, and vice versa</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">==</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;cb&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_train can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">==</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;sparse_cb&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_train can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().&quot;</span><span class="p">)</span>
+
+        
+        <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">y_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_train and y_train must have the same number of examples: </span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy_training_data</span><span class="p">:</span>
+            <span class="n">x_train</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">y_train</span> <span class="o">=</span> <span class="n">y_train</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+           
+        <span class="k">if</span> <span class="n">x_train</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_train must be of type np.uint8, was: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_train</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">y_train</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data y_train must be of type np.uint32, was: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y_train</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_train does not match in shape[1] (#literals) with n_literals : </span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_train</span> <span class="o">=</span> <span class="n">x_train</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span> <span class="o">=</span> <span class="n">y_train</span>        </div>
+
+
+
+<div class="viewcode-block" id="Trainer.set_test_data">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.trainer.Trainer.set_test_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_test_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">y_test</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">==</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;cb&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_test can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">==</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;sparse_cb&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_test can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().&quot;</span><span class="p">)</span>
+
+
+        <span class="n">y_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">y_test</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">y_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_test and y_test must have the same number of examples: </span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+             
+        <span class="k">if</span> <span class="n">x_test</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_test</span> <span class="o">=</span> <span class="n">x_test</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">y_test</span> <span class="o">=</span> <span class="n">y_test</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">x_test</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_test must be of type np.uint8, was: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_test</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">y_test</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data y_test must be of type np.uint32, was: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y_test</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">x_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_test does not match in shape[1] (#literals) with n_literals : </span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_test</span> <span class="o">=</span> <span class="n">x_test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_test</span> <span class="o">=</span> <span class="n">y_test</span></div>
+
+
+
+<div class="viewcode-block" id="Trainer.set_validation_data">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.trainer.Trainer.set_validation_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_validation_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_val</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">y_val</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_val</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">==</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;cb&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_val can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">==</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;sparse_cb&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;x_val can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().&quot;</span><span class="p">)</span>
+
+        <span class="n">y_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">y_val</span><span class="p">)</span>       
+
+        <span class="k">if</span> <span class="n">x_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_val</span> <span class="o">=</span> <span class="n">x_val</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">y_val</span> <span class="o">=</span> <span class="n">y_val</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">x_val</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_test must be of type np.uint8, was: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_val</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">y_val</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data y_test must be of type np.uint32, was: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y_val</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">x_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data x_test does not match in shape[1] (#literals) with n_literals : </span><span class="si">{}</span><span class="s2"> != </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_val</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_val</span> <span class="o">=</span> <span class="n">x_val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_val</span> <span class="o">=</span> <span class="n">y_val</span> </div>
+
+
+
+    <span class="k">def</span> <span class="nf">_get_feedback_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback_type</span> <span class="o">==</span> <span class="s2">&quot;focused_negative_sampling&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_is_multi_label</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_feedback_block</span><span class="p">(</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>        
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># since we have actual classes as 2*classes since we use 0/1 per class</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_feedback_block_multi_label</span><span class="p">(</span><span class="n">n_classes</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+            
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback_type</span> <span class="o">==</span> <span class="s2">&quot;uniform&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_is_multi_label</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Cannot use &#39;uniform&#39; feedback for multi-label classification yet.&quot;</span><span class="p">)</span>
+            
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_feedback_block_uniform</span><span class="p">(</span><span class="n">n_classes</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+            
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown feedback type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feedback_type</span><span class="p">))</span>
+        
+        
+    <span class="k">def</span> <span class="nf">_calculate_blocks_for_tm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span>
+
+
+    <span class="k">def</span> <span class="nf">_select_backend_ib</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_test</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cls_input_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_sparse_ib</span>
+        
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_test</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cls_input_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_dense_ib</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Train and test data must be of the same type. x_train type: </span><span class="si">{}</span><span class="s2">, x_test type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_test</span><span class="p">)))</span>
+
+
+    <span class="k">def</span> <span class="nf">_train_inner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>                
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_train</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot train() without train data. Did you forget to set_train_data()?&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_select_backend_ib</span><span class="p">()</span>
+        <span class="n">input_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_input_block</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_literals</span><span class="p">)</span>
+
+
+        <span class="n">_flexible_set_data</span><span class="p">(</span><span class="n">input_block</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">)</span>
+
+        <span class="n">feedback_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_feedback_block</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">n_classes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>        
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_clause_block_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_blocks_for_tm</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">set_num_clause_blocks</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">)</span>
+                
+        <span class="n">cbs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">construct_clause_blocks</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="n">cbs</span><span class="p">:</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_feedback</span><span class="p">(</span><span class="n">feedback_block</span><span class="p">)</span>     
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_input_block</span><span class="p">(</span><span class="n">input_block</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>            
+            <span class="k">return</span>
+        
+        <span class="k">with</span> <span class="n">allocate_clause_blocks</span><span class="p">(</span><span class="n">cbs</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">):</span>    
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_save_state_in_backend</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">exec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_exec_singlethread</span><span class="p">(</span><span class="n">input_block</span><span class="p">,</span> <span class="n">cbs</span><span class="p">,</span> <span class="n">feedback_block</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">exec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_exec_multithread</span><span class="p">(</span><span class="n">input_block</span><span class="p">,</span> <span class="n">cbs</span><span class="p">,</span> <span class="n">feedback_block</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+            
+
+            <span class="c1"># main loop</span>
+            <span class="n">n_epochs_trained</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">best_test_score</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+            <span class="n">best_test_epoch</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">train_acc</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+            
+            <span class="n">train_time_of_epochs</span> <span class="o">=</span> <span class="p">[]</span>
+            
+            <span class="n">train_log</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">test_log</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">did_early_exit</span> <span class="o">=</span> <span class="kc">False</span>
+            
+            <span class="n">y_hat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">)</span>
+
+            <span class="n">hide_progress_bar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_bar</span> <span class="ow">is</span> <span class="kc">False</span>  
+            <span class="k">with</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="n">hide_progress_bar</span><span class="p">)</span> <span class="k">as</span> <span class="n">progress_bar</span><span class="p">:</span>
+                <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Processing epoch 1 of </span><span class="si">{}</span><span class="s2">, train acc: NA, best test score: NA&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span><span class="p">))</span>
+        
+                <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span><span class="p">):</span>         
+                    
+                    <span class="n">t0</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>                                   
+                    <span class="n">train_acc</span> <span class="o">=</span> <span class="n">exec</span><span class="o">.</span><span class="n">train_epoch</span><span class="p">()</span>
+                    <span class="n">t1</span> <span class="o">=</span> <span class="n">perf_counter</span><span class="p">()</span>
+
+                    <span class="n">train_time_of_epochs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t1</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span>
+                    <span class="n">train_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">train_acc</span><span class="p">)</span>                
+                    <span class="n">n_epochs_trained</span> <span class="o">+=</span> <span class="mi">1</span>
+                    
+                    <span class="n">_flexible_set_data</span><span class="p">(</span><span class="n">input_block</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_test</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_is_multi_label</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">exec</span><span class="o">.</span><span class="n">eval_predict</span><span class="p">(</span><span class="n">y_hat</span><span class="p">)</span>                            
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">exec</span><span class="o">.</span><span class="n">eval_predict_multi</span><span class="p">(</span><span class="n">y_hat</span><span class="p">)</span>        
+                            
+                    <span class="n">test_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn_test_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_hat</span><span class="p">))</span>
+                    <span class="n">test_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_score</span><span class="p">)</span>                
+                    
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fn_epoch_callback</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">train_acc</span><span class="p">,</span> <span class="n">test_score</span><span class="p">)</span>            
+                    <span class="k">if</span> <span class="n">test_score</span> <span class="o">&gt;</span> <span class="n">best_test_score</span><span class="p">:</span>
+                        <span class="n">best_test_score</span> <span class="o">=</span> <span class="n">test_score</span>
+                        <span class="n">best_test_epoch</span> <span class="o">=</span> <span class="n">epoch</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_best_state</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_best_tm_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_load_state_from_backend</span><span class="p">(</span><span class="n">only_return_copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>                                                
+
+                    
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Processing epoch </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">, train acc: </span><span class="si">{:.3f}</span><span class="s2">, best test score: </span><span class="si">{:.3f}</span><span class="s2"> (epoch: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                                                                                                                                <span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span><span class="p">,</span>
+                                                                                                                                <span class="n">train_acc</span><span class="p">,</span>
+                                                                                                                                <span class="n">best_test_score</span><span class="p">,</span>
+                                                                                                                                <span class="n">best_test_epoch</span><span class="p">))</span>
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="n">test_score</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">early_exit_acc</span><span class="p">:</span>                                    
+                        <span class="n">did_early_exit</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+                    
+                    <span class="k">if</span> <span class="n">epoch</span> <span class="o">&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_epochs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>                   
+                        <span class="n">_flexible_set_data</span><span class="p">(</span><span class="n">input_block</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">)</span>
+
+                    
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_best_state</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_tm_state</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tm</span><span class="o">.</span><span class="n">_load_state_from_backend</span><span class="p">(</span><span class="n">only_return_copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+        
+        <span class="n">r</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;train_time_of_epochs&quot;</span><span class="p">:</span> <span class="n">train_time_of_epochs</span><span class="p">,</span>
+            <span class="s2">&quot;best_test_score&quot;</span><span class="p">:</span> <span class="n">best_test_score</span><span class="p">,</span>
+            <span class="s2">&quot;best_test_epoch&quot;</span><span class="p">:</span> <span class="n">best_test_epoch</span><span class="p">,</span>
+            <span class="s2">&quot;n_epochs&quot;</span><span class="p">:</span> <span class="n">n_epochs_trained</span><span class="p">,</span>
+            <span class="s2">&quot;train_log&quot;</span><span class="p">:</span> <span class="n">train_log</span><span class="p">,</span>
+            <span class="s2">&quot;test_log&quot;</span><span class="p">:</span> <span class="n">test_log</span><span class="p">,</span>
+            <span class="s2">&quot;did_early_exit&quot;</span><span class="p">:</span> <span class="n">did_early_exit</span>
+            <span class="p">}</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">r</span>
+        
+    
+<div class="viewcode-block" id="Trainer.train">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.trainer.Trainer.train">[docs]</a>
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_test</span><span class="p">))</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">))</span>
+
+            <span class="n">kf</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+            <span class="n">best_iter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">best_score</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+            <span class="k">with</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kfold_progress_bar</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">progress_bar</span><span class="p">:</span>
+                
+                <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Processing kfold 1 of </span><span class="si">{}</span><span class="s2">, best test score: NA&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span><span class="p">))</span>
+                
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">kf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)):</span>
+
+                    <span class="n">x_train</span><span class="p">,</span> <span class="n">x_test</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+                    <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">train_index</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">test_index</span><span class="p">]</span>
+
+                    <span class="n">x_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+                    <span class="n">x_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+                    <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+                    <span class="n">y_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_train_data</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_test_data</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_train_inner</span><span class="p">()</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;best_test_score&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">best_score</span><span class="p">:</span>
+                        
+                        <span class="n">best_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;best_test_score&quot;</span><span class="p">]</span>
+                        <span class="n">best_iter</span> <span class="o">=</span> <span class="n">i</span>
+
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Processing kfold </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">, best test score: </span><span class="si">{:.3f}</span><span class="s2"> (iter: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span><span class="p">,</span> <span class="n">best_score</span><span class="p">,</span> <span class="n">best_iter</span><span class="p">))</span>
+                    <span class="n">progress_bar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            
+            <span class="n">r</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;best_test_score&quot;</span><span class="p">:</span> <span class="n">best_score</span><span class="p">,</span> <span class="s2">&quot;k_folds&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span><span class="p">}</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_train_inner</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span></div>
+</div>
+
+
+
+<span class="k">def</span> <span class="nf">_flexible_set_data</span><span class="p">(</span><span class="n">ib</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">csr_matrix</span><span class="p">):</span>
+        <span class="n">ib</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">indptr</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">ib</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot set input data with type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        
+        
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Sondre &#39;Ooki&#39; Glimsdal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

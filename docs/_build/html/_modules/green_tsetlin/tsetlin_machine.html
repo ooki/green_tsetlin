@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>green_tsetlin.tsetlin_machine &mdash; green_tsetlin 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/fonts.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            green_tsetlin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../green_tsetlin.html">green_tsetlin</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">green_tsetlin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">green_tsetlin.tsetlin_machine</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for green_tsetlin.tsetlin_machine</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">green_tsetlin</span> <span class="k">as</span> <span class="nn">gt</span>
+<span class="kn">from</span> <span class="nn">green_tsetlin.backend</span> <span class="kn">import</span> <span class="n">impl</span> <span class="k">as</span> <span class="n">_backend_impl</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<div class="viewcode-block" id="DenseState">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.DenseState">[docs]</a>
+<span class="k">class</span> <span class="nc">DenseState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A storage object for a Tsetlin Machine state.</span>
+<span class="sd">    w : is the class Weights</span>
+<span class="sd">    c : is the Clauses</span>
+
+<span class="sd">    Will not create any copy of the underlying array, but will create a reference.</span>
+<span class="sd">    So the user is responsible for not changing the state after it has been loaded OR provide a copy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_literals</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">n_literals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_literals</span><span class="o">*</span><span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="kc">None</span>        
+
+
+<div class="viewcode-block" id="DenseState.copy">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.DenseState.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DenseState&quot;</span><span class="p">:</span>
+        <span class="n">tm</span> <span class="o">=</span> <span class="n">DenseState</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tm</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">tm</span></div>
+
+
+<div class="viewcode-block" id="DenseState.load_from_file">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.DenseState.load_from_file">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load_from_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DenseState&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;State object must be a .npz file&quot;</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">DenseState</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot load state. w and c must have the same number of clauses&quot;</span><span class="p">)</span>        
+
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Clause Weights much be np.int16 is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Clause State much be np.int8 is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+
+        <span class="n">ds</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ds</span></div>
+
+
+<div class="viewcode-block" id="DenseState.save_to_file">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.DenseState.save_to_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npz&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;State object must be a .npz file&quot;</span><span class="p">)</span>
+        
+        <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span></div>
+</div>
+
+
+
+
+<div class="viewcode-block" id="TsetlinMachine">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine">[docs]</a>
+<span class="k">class</span> <span class="nc">TsetlinMachine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_literals</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">s</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">literal_budget</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">boost_true_positives</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">multi_label</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_literals</span> <span class="o">=</span> <span class="n">n_literals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span> <span class="o">=</span> <span class="n">n_clauses</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">=</span> <span class="n">n_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span> <span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="p">:</span> <span class="n">DenseState</span> <span class="o">=</span> <span class="kc">None</span>                
+                            
+        <span class="bp">self</span><span class="o">.</span><span class="n">boost_true_positives</span> <span class="o">=</span> <span class="n">boost_true_positives</span>
+        <span class="c1"># if literal_budget is None:</span>
+        <span class="c1">#     literal_budget = 32700</span>
+            
+        <span class="c1"># elif isinstance(literal_budget, list):</span>
+        <span class="c1">#     raise ValueError(&quot;Cannot set a list-version of literal_budgets in the constructor. Use set_literal_budget() instead.&quot;)</span>
+                
+        <span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span> <span class="o">=</span> <span class="p">[</span><span class="n">literal_budget</span><span class="p">]</span> <span class="c1"># high value, should really be set.</span>
+            
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trainable_flags</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="k">for</span> <span class="n">s_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s_i</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have a s value under 1.0 (currently: </span><span class="si">{}</span><span class="s2">))&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s_i</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="k">if</span> <span class="n">threshold</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have a threshold  value under 1 (currently: </span><span class="si">{}</span><span class="s2">))&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">threshold</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi_label</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="n">multi_label</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi_label</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">*=</span> <span class="mi">2</span> <span class="c1"># since each class can now be both ON and OFF (each has its own TM weight)</span>
+
+        <span class="c1"># sparse specific</span>
+        <span class="c1"># self._sparse_params_set = False</span>
+        <span class="c1"># self.clause_size = n_literals</span>
+        <span class="c1"># self.active_literals_size = n_literals</span>
+        <span class="c1"># self.lower_ta_threshold = -20</span>
+        <span class="c1"># self.dynamic_AL = False</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;cb&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="TsetlinMachine.set_trainable_flags">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.set_trainable_flags">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_trainable_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainable_flags</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the trainable flags for the blocks of the clause.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            trainable_flags (List[bool]): A list of boolean values indicating whether each clause block is trainable or not.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the clause block sizes have not been set before setting the trainable flags, or if the number of trainable flags does not match the number of clause blocks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot set the trainable flags before setting the clause blocks sizes (or number of blocks) first&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trainable_flags</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The number of trainable flags must match the number of clause blocks&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trainable_flags</span> <span class="o">=</span> <span class="n">trainable_flags</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Not impl trainable flags in the backend yet!&quot;</span><span class="p">)</span></div>
+
+    
+
+<div class="viewcode-block" id="TsetlinMachine.set_literal_budget">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.set_literal_budget">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_literal_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">literal_budget_or_budgets_list</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the number of literals to be used in the backend for this Tsetlin Machine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            literal_budget_or_budgets_list (Union[int, list]): The max number of ON literals in a clause.</span>
+<span class="sd">                                                      If a list then len(literal_budget_or_budgets_list) number of budgets will be used, each with the size as specified in literal_budget_or_budgets_list.</span>
+<span class="sd">                                                      So if literal_budget_or_budgets_list = [10, 20, 30] it will create 3 budgets with sizes 10, 20 and 30.</span>
+<span class="sd">                                                      If the len of literal_budget_or_budgets_list is not equal to the number of blocks then the budget list will repeat (same as with s).</span>
+<span class="sd">                                                      So if literal_budget_or_budgets_list = [10, 20, 30] and we have 5 clause blocks then the budgets used will be [10, 20, 30, 10, 20].</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">literal_budget_or_budgets_list</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span> <span class="o">=</span> <span class="p">[</span><span class="n">literal_budget_or_budgets_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_literals_budget</span> <span class="o">=</span> <span class="n">literal_budget_or_budgets_list</span>
+
+        <span class="k">for</span> <span class="n">budget</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">budget</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have a non-positive budget (</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">budget</span><span class="p">))</span>                                                        </div>
+
+
+
+<div class="viewcode-block" id="TsetlinMachine.set_num_clause_blocks">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.set_num_clause_blocks">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_num_clause_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_blocks_or_cb_sizes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the number of blocks to be used in the backend for this Tsetlin Machine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_blocks_or_cb_sizes (Union[int, list]): n_blocks_or_cb_sizes (int or list): The number of blocks to create. If the reminder is not zero it will be added to the first block.</span>
+<span class="sd">                                                      If a list then len(n_blocks_or_cb_sizes) number of blocks will be created, each with the size as specified in clause_block_sizes.</span>
+<span class="sd">                                                      So if n_blocks_or_cb_sizes = [10, 20, 30] it will create 3 blocks with sizes 10, 20 and 30.</span>
+<span class="sd">                                                      The total number of clauses will have to match the number of clauses in the Tsetlin Machine.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_blocks_or_cb_sizes</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">n_blocks</span> <span class="o">=</span> <span class="n">n_blocks_or_cb_sizes</span>
+
+            <span class="n">n_clause_per_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span> <span class="o">//</span> <span class="n">n_blocks</span>
+            <span class="n">n_add</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span> <span class="o">%</span> <span class="n">n_blocks</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">n_clause_per_block</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">n_add</span>
+
+        <span class="k">else</span><span class="p">:</span>            
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">n_blocks_or_cb_sizes</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The sum of the clause block sizes (</span><span class="si">{}</span><span class="s2">) does not match the number of clauses in the Tsetlin Machine </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">n_blocks_or_cb_sizes</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span><span class="p">))</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span> <span class="o">=</span> <span class="n">n_blocks_or_cb_sizes</span>
+        
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">cb_size</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">cb_size</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have a clause block size under 1 (currently: </span><span class="si">{}</span><span class="s2">))&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">))</span></div>
+
+        
+
+    <span class="k">def</span> <span class="nf">_load_state_from_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">only_return_copy</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Collects the state from the backend.</span>
+<span class="sd">        if only_return_copy is True =&gt; just return the state, else set it to state_ in the TM                        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span>
+        <span class="k">if</span> <span class="n">only_return_copy</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># allocate state</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">DenseState</span><span class="p">(</span><span class="n">n_literals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_literals</span><span class="p">,</span> <span class="n">n_clauses</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span>
+        
+        <span class="n">clause_offset</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span><span class="p">:</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">get_clause_state</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">clause_offset</span><span class="p">)</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">get_clause_weights</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">clause_offset</span><span class="p">)</span>
+            <span class="n">clause_offset</span> <span class="o">+=</span> <span class="n">cb</span><span class="o">.</span><span class="n">get_number_of_clauses</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">only_return_copy</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">state</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">state</span>
+    
+    <span class="k">def</span> <span class="nf">_save_state_in_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Set the internal state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;There is no clauseblocks in the backend, cannot save state&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot save a empty Tsetlin Machine into the backend. Please load a state first.&quot;</span><span class="p">)</span>
+        
+        <span class="n">clause_offset</span> <span class="o">=</span> <span class="mi">0</span> 
+        <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span><span class="p">:</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_clause_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">c</span><span class="p">,</span> <span class="n">clause_offset</span><span class="p">)</span>
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_clause_weights</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">w</span><span class="p">,</span> <span class="n">clause_offset</span><span class="p">)</span>
+            <span class="n">clause_offset</span> <span class="o">+=</span> <span class="n">cb</span><span class="o">.</span><span class="n">get_number_of_clauses</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="TsetlinMachine.load_state">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.load_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_state</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">DenseState</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the state from the given path or state object.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            path_or_state (Union[str, DenseState]): The path to the state file or the DenseState object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_or_state</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">DenseState</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="n">path_or_state</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="o">=</span> <span class="n">path_or_state</span></div>
+
+
+
+<div class="viewcode-block" id="TsetlinMachine.save_state">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.save_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the state of the Tsetlin Machine to the specified file path.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            path (str): The file path to save the state to.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_from_backend</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot save a empty Tsetlin Machine without a stored state. Is the Tsetlin Machine trained?&quot;</span><span class="p">)</span>
+                    
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TsetlinMachine.get_ruleset">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.get_ruleset">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_ruleset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">RuleSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_multi_label</span><span class="p">)</span>
+        <span class="n">rs</span><span class="o">.</span><span class="n">compile_from_dense_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="n">rs</span></div>
+
+    
+<div class="viewcode-block" id="TsetlinMachine.construct_clause_blocks">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.construct_clause_blocks">[docs]</a>
+    <span class="k">def</span> <span class="nf">construct_clause_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates the backend clause blocks, will not allocate them (use allocate_clause_blocks Context Manager).</span>
+<span class="sd">        The clause blocks are found in the _cbs attribute, and a copy of this list returned (sharing the cb&#39;s, but not the list).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list: A list of clause_blocks of type self._backend_clause_block_cls, the list is a copy while the members are shared.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">trainable_flags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trainable_flags</span>
+        <span class="k">if</span> <span class="n">trainable_flags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trainable_flags</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">)</span>
+            
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_backend</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">s_k</span><span class="p">,</span> <span class="n">literal_budget</span><span class="p">,</span> <span class="n">n_clauses_in_block</span><span class="p">,</span> <span class="n">is_trainable</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">),</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clause_block_sizes</span><span class="p">,</span> <span class="n">trainable_flags</span><span class="p">)):</span>            
+            <span class="n">cb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backend_clause_block_cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_literals</span><span class="p">,</span> <span class="n">n_clauses_in_block</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span><span class="p">)</span>
+            
+            <span class="n">cb</span><span class="o">.</span><span class="n">set_s</span><span class="p">(</span><span class="n">s_k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cb</span><span class="o">.</span><span class="n">set_literal_budget</span><span class="p">(</span><span class="n">literal_budget</span><span class="p">)</span>
+            
+
+            <span class="c1"># cb.set_trainable(is_trainable) # TODO: add in backend</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_extra_params_on_cb</span><span class="p">(</span><span class="n">cb</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cb</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cbs</span><span class="p">)</span></div>
+
+    
+
+<div class="viewcode-block" id="TsetlinMachine.get_predictor">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.TsetlinMachine.get_predictor">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_predictor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">explanation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">exclude_negative_clauses</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;gt.Predictor&quot;</span><span class="p">:</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">ruleset</span><span class="o">.</span><span class="n">RuleSet</span><span class="p">(</span><span class="n">is_multi_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_is_multi_label</span><span class="p">)</span>
+        <span class="n">rs</span><span class="o">.</span><span class="n">compile_from_dense_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state</span><span class="p">)</span>        
+        <span class="k">return</span> <span class="n">gt</span><span class="o">.</span><span class="n">Predictor</span><span class="o">.</span><span class="n">from_ruleset</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">explanation</span><span class="p">,</span> <span class="n">exclude_negative_clauses</span><span class="p">)</span></div>
+
+    
+
+
+    <span class="k">def</span> <span class="nf">_set_extra_params_on_cb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cb</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span><span class="nb">int</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+
+    <span class="k">def</span> <span class="nf">_get_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+       
+        <span class="n">imp_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span> <span class="s2">&quot;cb_Lt_Bt&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span> <span class="s2">&quot;cb_Lt_Bf&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span> <span class="s2">&quot;cb_Lf_Bt&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span> <span class="s2">&quot;cb_Lf_Bf&quot;</span>
+        <span class="p">}</span>
+
+
+        <span class="n">lb_temp</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budgets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lb_temp</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+        <span class="c1"># print(imp_dict[(lb_temp, self.boost_true_positives)])</span>
+        <span class="n">backend_cb</span> <span class="o">=</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="n">imp_dict</span><span class="p">[(</span><span class="n">lb_temp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boost_true_positives</span><span class="p">)]]</span>
+       
+        <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;cb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend_cb</span>
+        <span class="k">return</span> <span class="n">backend_cb</span></div>
+
+
+
+
+
+
+
+
+
+<div class="viewcode-block" id="ConvolutionalTsetlinMachine">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.ConvolutionalTsetlinMachine">[docs]</a>
+<span class="k">class</span> <span class="nc">ConvolutionalTsetlinMachine</span><span class="p">(</span><span class="n">TsetlinMachine</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_literals</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">s</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">patch_width</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">patch_height</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">literal_budget</span><span class="p">:</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multi_label</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">n_literals</span><span class="p">,</span> <span class="n">n_clauses</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">literal_budget</span><span class="p">,</span> <span class="n">multi_label</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">patch_width</span> <span class="o">=</span> <span class="n">patch_width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patch_height</span> <span class="o">=</span> <span class="n">patch_height</span>
+        
+    <span class="k">def</span> <span class="nf">_get_backend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Select the correct backend implementation based on the current settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="n">_backend_impl</span><span class="p">[</span><span class="s2">&quot;conv_cb&quot;</span><span class="p">]</span></div>
+
+    
+        
+
+        
+
+<div class="viewcode-block" id="allocate_clause_blocks">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.tsetlin_machine.allocate_clause_blocks">[docs]</a>
+<span class="nd">@contextmanager</span>
+<span class="k">def</span> <span class="nf">allocate_clause_blocks</span><span class="p">(</span><span class="n">cbs_or_tm</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">TsetlinMachine</span><span class="p">]</span> <span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Allocate the clause blocks on entry, will deallocate the blocks on exit.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cbs_or_tm (Union[list, TsetlinMachine]): Either a list of clause blocks or a TsetlinMachine.</span>
+<span class="sd">        seed (int): Seed for the clause blocks, each clause block will get a unique seed starting from seed to seed+len(cbs).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If a TsetlinMachine has no clause blocks or the list is empty.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cbs_or_tm</span><span class="p">,</span> <span class="n">TsetlinMachine</span><span class="p">):</span>
+        <span class="n">cbs</span> <span class="o">=</span> <span class="n">cbs_or_tm</span><span class="o">.</span><span class="n">_cbs</span>
+        <span class="k">if</span> <span class="n">cbs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The Tsetlin Machine has no clause blocks. Did you call constrcut_clause_blocks() first?&quot;</span><span class="p">)</span>        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cbs</span> <span class="o">=</span> <span class="n">cbs_or_tm</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cbs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The provided clause block list is empty, cannot initialize a empty list.&quot;</span><span class="p">)</span>
+
+
+    <span class="n">running_seed</span> <span class="o">=</span> <span class="n">seed</span>
+    <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="n">cbs</span><span class="p">:</span>
+        <span class="n">cb</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">running_seed</span><span class="p">)</span>
+        <span class="n">running_seed</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">yield</span>
+
+    <span class="k">for</span> <span class="n">cb</span> <span class="ow">in</span> <span class="n">cbs</span><span class="p">:</span>
+        <span class="n">cb</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Sondre &#39;Ooki&#39; Glimsdal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

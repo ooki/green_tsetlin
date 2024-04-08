@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>green_tsetlin.hpsearch &mdash; green_tsetlin 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/fonts.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            green_tsetlin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../green_tsetlin.html">green_tsetlin</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">green_tsetlin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">green_tsetlin.hpsearch</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for green_tsetlin.hpsearch</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.feature_extraction.text</span> <span class="kn">import</span> <span class="n">CountVectorizer</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">optuna</span>
+
+<span class="kn">from</span> <span class="nn">green_tsetlin.tsetlin_machine</span> <span class="kn">import</span> <span class="n">TsetlinMachine</span>
+<span class="kn">from</span> <span class="nn">green_tsetlin.trainer</span> <span class="kn">import</span> <span class="n">Trainer</span>
+
+
+<div class="viewcode-block" id="HyperparameterSearch">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.hpsearch.HyperparameterSearch">[docs]</a>
+<span class="k">class</span> <span class="nc">HyperparameterSearch</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        from green_tsetlin.hpsearch import HyperparameterSearch</span>
+<span class="sd">        from green_tsetlin.dataset_generator import xor_dataset</span>
+
+<span class="sd">        train_x, train_y, test_x, test_y = xor_dataset(n_train=50, n_test=10, n_literals=8, seed=42, noise=0.1)</span>
+
+<span class="sd">        hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),</span>
+<span class="sd">                                                clause_space=(5, 10),</span>
+<span class="sd">                                                threshold_space=(3, 20),</span>
+<span class="sd">                                                max_epoch_per_trial=20,</span>
+<span class="sd">                                                literal_budget=(1, train_x.shape[1]),</span>
+<span class="sd">                                                seed=42,</span>
+<span class="sd">                                                n_jobs=5,</span>
+<span class="sd">                                                k_folds=4,</span>
+<span class="sd">                                                minimize_literal_budget=False)</span>
+<span class="sd">        </span>
+<span class="sd">        hyperparam_search.set_train_data(train_x, train_y)</span>
+<span class="sd">        hyperparam_search.set_test_data(test_x, test_y)</span>
+
+<span class="sd">        hyperparam_search.optimize(trials=10, </span>
+<span class="sd">                                   study_name=&quot;xor study&quot;, </span>
+<span class="sd">                                   show_progress_bar=True,</span>
+<span class="sd">                                   storage=&quot;sqlite:///xor.db&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">s_space</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span> 
+                 <span class="n">clause_space</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span> 
+                 <span class="n">threshold_space</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span> 
+                 <span class="n">max_epoch_per_trial</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span>
+                 <span class="n">literal_budget</span> <span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span>
+                 <span class="n">minimize_literal_budget</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">seed</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span> 
+                 <span class="n">n_jobs</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">k_folds</span> <span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">s_space</span> <span class="o">=</span> <span class="n">s_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clause_space</span> <span class="o">=</span> <span class="n">clause_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_space</span> <span class="o">=</span> <span class="n">threshold_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_epoch_per_trial</span> <span class="o">=</span> <span class="n">max_epoch_per_trial</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">literal_budget</span> <span class="o">=</span> <span class="n">literal_budget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minimize_literal_budget</span> <span class="o">=</span> <span class="n">minimize_literal_budget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span> <span class="o">=</span> <span class="n">k_folds</span>
+
+
+<div class="viewcode-block" id="HyperparameterSearch.set_train_data">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.hpsearch.HyperparameterSearch.set_train_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_train_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_x</span><span class="p">,</span> <span class="n">train_y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the training data for the study.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            train_x (array): The input training data.</span>
+<span class="sd">            train_y (array): The target training data.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_x</span> <span class="o">=</span> <span class="n">train_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_y</span> <span class="o">=</span> <span class="n">train_y</span></div>
+
+
+
+<div class="viewcode-block" id="HyperparameterSearch.set_test_data">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.hpsearch.HyperparameterSearch.set_test_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_test_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_x</span><span class="p">,</span> <span class="n">test_y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the test data for the model.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            test_x (array): The input test data.</span>
+<span class="sd">            test_y (array): The target test data.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_x</span> <span class="o">=</span> <span class="n">test_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_y</span> <span class="o">=</span> <span class="n">test_y</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">_check_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Train data not set. Use set_train_data()&quot;</span><span class="p">)</span>
+        
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Validation data not set. Use set_validation_data()&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="HyperparameterSearch.objective">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.hpsearch.HyperparameterSearch.objective">[docs]</a>
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trial</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters:</span>
+<span class="sd">            trial (optuna.trial.Trial): A trial object used to generate parameters for optimization.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: The best test score achieved during training.</span>
+<span class="sd">            int: The literal budget used for optimization if specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">()</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">suggest_float</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">s_space</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">s_space</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s_space</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">s_space</span>
+        <span class="n">clauses</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">suggest_int</span><span class="p">(</span><span class="s2">&quot;n_clauses&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clause_space</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">clause_space</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clause_space</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">clause_space</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">suggest_float</span><span class="p">(</span><span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_space</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_space</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold_space</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_space</span>
+        <span class="n">literal_budget</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">suggest_int</span><span class="p">(</span><span class="s2">&quot;literal_budget&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budget</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budget</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">literal_budget</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">literal_budget</span>
+        <span class="n">max_epoch_per_trial</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">suggest_int</span><span class="p">(</span><span class="s2">&quot;max_epoch_per_trial&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_epoch_per_trial</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_epoch_per_trial</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_epoch_per_trial</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_epoch_per_trial</span>
+
+        <span class="n">tm</span> <span class="o">=</span> <span class="n">TsetlinMachine</span><span class="p">(</span><span class="n">n_literals</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> 
+                            <span class="n">n_clauses</span><span class="o">=</span><span class="n">clauses</span><span class="p">,</span> 
+                            <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span>
+                            <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">,</span>
+                            <span class="n">n_classes</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_y</span><span class="p">)),</span>
+                            <span class="n">literal_budget</span><span class="o">=</span><span class="n">literal_budget</span><span class="p">)</span>
+
+        <span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">tm</span><span class="o">=</span><span class="n">tm</span><span class="p">,</span> 
+                          <span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span>
+                          <span class="n">n_epochs</span><span class="o">=</span><span class="n">max_epoch_per_trial</span><span class="p">,</span>
+                          <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+                          <span class="n">progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">k_folds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k_folds</span><span class="p">,</span>
+                          <span class="n">kfold_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        
+        <span class="n">trainer</span><span class="o">.</span><span class="n">set_train_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_y</span><span class="p">)</span>
+        <span class="n">trainer</span><span class="o">.</span><span class="n">set_test_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_y</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        
+        <span class="n">res</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;best_test_score&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimize_literal_budget</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">tm</span><span class="o">.</span><span class="n">literal_budgets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+
+<div class="viewcode-block" id="HyperparameterSearch.optimize">
+<a class="viewcode-back" href="../../green_tsetlin.html#green_tsetlin.hpsearch.HyperparameterSearch.optimize">[docs]</a>
+    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_trials</span><span class="p">,</span> <span class="n">study_name</span><span class="p">,</span> <span class="n">storage</span> <span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_progress_bar</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A method to optimize the parameters using Optuna for a given number of trials.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters:</span>
+<span class="sd">            n_trials (int): The number of trials for optimization.</span>
+<span class="sd">            study_name (str): The name of the study.</span>
+<span class="sd">            storage (str, optional): The storage name. Defaults to None.</span>
+<span class="sd">            show_progress_bar (bool, optional): Whether to show a progress bar. Defaults to False.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minimize_literal_budget</span><span class="p">:</span>
+            <span class="n">study</span> <span class="o">=</span> <span class="n">optuna</span><span class="o">.</span><span class="n">create_study</span><span class="p">(</span><span class="n">study_name</span><span class="o">=</span><span class="n">study_name</span><span class="p">,</span> <span class="n">storage</span><span class="o">=</span><span class="n">storage</span><span class="p">,</span> <span class="n">directions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="s2">&quot;minimize&quot;</span><span class="p">],</span> <span class="n">load_if_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">study</span> <span class="o">=</span> <span class="n">optuna</span><span class="o">.</span><span class="n">create_study</span><span class="p">(</span><span class="n">study_name</span><span class="o">=</span><span class="n">study_name</span><span class="p">,</span> <span class="n">storage</span><span class="o">=</span><span class="n">storage</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;maximize&quot;</span><span class="p">,</span> <span class="n">load_if_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># study.optimize(self.objective, n_trials=n_trials, show_progress_bar=show_progress_bar)</span>
+
+        <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">n_trials</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="n">show_progress_bar</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">bar</span><span class="p">:</span>
+            
+            <span class="n">bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Processing trial 1 of </span><span class="si">{}</span><span class="s2">, best score: NA&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_trials</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_trials</span><span class="p">):</span>
+                
+                <span class="n">trial</span> <span class="o">=</span> <span class="n">study</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span>
+                <span class="n">study</span><span class="o">.</span><span class="n">tell</span><span class="p">(</span><span class="n">trial</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+                <span class="n">bar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Processing trial </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">, best score: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n_trials</span><span class="p">,</span> <span class="n">study</span><span class="o">.</span><span class="n">best_trials</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+                <span class="n">bar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_trials</span> <span class="o">=</span> <span class="n">study</span><span class="o">.</span><span class="n">best_trials</span></div>
+</div>
+
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">datasets</span>
+    
+    <span class="n">s_space</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
+    <span class="n">clause_space</span> <span class="o">=</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+    <span class="n">threshold_space</span> <span class="o">=</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span>
+    <span class="n">epochs</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="n">tm_hp</span> <span class="o">=</span> <span class="n">HyperparameterSearch</span><span class="p">(</span><span class="n">s_space</span><span class="p">,</span> <span class="n">clause_space</span><span class="p">,</span> <span class="n">threshold_space</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">epochs</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">)</span>
+    
+    <span class="n">imdb</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s1">&#39;imdb&#39;</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">imdb</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">],</span> <span class="n">imdb</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+    
+    <span class="n">vectorizer</span> <span class="o">=</span> <span class="n">CountVectorizer</span><span class="p">(</span><span class="n">ngram_range</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">binary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lowercase</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+    <span class="n">x_bin</span> <span class="o">=</span> <span class="n">vectorizer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+    <span class="n">x_bin</span> <span class="o">=</span> <span class="n">x_bin</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+    
+    <span class="n">shuffle_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))]</span>
+    <span class="n">rng</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffle_index</span><span class="p">)</span>
+
+    <span class="n">x_bin</span> <span class="o">=</span> <span class="n">x_bin</span><span class="p">[</span><span class="n">shuffle_index</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">shuffle_index</span><span class="p">]</span>
+
+    <span class="n">x_bin</span> <span class="o">=</span> <span class="n">x_bin</span><span class="p">[:</span><span class="mi">1000</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:</span><span class="mi">1000</span><span class="p">]</span>
+
+    <span class="n">train_x_bin</span><span class="p">,</span> <span class="n">val_x_bin</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">val_y</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">x_bin</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">tm_hp</span><span class="o">.</span><span class="n">set_train_data</span><span class="p">(</span><span class="n">train_x_bin</span><span class="p">,</span> <span class="n">train_y</span><span class="p">)</span>
+    <span class="n">tm_hp</span><span class="o">.</span><span class="n">set_validation_data</span><span class="p">(</span><span class="n">val_x_bin</span><span class="p">,</span> <span class="n">val_y</span><span class="p">)</span>
+
+    <span class="n">tm_hp</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">n_trials</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">study_name</span><span class="o">=</span><span class="s2">&quot;IMDB_study&quot;</span><span class="p">,</span> <span class="n">storage</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_best</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">tm_hp</span><span class="o">.</span><span class="n">best_trails</span><span class="p">)</span>
+
+
+
+
+
+
+
+
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Sondre &#39;Ooki&#39; Glimsdal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

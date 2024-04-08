@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>green_tsetlin &mdash; green_tsetlin 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+      <link rel="stylesheet" href="_static/fonts.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=01f34227"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="California Housing" href="notebooks/california_housing_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            green_tsetlin
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">green_tsetlin</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.trainer">trainer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.trainer.Trainer"><code class="docutils literal notranslate"><span class="pre">Trainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.trainer.Trainer.set_test_data"><code class="docutils literal notranslate"><span class="pre">Trainer.set_test_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.trainer.Trainer.set_train_data"><code class="docutils literal notranslate"><span class="pre">Trainer.set_train_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.trainer.Trainer.set_validation_data"><code class="docutils literal notranslate"><span class="pre">Trainer.set_validation_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.trainer.Trainer.train"><code class="docutils literal notranslate"><span class="pre">Trainer.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.trainer.empty_epoch_callback"><code class="docutils literal notranslate"><span class="pre">empty_epoch_callback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.tsetlin_machine">tsetlin_machine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.ConvolutionalTsetlinMachine"><code class="docutils literal notranslate"><span class="pre">ConvolutionalTsetlinMachine</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState"><code class="docutils literal notranslate"><span class="pre">DenseState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState.copy"><code class="docutils literal notranslate"><span class="pre">DenseState.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState.load_from_file"><code class="docutils literal notranslate"><span class="pre">DenseState.load_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState.save_to_file"><code class="docutils literal notranslate"><span class="pre">DenseState.save_to_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.construct_clause_blocks"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.construct_clause_blocks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.get_predictor"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.get_predictor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.get_ruleset"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.get_ruleset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.load_state"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.load_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.save_state"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.save_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.set_literal_budget"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.set_literal_budget()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.set_num_clause_blocks"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.set_num_clause_blocks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.set_trainable_flags"><code class="docutils literal notranslate"><span class="pre">TsetlinMachine.set_trainable_flags()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.allocate_clause_blocks"><code class="docutils literal notranslate"><span class="pre">allocate_clause_blocks()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.sparse_tsetlin_machine">sparse_tsetlin_machine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState"><code class="docutils literal notranslate"><span class="pre">SparseState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState.copy"><code class="docutils literal notranslate"><span class="pre">SparseState.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState.load_from_file"><code class="docutils literal notranslate"><span class="pre">SparseState.load_from_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState.save_to_file"><code class="docutils literal notranslate"><span class="pre">SparseState.save_to_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine"><code class="docutils literal notranslate"><span class="pre">SparseTsetlinMachine</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.get_predictor"><code class="docutils literal notranslate"><span class="pre">SparseTsetlinMachine.get_predictor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.load_state"><code class="docutils literal notranslate"><span class="pre">SparseTsetlinMachine.load_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.save_state"><code class="docutils literal notranslate"><span class="pre">SparseTsetlinMachine.save_state()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.predictor">predictor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.predictor.Explanation"><code class="docutils literal notranslate"><span class="pre">Explanation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Explanation.features"><code class="docutils literal notranslate"><span class="pre">Explanation.features</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Explanation.literals"><code class="docutils literal notranslate"><span class="pre">Explanation.literals</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.predictor.Predictor"><code class="docutils literal notranslate"><span class="pre">Predictor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.explain"><code class="docutils literal notranslate"><span class="pre">Predictor.explain()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.export_as_program"><code class="docutils literal notranslate"><span class="pre">Predictor.export_as_program()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.from_ruleset"><code class="docutils literal notranslate"><span class="pre">Predictor.from_ruleset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.predict"><code class="docutils literal notranslate"><span class="pre">Predictor.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.predict_and_explain"><code class="docutils literal notranslate"><span class="pre">Predictor.predict_and_explain()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.set_features"><code class="docutils literal notranslate"><span class="pre">Predictor.set_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.predictor.Predictor.set_target_names"><code class="docutils literal notranslate"><span class="pre">Predictor.set_target_names()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.ruleset">ruleset</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.ruleset.RuleSet"><code class="docutils literal notranslate"><span class="pre">RuleSet</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.ruleset.RuleSet.compile_from_dense_state"><code class="docutils literal notranslate"><span class="pre">RuleSet.compile_from_dense_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.ruleset.RuleSet.compile_from_sparse_state"><code class="docutils literal notranslate"><span class="pre">RuleSet.compile_from_sparse_state()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.hpsearch">hpsearch</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.hpsearch.HyperparameterSearch"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.hpsearch.HyperparameterSearch.objective"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.objective()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.hpsearch.HyperparameterSearch.optimize"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.optimize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.hpsearch.HyperparameterSearch.set_test_data"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.set_test_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#green_tsetlin.hpsearch.HyperparameterSearch.set_train_data"><code class="docutils literal notranslate"><span class="pre">HyperparameterSearch.set_train_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-green_tsetlin.dataset_generator">dataset_generator</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.dataset_generator.imdb_dataset"><code class="docutils literal notranslate"><span class="pre">imdb_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#green_tsetlin.dataset_generator.xor_dataset"><code class="docutils literal notranslate"><span class="pre">xor_dataset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">green_tsetlin</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">green_tsetlin</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/green_tsetlin.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="green-tsetlin">
+<h1>green_tsetlin<a class="headerlink" href="#green-tsetlin" title="Link to this heading"></a></h1>
+<section id="module-green_tsetlin.trainer">
+<span id="trainer"></span><h2>trainer<a class="headerlink" href="#module-green_tsetlin.trainer" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.trainer.Trainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.trainer.</span></span><span class="sig-name descname"><span class="pre">Trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tm:</span> <span class="pre">~green_tsetlin.tsetlin_machine.TsetlinMachine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feedback_type='focused_negative_sampling'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_epochs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">early_exit_acc:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_best_state:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_epoch_callback=&lt;function</span> <span class="pre">empty_epoch_callback&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn_test_score='accuracy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_bar=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy_training_data:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_folds:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kfold_progress_bar:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/trainer.html#Trainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.trainer.Trainer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">green_tsetlin</span> <span class="k">as</span> <span class="nn">gt</span>
+
+<span class="n">tm</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">TsetlinMachine</span><span class="p">(</span><span class="n">n_literals</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_clauses</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_classes</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">literal_budget</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">boost_true_positives</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>        
+
+<span class="n">train_x</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">eval_x</span><span class="p">,</span> <span class="n">eval_y</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">dataset_generator</span><span class="o">.</span><span class="n">xor_dataset</span><span class="p">(</span><span class="n">n_literals</span><span class="o">=</span><span class="n">n_literals</span><span class="p">)</span>    
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span><span class="n">tm</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">set_train_data</span><span class="p">(</span><span class="n">train_x</span><span class="p">,</span> <span class="n">train_y</span><span class="p">)</span>
+<span class="n">trainer</span><span class="o">.</span><span class="n">set_test_data</span><span class="p">(</span><span class="n">eval_x</span><span class="p">,</span> <span class="n">eval_y</span><span class="p">)</span>
+
+<span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.trainer.Trainer.set_test_data">
+<span class="sig-name descname"><span class="pre">set_test_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/trainer.html#Trainer.set_test_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.trainer.Trainer.set_test_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.trainer.Trainer.set_train_data">
+<span class="sig-name descname"><span class="pre">set_train_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/trainer.html#Trainer.set_train_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.trainer.Trainer.set_train_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.trainer.Trainer.set_validation_data">
+<span class="sig-name descname"><span class="pre">set_validation_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/trainer.html#Trainer.set_validation_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.trainer.Trainer.set_validation_data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.trainer.Trainer.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/trainer.html#Trainer.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.trainer.Trainer.train" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="green_tsetlin.trainer.empty_epoch_callback">
+<span class="sig-prename descclassname"><span class="pre">green_tsetlin.trainer.</span></span><span class="sig-name descname"><span class="pre">empty_epoch_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">epoch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_acc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_score</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/trainer.html#empty_epoch_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.trainer.empty_epoch_callback" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-green_tsetlin.tsetlin_machine">
+<span id="tsetlin-machine"></span><h2>tsetlin_machine<a class="headerlink" href="#module-green_tsetlin.tsetlin_machine" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.ConvolutionalTsetlinMachine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.tsetlin_machine.</span></span><span class="sig-name descname"><span class="pre">ConvolutionalTsetlinMachine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_literals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">literal_budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#ConvolutionalTsetlinMachine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.ConvolutionalTsetlinMachine" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine" title="green_tsetlin.tsetlin_machine.TsetlinMachine"><code class="xref py py-class docutils literal notranslate"><span class="pre">TsetlinMachine</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.DenseState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.tsetlin_machine.</span></span><span class="sig-name descname"><span class="pre">DenseState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_literals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#DenseState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.DenseState" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A storage object for a Tsetlin Machine state.
+w : is the class Weights
+c : is the Clauses</p>
+<p>Will not create any copy of the underlying array, but will create a reference.
+So the user is responsible for not changing the state after it has been loaded OR provide a copy.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.DenseState.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState" title="green_tsetlin.tsetlin_machine.DenseState"><span class="pre">DenseState</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#DenseState.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.DenseState.copy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.DenseState.load_from_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState" title="green_tsetlin.tsetlin_machine.DenseState"><span class="pre">DenseState</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#DenseState.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.DenseState.load_from_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.DenseState.save_to_file">
+<span class="sig-name descname"><span class="pre">save_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#DenseState.save_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.DenseState.save_to_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.tsetlin_machine.</span></span><span class="sig-name descname"><span class="pre">TsetlinMachine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_literals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">literal_budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost_true_positives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.construct_clause_blocks">
+<span class="sig-name descname"><span class="pre">construct_clause_blocks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.construct_clause_blocks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.construct_clause_blocks" title="Link to this definition"></a></dt>
+<dd><p>Creates the backend clause blocks, will not allocate them (use allocate_clause_blocks Context Manager).
+The clause blocks are found in the _cbs attribute, and a copy of this list returned (sharing the cb’s, but not the list).</p>
+<p>Args:</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>list: A list of clause_blocks of type self._backend_clause_block_cls, the list is a copy while the members are shared.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.get_predictor">
+<span class="sig-name descname"><span class="pre">get_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explanation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_negative_clauses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.predictor.Predictor" title="green_tsetlin.predictor.Predictor"><span class="pre">Predictor</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.get_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.get_predictor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.get_ruleset">
+<span class="sig-name descname"><span class="pre">get_ruleset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.get_ruleset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.get_ruleset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.load_state">
+<span class="sig-name descname"><span class="pre">load_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#green_tsetlin.tsetlin_machine.DenseState" title="green_tsetlin.tsetlin_machine.DenseState"><span class="pre">DenseState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.load_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.load_state" title="Link to this definition"></a></dt>
+<dd><p>Load the state from the given path or state object.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>path_or_state (Union[str, DenseState]): The path to the state file or the DenseState object.</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.save_state">
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.save_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.save_state" title="Link to this definition"></a></dt>
+<dd><p>Save the state of the Tsetlin Machine to the specified file path.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>path (str): The file path to save the state to.</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.set_literal_budget">
+<span class="sig-name descname"><span class="pre">set_literal_budget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">literal_budget_or_budgets_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.set_literal_budget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.set_literal_budget" title="Link to this definition"></a></dt>
+<dd><p>Sets the number of literals to be used in the backend for this Tsetlin Machine.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>literal_budget_or_budgets_list (Union[int, list]): The max number of ON literals in a clause.</dt><dd><p>If a list then len(literal_budget_or_budgets_list) number of budgets will be used, each with the size as specified in literal_budget_or_budgets_list.
+So if literal_budget_or_budgets_list = [10, 20, 30] it will create 3 budgets with sizes 10, 20 and 30.
+If the len of literal_budget_or_budgets_list is not equal to the number of blocks then the budget list will repeat (same as with s).
+So if literal_budget_or_budgets_list = [10, 20, 30] and we have 5 clause blocks then the budgets used will be [10, 20, 30, 10, 20].</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.set_num_clause_blocks">
+<span class="sig-name descname"><span class="pre">set_num_clause_blocks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_blocks_or_cb_sizes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.set_num_clause_blocks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.set_num_clause_blocks" title="Link to this definition"></a></dt>
+<dd><p>Sets the number of blocks to be used in the backend for this Tsetlin Machine.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>n_blocks_or_cb_sizes (Union[int, list]): n_blocks_or_cb_sizes (int or list): The number of blocks to create. If the reminder is not zero it will be added to the first block.</dt><dd><p>If a list then len(n_blocks_or_cb_sizes) number of blocks will be created, each with the size as specified in clause_block_sizes.
+So if n_blocks_or_cb_sizes = [10, 20, 30] it will create 3 blocks with sizes 10, 20 and 30.
+The total number of clauses will have to match the number of clauses in the Tsetlin Machine.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.TsetlinMachine.set_trainable_flags">
+<span class="sig-name descname"><span class="pre">set_trainable_flags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trainable_flags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#TsetlinMachine.set_trainable_flags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.TsetlinMachine.set_trainable_flags" title="Link to this definition"></a></dt>
+<dd><p>Set the trainable flags for the blocks of the clause.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>trainable_flags (List[bool]): A list of boolean values indicating whether each clause block is trainable or not.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the clause block sizes have not been set before setting the trainable flags, or if the number of trainable flags does not match the number of clause blocks.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="green_tsetlin.tsetlin_machine.allocate_clause_blocks">
+<span class="sig-prename descclassname"><span class="pre">green_tsetlin.tsetlin_machine.</span></span><span class="sig-name descname"><span class="pre">allocate_clause_blocks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cbs_or_tm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine" title="green_tsetlin.tsetlin_machine.TsetlinMachine"><span class="pre">TsetlinMachine</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/tsetlin_machine.html#allocate_clause_blocks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.tsetlin_machine.allocate_clause_blocks" title="Link to this definition"></a></dt>
+<dd><p>Allocate the clause blocks on entry, will deallocate the blocks on exit.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>cbs_or_tm (Union[list, TsetlinMachine]): Either a list of clause blocks or a TsetlinMachine.
+seed (int): Seed for the clause blocks, each clause block will get a unique seed starting from seed to seed+len(cbs).</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If a TsetlinMachine has no clause blocks or the list is empty.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-green_tsetlin.sparse_tsetlin_machine">
+<span id="sparse-tsetlin-machine"></span><h2>sparse_tsetlin_machine<a class="headerlink" href="#module-green_tsetlin.sparse_tsetlin_machine" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.sparse_tsetlin_machine.</span></span><span class="sig-name descname"><span class="pre">SparseState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_literals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseState" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A storage object for a Tsetlin Machine state.
+w : is the class Weights
+c_data : is the Clauses data
+c_indices : is the Clauses indices
+c_indptr : is the Clauses indptr
+AL : is the Active Literals</p>
+<p>c_data, c_indices and c_indptr are the data, indices and indptr of a CSR matrix.</p>
+<dl class="simple">
+<dt>Will not create any copy of the underlying array, but will create a reference.</dt><dd><p>So the user is responsible for not changing the state after it has been loaded OR provide a copy.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseState.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState" title="green_tsetlin.sparse_tsetlin_machine.SparseState"><span class="pre">SparseState</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseState.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseState.copy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseState.load_from_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState" title="green_tsetlin.sparse_tsetlin_machine.SparseState"><span class="pre">SparseState</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseState.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseState.load_from_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseState.save_to_file">
+<span class="sig-name descname"><span class="pre">save_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseState.save_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseState.save_to_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.sparse_tsetlin_machine.</span></span><span class="sig-name descname"><span class="pre">SparseTsetlinMachine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_literals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">literal_budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost_true_positives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_AL</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseTsetlinMachine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#green_tsetlin.tsetlin_machine.TsetlinMachine" title="green_tsetlin.tsetlin_machine.TsetlinMachine"><code class="xref py py-class docutils literal notranslate"><span class="pre">TsetlinMachine</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.get_predictor">
+<span class="sig-name descname"><span class="pre">get_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explanation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_negative_clauses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.predictor.Predictor" title="green_tsetlin.predictor.Predictor"><span class="pre">Predictor</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseTsetlinMachine.get_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.get_predictor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.load_state">
+<span class="sig-name descname"><span class="pre">load_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#green_tsetlin.sparse_tsetlin_machine.SparseState" title="green_tsetlin.sparse_tsetlin_machine.SparseState"><span class="pre">SparseState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseTsetlinMachine.load_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.load_state" title="Link to this definition"></a></dt>
+<dd><p>Load the state from the given path or state object.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>path_or_state (Union[str, SparseState]): The path to the state file or the SparseState object.</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.save_state">
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/sparse_tsetlin_machine.html#SparseTsetlinMachine.save_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.sparse_tsetlin_machine.SparseTsetlinMachine.save_state" title="Link to this definition"></a></dt>
+<dd><p>Save the state of the Tsetlin Machine to the specified file path.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>path (str): The file path to save the state to.</p>
+</dd>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-green_tsetlin.predictor">
+<span id="predictor"></span><h2>predictor<a class="headerlink" href="#module-green_tsetlin.predictor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Explanation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.predictor.</span></span><span class="sig-name descname"><span class="pre">Explanation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">literals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#green_tsetlin.predictor.Explanation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Explanation.features">
+<span class="sig-name descname"><span class="pre">features</span></span><a class="headerlink" href="#green_tsetlin.predictor.Explanation.features" title="Link to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Explanation.literals">
+<span class="sig-name descname"><span class="pre">literals</span></span><a class="headerlink" href="#green_tsetlin.predictor.Explanation.literals" title="Link to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.predictor.</span></span><span class="sig-name descname"><span class="pre">Predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explanation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_negative_clauses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multi_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.explain">
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.predictor.Explanation" title="green_tsetlin.predictor.Explanation"><span class="pre">Explanation</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.explain" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.export_as_program">
+<span class="sig-name descname"><span class="pre">export_as_program</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exporter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'topological_c'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.export_as_program"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.export_as_program" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.from_ruleset">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ruleset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ruleset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#green_tsetlin.ruleset.RuleSet" title="green_tsetlin.ruleset.RuleSet"><span class="pre">RuleSet</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_negative_clauses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#green_tsetlin.predictor.Predictor" title="green_tsetlin.predictor.Predictor"><span class="pre">Predictor</span></a></span></span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.from_ruleset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.from_ruleset" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.predict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.predict_and_explain">
+<span class="sig-name descname"><span class="pre">predict_and_explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.predict_and_explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.predict_and_explain" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.set_features">
+<span class="sig-name descname"><span class="pre">set_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.set_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.set_features" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.predictor.Predictor.set_target_names">
+<span class="sig-name descname"><span class="pre">set_target_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/predictor.html#Predictor.set_target_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.predictor.Predictor.set_target_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-green_tsetlin.ruleset">
+<span id="ruleset"></span><h2>ruleset<a class="headerlink" href="#module-green_tsetlin.ruleset" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.ruleset.RuleSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.ruleset.</span></span><span class="sig-name descname"><span class="pre">RuleSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_multi_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/ruleset.html#RuleSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.ruleset.RuleSet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.ruleset.RuleSet.compile_from_dense_state">
+<span class="sig-name descname"><span class="pre">compile_from_dense_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/ruleset.html#RuleSet.compile_from_dense_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.ruleset.RuleSet.compile_from_dense_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.ruleset.RuleSet.compile_from_sparse_state">
+<span class="sig-name descname"><span class="pre">compile_from_sparse_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/ruleset.html#RuleSet.compile_from_sparse_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.ruleset.RuleSet.compile_from_sparse_state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-green_tsetlin.hpsearch">
+<span id="hpsearch"></span><h2>hpsearch<a class="headerlink" href="#module-green_tsetlin.hpsearch" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="green_tsetlin.hpsearch.HyperparameterSearch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">green_tsetlin.hpsearch.</span></span><span class="sig-name descname"><span class="pre">HyperparameterSearch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clause_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_epoch_per_trial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">literal_budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimize_literal_budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_folds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/hpsearch.html#HyperparameterSearch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.hpsearch.HyperparameterSearch" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<section id="id1">
+<h3>Example<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">green_tsetlin.hpsearch</span> <span class="kn">import</span> <span class="n">HyperparameterSearch</span>
+<span class="kn">from</span> <span class="nn">green_tsetlin.dataset_generator</span> <span class="kn">import</span> <span class="n">xor_dataset</span>
+
+<span class="n">train_x</span><span class="p">,</span> <span class="n">train_y</span><span class="p">,</span> <span class="n">test_x</span><span class="p">,</span> <span class="n">test_y</span> <span class="o">=</span> <span class="n">xor_dataset</span><span class="p">(</span><span class="n">n_train</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_test</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_literals</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+
+<span class="n">hyperparam_search</span> <span class="o">=</span> <span class="n">HyperparameterSearch</span><span class="p">(</span><span class="n">s_space</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+                                        <span class="n">clause_space</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+                                        <span class="n">threshold_space</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+                                        <span class="n">max_epoch_per_trial</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                                        <span class="n">literal_budget</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">train_x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                                        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+                                        <span class="n">n_jobs</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                                        <span class="n">k_folds</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                        <span class="n">minimize_literal_budget</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">hyperparam_search</span><span class="o">.</span><span class="n">set_train_data</span><span class="p">(</span><span class="n">train_x</span><span class="p">,</span> <span class="n">train_y</span><span class="p">)</span>
+<span class="n">hyperparam_search</span><span class="o">.</span><span class="n">set_test_data</span><span class="p">(</span><span class="n">test_x</span><span class="p">,</span> <span class="n">test_y</span><span class="p">)</span>
+
+<span class="n">hyperparam_search</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">trials</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+                           <span class="n">study_name</span><span class="o">=</span><span class="s2">&quot;xor study&quot;</span><span class="p">,</span> 
+                           <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="n">storage</span><span class="o">=</span><span class="s2">&quot;sqlite:///xor.db&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.hpsearch.HyperparameterSearch.objective">
+<span class="sig-name descname"><span class="pre">objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trial</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/hpsearch.html#HyperparameterSearch.objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.hpsearch.HyperparameterSearch.objective" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Parameters:</dt><dd><p>trial (optuna.trial.Trial): A trial object used to generate parameters for optimization.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: The best test score achieved during training.
+int: The literal budget used for optimization if specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.hpsearch.HyperparameterSearch.optimize">
+<span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_trials</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">storage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progress_bar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/hpsearch.html#HyperparameterSearch.optimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.hpsearch.HyperparameterSearch.optimize" title="Link to this definition"></a></dt>
+<dd><p>A method to optimize the parameters using Optuna for a given number of trials.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>n_trials (int): The number of trials for optimization.
+study_name (str): The name of the study.
+storage (str, optional): The storage name. Defaults to None.
+show_progress_bar (bool, optional): Whether to show a progress bar. Defaults to False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.hpsearch.HyperparameterSearch.set_test_data">
+<span class="sig-name descname"><span class="pre">set_test_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/hpsearch.html#HyperparameterSearch.set_test_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.hpsearch.HyperparameterSearch.set_test_data" title="Link to this definition"></a></dt>
+<dd><p>Set the test data for the model.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>test_x (array): The input test data.
+test_y (array): The target test data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="green_tsetlin.hpsearch.HyperparameterSearch.set_train_data">
+<span class="sig-name descname"><span class="pre">set_train_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/hpsearch.html#HyperparameterSearch.set_train_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.hpsearch.HyperparameterSearch.set_train_data" title="Link to this definition"></a></dt>
+<dd><p>Set the training data for the study.</p>
+<dl class="simple">
+<dt>Parameters:</dt><dd><p>train_x (array): The input training data.
+train_y (array): The target training data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="module-green_tsetlin.dataset_generator">
+<span id="dataset-generator"></span><h2>dataset_generator<a class="headerlink" href="#module-green_tsetlin.dataset_generator" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="green_tsetlin.dataset_generator.imdb_dataset">
+<span class="sig-prename descclassname"><span class="pre">green_tsetlin.dataset_generator.</span></span><span class="sig-name descname"><span class="pre">imdb_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imdb_num_words</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imdb_index_from</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_ngram</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SKB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/green_tsetlin/dataset_generator.html#imdb_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.dataset_generator.imdb_dataset" title="Link to this definition"></a></dt>
+<dd><p>Gets and processed the IMDb dataset used for NLP classification</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="green_tsetlin.dataset_generator.xor_dataset">
+<span class="sig-prename descclassname"><span class="pre">green_tsetlin.dataset_generator.</span></span><span class="sig-name descname"><span class="pre">xor_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_literals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">array</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/green_tsetlin/dataset_generator.html#xor_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#green_tsetlin.dataset_generator.xor_dataset" title="Link to this definition"></a></dt>
+<dd><p>Generate a dataset where y = x[0] XOR x[1], with the rest of the features being dummy variables.
+:param noise:   the probability for a noisy training example
+:param n_train: number of training examples
+:param n_test: number of test examples
+:param n_literals: the number of literals, must be at least 2.
+:param seed: random seed. default: None
+:return: train_x (uint8), train_y (uint32), test_x (uint8), test_y (uint32)</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="notebooks/california_housing_example.html" class="btn btn-neutral float-left" title="California Housing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Sondre &#39;Ooki&#39; Glimsdal.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
