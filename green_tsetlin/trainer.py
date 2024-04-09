@@ -15,12 +15,33 @@ from sklearn.model_selection import StratifiedKFold
 from green_tsetlin import TsetlinMachine, DenseState, allocate_clause_blocks
 from green_tsetlin.backend import impl as _backend_impl
 
+
 def empty_epoch_callback(epoch, train_acc, test_score):
     pass
 
-
-
 class Trainer:
+
+    """
+    Example
+    --------
+
+    .. code-block:: python
+        
+        import green_tsetlin as gt
+        
+        tm = gt.TsetlinMachine(n_literals=4, n_clauses=5, n_classes=2, s=3.0, threshold=42, literal_budget=4, boost_true_positives=False)        
+        
+        train_x, train_y, eval_x, eval_y = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+        
+        trainer = gt.Trainer(tm, seed=42, n_jobs=1)
+        trainer.set_train_data(train_x, train_y)
+        trainer.set_test_data(eval_x, eval_y)
+        
+        trainer.train()
+    
+    """
+
+
     def __init__(self,
                  tm: TsetlinMachine,
                  feedback_type="focused_negative_sampling",

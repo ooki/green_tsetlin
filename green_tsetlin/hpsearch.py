@@ -13,6 +13,37 @@ from green_tsetlin.trainer import Trainer
 
 class HyperparameterSearch:
 
+    """
+    Example
+    --------
+
+    .. code-block:: python
+
+        from green_tsetlin.hpsearch import HyperparameterSearch
+        from green_tsetlin.dataset_generator import xor_dataset
+
+        train_x, train_y, test_x, test_y = xor_dataset(n_train=50, n_test=10, n_literals=8, seed=42, noise=0.1)
+
+        hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
+                                                clause_space=(5, 10),
+                                                threshold_space=(3, 20),
+                                                max_epoch_per_trial=20,
+                                                literal_budget=(1, train_x.shape[1]),
+                                                seed=42,
+                                                n_jobs=5,
+                                                k_folds=4,
+                                                minimize_literal_budget=False)
+        
+        hyperparam_search.set_train_data(train_x, train_y)
+        hyperparam_search.set_test_data(test_x, test_y)
+
+        hyperparam_search.optimize(trials=10, 
+                                   study_name="xor study", 
+                                   show_progress_bar=True,
+                                   storage="sqlite:///xor.db")
+    
+    """
+
     def __init__(self, 
                  s_space : Union[Tuple[float, float], float], 
                  clause_space : Union[Tuple[int, int], int], 
@@ -36,11 +67,29 @@ class HyperparameterSearch:
 
 
     def set_train_data(self, train_x, train_y):
+        """
+        Set the training data for the study.
+
+        Parameters:
+            train_x (array): The input training data.
+            train_y (array): The target training data.
+
+        """
+        
         self.train_x = train_x
         self.train_y = train_y
 
 
     def set_test_data(self, test_x, test_y):
+        """
+        Set the test data for the model.
+
+        Parameters:
+            test_x (array): The input test data.
+            test_y (array): The target test data.
+
+        """
+
         self.test_x = test_x
         self.test_y = test_y
 
@@ -55,7 +104,15 @@ class HyperparameterSearch:
 
 
     def objective(self, trial):
+        """
+        Parameters:
+            trial (optuna.trial.Trial): A trial object used to generate parameters for optimization.
         
+        Returns:
+            float: The best test score achieved during training.
+            int: The literal budget used for optimization if specified.
+        """
+
         self._check_data()
 
         s = trial.suggest_float("s", self.s_space[0], self.s_space[1]) if not isinstance(self.s_space, float) else self.s_space
@@ -94,6 +151,18 @@ class HyperparameterSearch:
 
     def optimize(self, n_trials, study_name, storage : str = None, show_progress_bar : bool = False):
         
+        """
+        A method to optimize the parameters using Optuna for a given number of trials.
+        
+        Parameters:
+            n_trials (int): The number of trials for optimization.
+            study_name (str): The name of the study.
+            storage (str, optional): The storage name. Defaults to None.
+            show_progress_bar (bool, optional): Whether to show a progress bar. Defaults to False.
+            
+        """
+
+
         if self.minimize_literal_budget:
             study = optuna.create_study(study_name=study_name, storage=storage, directions=["maximize", "minimize"], load_if_exists=True)
         
