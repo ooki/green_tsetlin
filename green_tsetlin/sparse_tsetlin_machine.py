@@ -100,9 +100,9 @@ class SparseTsetlinMachine(TsetlinMachine):
         super().__init__(n_literals, n_clauses, n_classes, s, threshold, literal_budget, boost_true_positives, multi_label)
         
         
-        self.clause_size = n_literals
-        self.active_literals_size = n_literals
-        self.lower_ta_threshold = -20
+        self.clause_size = np.ceil(np.sqrt(n_literals))
+        self.active_literals_size = np.ceil(np.sqrt(n_literals))
+        self.lower_ta_threshold = -40
         self.dynamic_AL = dynamic_AL
         
         self._backend_clause_block_cls = _backend_impl["sparse_cb"]
