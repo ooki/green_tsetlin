@@ -100,8 +100,8 @@ class SparseTsetlinMachine(TsetlinMachine):
         super().__init__(n_literals, n_clauses, n_classes, s, threshold, literal_budget, boost_true_positives, multi_label)
         
         
-        self.clause_size = np.ceil(np.sqrt(n_literals))
-        self.active_literals_size = np.ceil(np.sqrt(n_literals))
+        self.clause_size = np.ceil(np.sqrt(n_literals)).astype(int)
+        self.active_literals_size = np.ceil(np.sqrt(n_literals)).astype(int)
         self.lower_ta_threshold = -40
         self.dynamic_AL = dynamic_AL
         
