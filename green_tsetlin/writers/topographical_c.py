@@ -44,7 +44,7 @@ class TopographicalC:
             fp.write("// start clauses")
             fp.write("\n")
             
-            self._export_tree(fp, self._root, 0)
+            self._export_tree2(fp, self._root, 0, [])
             
             self._write_find_output(fp)    
             fp.write("\n")
@@ -145,6 +145,44 @@ class TopographicalC:
             self._export_tree(fp, c, d+1)
             
         if tree.ta is not None:
+            fp.write("  "*d)
+            fp.write("}\n")
+
+    def _export_tree2(self, fp, tree:Node, d, if_conds:list):        
+        if_conds = list(if_conds)
+        if tree.ta is not None:
+            if_conds.append(tree.ta)
+
+
+        flush = False
+        if tree.w is not None:
+            if_list = []
+            for ta_k in if_conds:
+                if ta_k < self.n_literals:
+                    if_list.append("x[{}] > 0".format(ta_k))
+                else:
+                    if_list.append("x[{}] == 0".format(ta_k - self.n_literals))
+                    
+            clause_statements = " && ".join(if_list)
+            if_statment = "if({}){{".format(clause_statements)
+            
+            fp.write("  "*d)
+            fp.write("{}\n".format(if_statment))
+            if_conds = [] # reset
+
+            add_votes = " ".join(["votes[{}] += {};".format(k, w) for k, w in enumerate(tree.w)])
+            fp.write("{}\n".format(add_votes))
+
+            flush = True
+
+            d += 1
+
+        
+            
+        for c in tree.childs:
+            self._export_tree2(fp, c, d, if_conds)
+            
+        if tree.ta is not None and flush:
             fp.write("  "*d)
             fp.write("}\n")
         

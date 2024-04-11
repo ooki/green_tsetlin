@@ -4,6 +4,7 @@ TODO:
 - Fix before release:
     - Rename literal_budget to max_rule_length/size
     - move s_inv and s_min1_inv to state for sparse and dense tm
+    - Add SparseForDenseTMInputBlock that lets a dense model run on a sparse model with instanciating the dense version only in prepare_example()
     - ~~load last state if load_best_state is false~~ DONE
 
 - Inference
