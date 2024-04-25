@@ -171,8 +171,6 @@ def test_train_simple_xor_consistency_sparse():
     assert not np.array_equal(best_accs[0], best_accs[-1]), (best_accs[0], best_accs[-1])
 
 
-
-
 def test_train_simple_xor_uniform_feedback():
     
     n_literals = 6
@@ -556,6 +554,30 @@ def test_trainer_save_best_state_if_save_best_is_true():
     assert tm._state == trainer._best_tm_state
 
 
+def test_set_test_val_train():
+
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42    
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    
+    train_x, train_y, test_x, test_y = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+    
+    train_x, val_x = train_x[0:170], train_x[170:]
+    train_y, val_y = train_y[0:170], train_y[170:]
+
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=False)
+
+    trainer.set_validation_data(val_x, val_y)    
+    trainer.set_test_data(test_x, test_y)
+    
+    
+    trainer.set_train_data(train_x, train_y)
+    
+    
+
 
 if __name__ == "__main__":
     # test_trainer_throws_on_wrong_number_of_examples_between_x_and_y()
@@ -576,6 +598,11 @@ if __name__ == "__main__":
 
     # test_trainer_save_last_state_if_save_best_is_false()
     # test_trainer_save_best_state_if_save_best_is_true()
+<<<<<<< Updated upstream
     test_train_simple_xor_sparse_input_dense_backend_gtc()
+=======
+
+    test_set_test_val_train()
+>>>>>>> Stashed changes
 
     print("<done: ", __file__, ">")
