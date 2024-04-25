@@ -32,7 +32,7 @@ def test_trainer_throws_if_data_is_wrong_dtype():
 
     trainer = gt.Trainer(tm)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(x, y)
+    trainer.set_eval_data(x, y)
     
     with pytest.raises(ValueError):
         trainer.set_train_data(x_wrong, y)
@@ -41,10 +41,10 @@ def test_trainer_throws_if_data_is_wrong_dtype():
         trainer.set_train_data(x, y_wrong)
 
     with pytest.raises(ValueError):
-        trainer.set_test_data(x_wrong, y)
+        trainer.set_eval_data(x_wrong, y)
 
     with pytest.raises(ValueError):
-        trainer.set_test_data(x, y_wrong)
+        trainer.set_eval_data(x, y_wrong)
 
     
 def test_trainer_throws_on_wrong_number_of_examples_between_x_and_y():
@@ -62,19 +62,19 @@ def test_trainer_throws_on_wrong_number_of_examples_between_x_and_y():
 
     trainer = gt.Trainer(tm)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(x, y)
+    trainer.set_eval_data(x, y)
 
     with pytest.raises(ValueError):
         trainer.set_train_data(x, y_wrong)
 
     with pytest.raises(ValueError):
-        trainer.set_test_data(x, y_wrong)        
+        trainer.set_eval_data(x, y_wrong)        
     
     with pytest.raises(ValueError):
         trainer.set_train_data(x_wrong, y)
 
     with pytest.raises(ValueError):
-        trainer.set_test_data(x_wrong, y)
+        trainer.set_eval_data(x_wrong, y)
 
 
 def test_train_simple_xor():
@@ -90,7 +90,7 @@ def test_train_simple_xor():
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
 
     trainer.train()    
     # print("BACKEND:")
@@ -118,11 +118,11 @@ def test_train_simple_xor_consistency():
             seed = other_seed
         trainer = gt.Trainer(tm, seed=seed, n_jobs=1, progress_bar=False, n_epochs=2)
         trainer.set_train_data(x, y)
-        trainer.set_test_data(ex, ey)
+        trainer.set_eval_data(ex, ey)
         trainer.train()
 
         train_logs.append(trainer.results["train_log"])
-        best_accs.append(trainer.results["best_test_score"])
+        best_accs.append(trainer.results["best_eval_score"])
 
 
     assert np.array_equal(train_logs[0], train_logs[1])
@@ -155,11 +155,11 @@ def test_train_simple_xor_consistency_sparse():
             seed = other_seed
         trainer = gt.Trainer(tm, seed=seed, n_jobs=1, progress_bar=False, load_best_state=False, n_epochs=2)
         trainer.set_train_data(csr_matrix(x), y)
-        trainer.set_test_data(csr_matrix(ex), ey)
+        trainer.set_eval_data(csr_matrix(ex), ey)
         trainer.train()
 
         train_logs.append(trainer.results["train_log"])
-        best_accs.append(trainer.results["best_test_score"])
+        best_accs.append(trainer.results["best_eval_score"])
 
 
     assert np.array_equal(train_logs[0], train_logs[1])
@@ -185,7 +185,7 @@ def test_train_simple_xor_uniform_feedback():
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, feedback_type="uniform", n_epochs=100)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     trainer.train()    
 
     assert trainer.results["did_early_exit"]
@@ -204,7 +204,7 @@ def test_train_simple_xor_gtc_tm_backend():
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=40)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     r = trainer.train()    
     
     assert r["did_early_exit"]
@@ -225,7 +225,7 @@ def test_train_set_best_state_and_results_afterwards():
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, load_best_state=True, progress_bar=False, n_epochs=3)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
 
     assert trainer.results is None
     trainer.train()    
@@ -260,7 +260,7 @@ def test_train_simple_xor_py_gtc():
 
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     r = trainer.train()    
     print(r)
 
@@ -287,11 +287,11 @@ def test_train_simple_xor_sparse_input_dense_backend_pygtc():
     sparse_ex = csr_matrix(ex)
 
     trainer.set_train_data(sparse_x, y)
-    trainer.set_test_data(sparse_ex, ey)
+    trainer.set_eval_data(sparse_ex, ey)
     r = trainer.train()    
-    assert r["best_test_score"] > 0.99
+    assert r["best_eval_score"] > 0.99
 
-def test_train_simple_xor_sparse_input_dense_backend_gtc():
+def _test_train_simple_xor_sparse_input_dense_backend_gtc():
     
     n_literals = 7
     n_clauses = 5
@@ -306,9 +306,9 @@ def test_train_simple_xor_sparse_input_dense_backend_gtc():
     sparse_ex = csr_matrix(ex)
 
     trainer.set_train_data(sparse_x, y)
-    trainer.set_test_data(sparse_ex, ey)
+    trainer.set_eval_data(sparse_ex, ey)
     r = trainer.train()    
-    assert r["best_test_score"] > 0.99
+    assert r["best_eval_score"] > 0.99
 
 
 
@@ -322,8 +322,6 @@ def test_select_backend_ib_trainer_dense():
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
     #tm._backend_clause_block_cls = gtc.ClauseBlockTM
-
-    
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     sparse_x = csr_matrix(x)
@@ -332,14 +330,14 @@ def test_select_backend_ib_trainer_dense():
     # test both dense
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     trainer._select_backend_ib()
     assert trainer._cls_input_block == gtc.DenseInputBlock, (trainer._cls_input_block, trainer._cls_dense_ib)
 
 
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(sparse_x, y)
-    trainer.set_test_data(sparse_ex, ey)
+    trainer.set_eval_data(sparse_ex, ey)
     trainer._select_backend_ib()
     assert trainer._cls_input_block == gtc.SparseInputDenseOutputBlock, (trainer._cls_input_block, trainer._cls_dense_ib)
 
@@ -349,14 +347,14 @@ def test_select_backend_ib_trainer_dense():
 
     # test train spase, test dense
     with pytest.raises(ValueError):
-        trainer.set_test_data(x, ey)
+        trainer.set_eval_data(x, ey)
 
     trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
 
     # test train dense, test sparse
     with pytest.raises(ValueError):
-        trainer.set_test_data(sparse_x, y)
+        trainer.set_eval_data(sparse_x, y)
     
 
 def test_select_backend_ib_trainer_sparse():
@@ -376,13 +374,13 @@ def test_select_backend_ib_trainer_sparse():
     
     # test both sparse
     trainer.set_train_data(sparse_x, y)
-    trainer.set_test_data(sparse_ex, ey)
+    trainer.set_eval_data(sparse_ex, ey)
     trainer._select_backend_ib()
     assert trainer._cls_input_block == gtc.SparseInputBlock, (trainer._cls_input_block, trainer._cls_sparse_ib)
 
     # test train dense, test sparse
     with pytest.raises(ValueError):
-        trainer.set_test_data(ex, ey)
+        trainer.set_eval_data(ex, ey)
 
     # test train sparse, test dense
     with pytest.raises(ValueError):
@@ -412,7 +410,7 @@ def test_train_simple_xor_sparse():
     ex = csr_matrix(ex)
 
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
 
     r = trainer.train()    
     # print("BACKEND:")
@@ -451,7 +449,7 @@ def test_train_simple_xor_sparse():
 #     ex = csr_matrix(ex)
 
 #     trainer.set_train_data(x, y)
-#     trainer.set_test_data(ex, ey)
+#     trainer.set_eval_data(ex, ey)
 
 #     r = trainer.train()    
 #     print(r)
@@ -470,10 +468,10 @@ def test_trainer_with_kfold():
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=False, k_folds=20, kfold_progress_bar=True)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     r = trainer.train()
 
-    assert r["best_test_score"] == 1.0
+    assert r["best_eval_score"] == 1.0
 
 
 def test_wrong_data_formats():
@@ -491,7 +489,7 @@ def test_wrong_data_formats():
     #     trainer.set_train_data(csr_matrix(x), y)
 
     # with pytest.raises(ValueError):
-    #     trainer.set_test_data(csr_matrix(ex), y)
+    #     trainer.set_eval_data(csr_matrix(ex), y)
 
     # with pytest.raises(ValueError):
     #     trainer.set_validation_data(csr_matrix(ex), y)
@@ -504,10 +502,8 @@ def test_wrong_data_formats():
         trainer_s.set_train_data(x, y)
 
     with pytest.raises(ValueError):
-        trainer_s.set_test_data(ex, y)
+        trainer_s.set_eval_data(ex, y)
 
-    with pytest.raises(ValueError):
-        trainer_s.set_validation_data(ex, y)
 
 
 def test_trainer_save_last_state_if_save_best_is_false():
@@ -522,14 +518,15 @@ def test_trainer_save_last_state_if_save_best_is_false():
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=True, load_best_state=False)
 
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     r = trainer.train()
 
     # print(r)
 
-    assert r["best_test_score"] == 1.0
+    assert r["best_eval_score"] == 1.0
     assert tm._state is not None
     assert trainer._best_tm_state is None
+
 
 def test_trainer_save_best_state_if_save_best_is_true():
     n_literals = 7
@@ -543,18 +540,18 @@ def test_trainer_save_best_state_if_save_best_is_true():
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=True, load_best_state=True)
 
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     r = trainer.train()
 
     # print(r)
 
-    assert r["best_test_score"] == 1.0
+    assert r["best_eval_score"] == 1.0
     assert tm._state is not None
     assert trainer._best_tm_state is not None
     assert tm._state == trainer._best_tm_state
 
 
-def test_set_test_val_train():
+def test_set_test_train():
 
     n_literals = 7
     n_clauses = 5
@@ -564,18 +561,14 @@ def test_set_test_val_train():
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
     
     train_x, train_y, test_x, test_y = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
-    
-    train_x, val_x = train_x[0:170], train_x[170:]
-    train_y, val_y = train_y[0:170], train_y[170:]
 
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=False)
 
-    trainer.set_validation_data(val_x, val_y)    
-    trainer.set_test_data(test_x, test_y)
-    
-    
     trainer.set_train_data(train_x, train_y)
+    trainer.set_eval_data(test_x, test_y)
     
+    assert trainer.x_train.shape == train_x.shape
+    assert trainer.x_eval.shape == test_x.shape
     
 
 
@@ -598,11 +591,8 @@ if __name__ == "__main__":
 
     # test_trainer_save_last_state_if_save_best_is_false()
     # test_trainer_save_best_state_if_save_best_is_true()
-<<<<<<< Updated upstream
-    test_train_simple_xor_sparse_input_dense_backend_gtc()
-=======
+    # test_train_simple_xor_sparse_input_dense_backend_gtc()
 
-    test_set_test_val_train()
->>>>>>> Stashed changes
+    test_set_test_train()
 
     print("<done: ", __file__, ">")

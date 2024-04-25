@@ -103,7 +103,7 @@ def test_predictor_pass_xor():
         x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, n_train=400, n_test=200)
         trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100, progress_bar=False)
         trainer.set_train_data(x, y)
-        trainer.set_test_data(ex, ey)
+        trainer.set_eval_data(ex, ey)
         trainer.train()
         
         if trainer.results["did_early_exit"]:

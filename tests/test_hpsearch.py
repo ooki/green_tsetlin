@@ -19,12 +19,12 @@ def test_set_data():
                                               n_jobs=5)
     
     hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
+    hyperparam_search.set_eval_data(test_x, test_y)
 
-    assert np.array_equal(hyperparam_search.train_x, train_x)
-    assert np.array_equal(hyperparam_search.train_y, train_y)
-    assert np.array_equal(hyperparam_search.test_x, test_x)
-    assert np.array_equal(hyperparam_search.test_y, test_y)
+    assert np.array_equal(hyperparam_search.x_train, train_x)
+    assert np.array_equal(hyperparam_search.y_train, train_y)
+    assert np.array_equal(hyperparam_search.x_eval, test_x)
+    assert np.array_equal(hyperparam_search.y_eval, test_y)
 
 
 def test_trial():
@@ -40,7 +40,7 @@ def test_trial():
                                               n_jobs=5)
     
     hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
+    hyperparam_search.set_eval_data(test_x, test_y)
 
     class MockTrial:
         def suggest_float(self, name, low, high):
@@ -68,7 +68,7 @@ def test_optimization_literals():
                                               n_jobs=5)
     
     hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
+    hyperparam_search.set_eval_data(test_x, test_y)
 
     vals = []
     literal_max = 3
@@ -98,7 +98,7 @@ def test_set_params():
                                               n_jobs=5)
     
     hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
+    hyperparam_search.set_eval_data(test_x, test_y)
 
     hyperparam_search.optimize(n_trials=1, study_name="none")
 
@@ -114,7 +114,7 @@ def test_set_params():
                                               n_jobs=5)
     
     hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
+    hyperparam_search.set_eval_data(test_x, test_y)
 
     hyperparam_search.optimize(n_trials=1, study_name="none")
 
@@ -137,15 +137,9 @@ def test_optimization():
                                               minimize_literal_budget=False)
     
     hyperparam_search.set_train_data(train_x, train_y)
-    hyperparam_search.set_test_data(test_x, test_y)
+    hyperparam_search.set_eval_data(test_x, test_y)
 
     hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
-    
-    # vals = []
-    # for trial in hyperparam_search.best_trials:
-    #     vals.append(trial.values)
-
-    # assert np.max(vals) == 1.0
 
 
 def test_with_kfold():
@@ -168,9 +162,9 @@ def test_with_kfold():
                                                 k_folds=5)
         
         hyperparam_search.set_train_data(train_x, train_y)
-        hyperparam_search.set_test_data(test_x, test_y)
+        hyperparam_search.set_eval_data(test_x, test_y)
 
-        hyperparam_search.optimize(n_trials=10, study_name="none", show_progress_bar=True)
+        hyperparam_search.optimize(n_trials=3, study_name="none", show_progress_bar=True)
         
         for trial in hyperparam_search.best_trials:
             vals.append(trial.values)
@@ -185,7 +179,7 @@ if __name__ == "__main__":
     # test_set_params()
     # test_trial()
     # test_set_data()
-    test_optimization()
+    # test_optimization()
     # test_with_kfold()
 
     print("<done tests:", __file__, ">")

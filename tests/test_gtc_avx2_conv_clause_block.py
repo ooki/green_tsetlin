@@ -33,7 +33,7 @@ def test_train_simple_xor():
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     trainer = gt.Trainer(tm_conv, seed=35, n_jobs=1, n_epochs=100)
     trainer.set_train_data(x, y)
-    trainer.set_test_data(ex, ey)
+    trainer.set_eval_data(ex, ey)
     r = trainer.train()
     print(r)
     
