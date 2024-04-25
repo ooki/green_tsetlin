@@ -1,5 +1,20 @@
 
-![logo](docs/image/Green%20Tsetlin%20transparent.svg)
+![logo](docs/image/Green%20Tsetlin%20transparent.png)
+</br>
+</br>
+</br>
+</br>
+
+![logo](docs/image/Green%20Tsetlin%20transparent%20gray.png)
+</br>
+</br>
+</br>
+</br>
+
+![logo](docs/image/Green%20Tsetlin%20transparent%20brown.png)
+
+
+
 
 TODO:
 ====
