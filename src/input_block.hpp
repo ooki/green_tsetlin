@@ -150,6 +150,76 @@ namespace green_tsetlin
             uint32_t*                   m_current_label;
     };
 
+    
+    template <typename _ExampleType>
+    class SparseInputDenseOutputBlock : public DenseInputBlock<_ExampleType>
+    {
+        public:
+            SparseInputDenseOutputBlock(int num_literals) : DenseInputBlock<_ExampleType>(num_literals) {}        
+            virtual ~SparseInputDenseOutputBlock() {}
+
+            
+            virtual void prepare_example(int index)
+            {
+                std::cout << "prepare_example : START" << std::endl;
+                if(this->m_labels != nullptr)
+                    this->m_current_label = &this->m_labels[index*this->m_num_labels_per_example];
+
+                memset(this->m_current_example, 0, this->m_num_literals * sizeof(_ExampleType));
+
+                const int32_t row_end = m_indptr[index+1];
+                for(int32_t row_iter = m_indptr[index]; row_iter < row_end; row_iter++)
+                {                    
+                    this->m_current_example[row_iter] = 1;
+                }
+
+                std::cout << "prepare_example : END" << std::endl;
+                    
+            }
+            
+            void set_data_sparse(pybind11::array indices, pybind11::array indptr, pybind11::array labels)
+            {
+                std::cout << "set data sparse input, dense output : START" << std::endl;
+                // 
+                pybind11::buffer_info indices_info = indices.request();                            
+                m_indices = static_cast<int32_t*>(indices_info.ptr);
+
+                pybind11::buffer_info indptr_info = indptr.request();                            
+                std::vector<ssize_t> shape_indptr = indptr_info.shape;
+
+                this->m_num_examples = shape_indptr[0] - 1;
+                m_indptr = static_cast<int32_t*>(indptr_info.ptr);
+
+                // labels
+                pybind11::buffer_info buffer_info2 = labels.request();                            
+                std::vector<ssize_t> shape2 = buffer_info2.shape;      
+                
+                if(shape2[0] != this->m_num_examples)
+                    throw std::runtime_error("Number of examples in labeles does not match number of examples provided in set_data().");
+                
+                //std::cout << "shape2.size(): " << shape2.size() << "  [0] = " << shape2[0] << std::endl;
+                if(shape2.size() == 1)                    
+                    this->m_num_labels_per_example = 1;                    
+                else                    
+                    this->m_num_labels_per_example = shape2[1];
+                
+                this->m_labels = static_cast<uint32_t*>(buffer_info2.ptr);
+
+                std::cout << "set data sparse input, dense output : END" << std::endl;
+            
+            }
+            void set_data(pybind11::array_t<uint8_t> examples, pybind11::array_t<uint32_t> labels)
+            {
+                throw std::runtime_error("Cannot use dense input for SparseInputDenseOutputBlock.");
+            }
+            
+            
+        protected:
+            int32_t*                    m_indices;
+            int32_t*                    m_indptr;
+        };
+    
+
 
     template <typename _ExampleType>
     class SparseInputBlock : public InputBlock

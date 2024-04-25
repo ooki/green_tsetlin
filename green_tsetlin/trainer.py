@@ -99,7 +99,9 @@ class Trainer:
         self._cls_exec_multithread = _backend_impl["thread_executor"]
 
         self._cls_sparse_ib = _backend_impl["sparse_input"]
-        self._cls_input_block = None
+        self._cls_sparse_input_dense_output_ib = _backend_impl["sparse_input_dense_output"]
+
+        self._cls_input_block = None # the input block in use.
         
         self.x_train = None
 
@@ -107,8 +109,10 @@ class Trainer:
     def set_train_data(self, x_train:np.array, y_train:np.array):
         
         # raise error if data is sparse and cb is dense, and vice versa
-        if isinstance(x_train, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
-            raise ValueError("x_train can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
+
+        # we support sparse input to dense
+        # if isinstance(x_train, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
+        #     raise ValueError("x_train can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
 
         if isinstance(x_train, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
             raise ValueError("x_train can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
@@ -137,8 +141,8 @@ class Trainer:
 
     def set_test_data(self, x_test:np.array, y_test:np.array):
         
-        if isinstance(x_test, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
-            raise ValueError("x_test can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
+        # if isinstance(x_test, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
+        #     raise ValueError("x_test can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
 
         if isinstance(x_test, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
             raise ValueError("x_test can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
@@ -167,8 +171,8 @@ class Trainer:
 
     def set_validation_data(self, x_val:np.array, y_val:np.array):
 
-        if isinstance(x_val, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
-            raise ValueError("x_val can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
+        # if isinstance(x_val, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
+        #     raise ValueError("x_val can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
 
         if isinstance(x_val, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
             raise ValueError("x_val can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
@@ -221,7 +225,11 @@ class Trainer:
     def _select_backend_ib(self):
 
         if isinstance(self.x_train, csr_matrix) and isinstance(self.x_test, csr_matrix):
-            self._cls_input_block = self._cls_sparse_ib
+
+            if self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+                self._cls_input_block = self._cls_sparse_ib
+            else:
+                self._cls_input_block = self._cls_sparse_input_dense_output_ib
         
         elif isinstance(self.x_train, np.ndarray) and isinstance(self.x_test, np.ndarray):
             self._cls_input_block = self._cls_dense_ib
@@ -237,7 +245,6 @@ class Trainer:
 
         self._select_backend_ib()
         input_block = self._cls_input_block(self.tm.n_literals)
-
 
         _flexible_set_data(input_block, self.x_train, self.y_train)
 
@@ -285,7 +292,6 @@ class Trainer:
                 progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
         
                 for epoch in range(self.n_epochs):         
-                    
                     t0 = perf_counter()                                   
                     train_acc = exec.train_epoch()
                     t1 = perf_counter()

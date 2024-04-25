@@ -1,6 +1,8 @@
+
 import numpy 
+
 from green_tsetlin.py_gtc.feedback_block import FeedbackBlock
-from green_tsetlin.py_gtc.dense_input_block import DenseInputBlock, SparseInputBlock
+from green_tsetlin.py_gtc.dense_input_block import DenseInputBlock, SparseInputBlock, SparseInpuDenseOutputBlock
 from green_tsetlin.py_gtc.tsetlin_state import TsetlinState, TsetlinStateSparse
 import numpy as np 
 
@@ -67,10 +69,10 @@ class ClauseBlock:
 
     def set_input_block(self, ib):
 
-        if isinstance(ib, DenseInputBlock):
+        if isinstance(ib, DenseInputBlock) or isinstance(ib, SparseInpuDenseOutputBlock):
             self.m_input_block = ib
         else:
-            raise ValueError("DenseInputBlock object expected.")
+            raise ValueError("DenseInputBlock object or SparseInpuDenseOutputBlock expected, got: {}".format(type(ib)))
 
     def train_example(self):
 

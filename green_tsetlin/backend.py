@@ -12,7 +12,8 @@ impl = {
     "single_executor": py_gtc.SingleThreadExecutor,
     "thread_executor" : py_gtc.MultiThreadExecutor,
     "dense_input" : py_gtc.DenseInputBlock,
-    "sparse_input" : py_gtc.SparseInputBlock
+    "sparse_input" : py_gtc.SparseInputBlock,
+    "sparse_input_dense_output": py_gtc.SparseInpuDenseOutputBlock
 }
 
 
@@ -29,6 +30,7 @@ try:
     impl["thread_executor"] =  gtc.MultiThreadExecutor
     impl["dense_input"] = gtc.DenseInputBlock
     impl["sparse_input"] = gtc.SparseInputBlock
+    impl["sparse_input_dense_output"] = gtc.SparseInputDenseOutputBlock
 
     impl["cb_Lt_Bt"] = gtc.ClauseBlockTM_Lt_Bt # (L)lit_budget = true, (B)boost_true_positives = true
     impl["cb_Lt_Bf"] = gtc.ClauseBlockTM_Lt_Bf

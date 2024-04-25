@@ -40,6 +40,18 @@ def test_throws_on_wrong_size_arrays():
         ib_single.set_data(x_half, y)
     
 
+def test_SparseInputDenseOutputBlock_throws_on_dense():
+    n_examples = 10
+    n_literals = 4
+
+    ib_sido = gtc.SparseInputDenseOutputBlock(n_literals)    
+    x = np.zeros((n_examples, n_literals), dtype=np.uint8)    
+    y = np.zeros(n_examples, dtype=np.uint32)    
+    
+    with pytest.raises(TypeError):
+        ib_sido.set_data(x, y)
+
+
 def test_im2col_give_correct_shapes():
 
     n_examples = 1
@@ -64,6 +76,7 @@ def test_im2col_give_correct_shapes():
 if __name__ == "__main__":
     # test_DenseInputBlock_check_multi_flag()
     # test_throws_on_wrong_size_arrays()
-    test_im2col_give_correct_shapes()
+    # test_im2col_give_correct_shapes()
+    test_SparseInputDenseOutputBlock_throws_on_dense()
 
     print("<done tests:", __file__, ">")

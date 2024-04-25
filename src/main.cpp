@@ -56,6 +56,7 @@ namespace gt = green_tsetlin;
 
 //-------------------- Input Blocks ---------------------
 typedef typename gt::DenseInputBlock<uint8_t>   DenseInputBlock8u;
+typedef typename gt::SparseInputDenseOutputBlock<uint8_t>   SparseInputDenseOutputBlocku8;
 typedef typename gt::SparseInputBlock<gt::SparseLiterals>   SparseInputBlock32u;
 
 //-------------------- Executors ---------------------
@@ -308,6 +309,11 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
         .def("set_data", &DenseInputBlock8u::set_data)
     ;
 
+    py::class_<SparseInputDenseOutputBlocku8, DenseInputBlock8u>(m, "SparseInputDenseOutputBlock")
+        .def(py::init<int>())
+        .def("set_data", &SparseInputDenseOutputBlocku8::set_data_sparse)
+    ;
+
     py::class_<SparseInputBlock32u, gt::InputBlock>(m, "SparseInputBlock")
         .def(py::init<int>())
         .def("set_data", &SparseInputBlock32u::set_data)
@@ -383,6 +389,7 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     define_clause_block<ClauseBlockTMImpl<true, false>>(m, "ClauseBlockTM_Lt_Bf"); // Vanilla TM, (L)lit_budget = true, (B)btp = false
     define_clause_block<ClauseBlockTMImpl<false, true>>(m, "ClauseBlockTM_Lf_Bt"); // Vanilla TM, (L)lit_budget = false, (B)btp = true
     define_clause_block<ClauseBlockTMImpl<false, false>>(m, "ClauseBlockTM_Lf_Bf"); // Vanilla TM, (L)lit_budget = false, (B)btp = false
+    
 
     // Conv TM non-vectorized implementations
     define_clause_block<ClauseBlockConvTMImpl>(m, "ClauseBlockConvTM"); // Vanilla Convolutional TM

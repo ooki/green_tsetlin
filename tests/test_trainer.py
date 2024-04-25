@@ -238,6 +238,9 @@ def test_train_set_best_state_and_results_afterwards():
 def mock_return_gtc_backend():
     return py_gtc.ClauseBlock
 
+def mock_return_gtc_tm_backend_sparse_input_dense_output():
+    return py_gtc.SparseInpuDenseOutputBlock
+
 def test_train_simple_xor_py_gtc():
     
     n_literals = 7
@@ -263,6 +266,55 @@ def test_train_simple_xor_py_gtc():
     r = trainer.train()    
     print(r)
 
+def test_train_simple_xor_sparse_input_dense_backend_pygtc():
+    
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42   
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    tm._get_backend = mock_return_gtc_backend
+    
+
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100)
+
+    trainer._cls_feedback_block = py_gtc.FeedbackBlock    
+    trainer._cls_sparse_input_dense_output_ib = py_gtc.SparseInpuDenseOutputBlock
+    trainer._cls_exec_singlethread = py_gtc.SingleThreadExecutor
+
+    
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, noise=0.05)    
+    sparse_x = csr_matrix(x)
+    sparse_ex = csr_matrix(ex)
+
+    trainer.set_train_data(sparse_x, y)
+    trainer.set_test_data(sparse_ex, ey)
+    r = trainer.train()    
+    assert r["best_test_score"] > 0.99
+
+def test_train_simple_xor_sparse_input_dense_backend_gtc():
+    
+    n_literals = 7
+    n_clauses = 5
+    n_classes = 2
+    s = 3.0
+    threshold = 42   
+    tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100)
+    
+    x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, noise=0.05)    
+    sparse_x = csr_matrix(x)
+    sparse_ex = csr_matrix(ex)
+
+    trainer.set_train_data(sparse_x, y)
+    trainer.set_test_data(sparse_ex, ey)
+    r = trainer.train()    
+    assert r["best_test_score"] > 0.99
+
+
+
+
 def test_select_backend_ib_trainer_dense():
     n_literals = 7
     n_clauses = 5
@@ -273,27 +325,40 @@ def test_select_backend_ib_trainer_dense():
     
     #tm._backend_clause_block_cls = gtc.ClauseBlockTM
 
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
     sparse_x = csr_matrix(x)
     sparse_ex = csr_matrix(ex)
     
     # test both dense
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
     trainer.set_train_data(x, y)
     trainer.set_test_data(ex, ey)
     trainer._select_backend_ib()
     assert trainer._cls_input_block == gtc.DenseInputBlock, (trainer._cls_input_block, trainer._cls_dense_ib)
 
 
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    trainer.set_train_data(sparse_x, y)
+    trainer.set_test_data(sparse_ex, ey)
+    trainer._select_backend_ib()
+    assert trainer._cls_input_block == gtc.SparseInputDenseOutputBlock, (trainer._cls_input_block, trainer._cls_dense_ib)
+
+
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    trainer.set_train_data(sparse_x, y)
+
+    # test train spase, test dense
+    with pytest.raises(ValueError):
+        trainer.set_test_data(x, ey)
+
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1)
+    trainer.set_train_data(x, y)
 
     # test train dense, test sparse
     with pytest.raises(ValueError):
-        trainer.set_test_data(sparse_ex, ey)
-
-    # test train sparse, test dense
-    with pytest.raises(ValueError):
-        trainer.set_train_data(sparse_x, y)
+        trainer.set_test_data(sparse_x, y)
     
 
 def test_select_backend_ib_trainer_sparse():
@@ -326,8 +391,7 @@ def test_select_backend_ib_trainer_sparse():
         trainer.set_train_data(x, y)
 
 
-def test_train_simple_xor_sparse():
-    print("SPARSE\n")
+def test_train_simple_xor_sparse():    
     n_literals = 4
     n_clauses = 5
     n_classes = 2
@@ -353,13 +417,13 @@ def test_train_simple_xor_sparse():
     trainer.set_test_data(ex, ey)
 
     r = trainer.train()    
-    print("BACKEND:")
-    print(tm._backend_clause_block_cls)
-    print(trainer._cls_feedback_block)
-    print(trainer._cls_dense_ib)
-    print(trainer._cls_sparse_ib)
-    print(trainer._cls_exec_singlethread)
-    print(r)
+    # print("BACKEND:")
+    # print(tm._backend_clause_block_cls)
+    # print(trainer._cls_feedback_block)
+    # print(trainer._cls_dense_ib)
+    # print(trainer._cls_sparse_ib)
+    # print(trainer._cls_exec_singlethread)
+    # print(r)
 
 
 # def test_set_backend_py_gtc_sparse(): # Should be one test in the future
@@ -425,14 +489,14 @@ def test_wrong_data_formats():
     
     trainer = gt.Trainer(tm, seed=32, n_jobs=1, progress_bar=False, k_folds=20, kfold_progress_bar=True)
 
-    with pytest.raises(ValueError):
-        trainer.set_train_data(csr_matrix(x), y)
+    # with pytest.raises(ValueError):
+    #     trainer.set_train_data(csr_matrix(x), y)
 
-    with pytest.raises(ValueError):
-        trainer.set_test_data(csr_matrix(ex), y)
+    # with pytest.raises(ValueError):
+    #     trainer.set_test_data(csr_matrix(ex), y)
 
-    with pytest.raises(ValueError):
-        trainer.set_validation_data(csr_matrix(ex), y)
+    # with pytest.raises(ValueError):
+    #     trainer.set_validation_data(csr_matrix(ex), y)
 
 
     tm_s = gt.SparseTsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)
@@ -511,6 +575,7 @@ if __name__ == "__main__":
     # test_trainer_with_kfold()
 
     # test_trainer_save_last_state_if_save_best_is_false()
-    test_trainer_save_best_state_if_save_best_is_true()
+    # test_trainer_save_best_state_if_save_best_is_true()
+    test_train_simple_xor_sparse_input_dense_backend_gtc()
 
     print("<done: ", __file__, ">")
