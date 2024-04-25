@@ -396,6 +396,7 @@ class Trainer:
             return self.results
 
         else:
+            
             self._train_inner()
             return self.results
 
@@ -409,4 +410,3 @@ def _flexible_set_data(ib, x, y):
         raise ValueError("Cannot set input data with type: {}".format(type(x)))
         
         
-    
