@@ -1,3 +1,6 @@
+
+![logo](docs/image/Green%20Tsetlin%20transparent.svg)
+
 TODO:
 ====
 
@@ -30,3 +33,6 @@ TODO:
 - examples
     - implement a non trainer example
     - do a california housing example
+
+
+
