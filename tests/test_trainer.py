@@ -598,11 +598,7 @@ if __name__ == "__main__":
 
     # test_trainer_save_last_state_if_save_best_is_false()
     # test_trainer_save_best_state_if_save_best_is_true()
-<<<<<<< Updated upstream
     test_train_simple_xor_sparse_input_dense_backend_gtc()
-=======
-
     test_set_test_val_train()
->>>>>>> Stashed changes
 
     print("<done: ", __file__, ">")
