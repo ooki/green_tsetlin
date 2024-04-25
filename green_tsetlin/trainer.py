@@ -51,7 +51,7 @@ class Trainer:
                  early_exit_acc:float=1.0,
                  load_best_state:bool=True,
                  fn_epoch_callback=empty_epoch_callback,
-                 fn_test_score="accuracy",
+                 fn_eval_score="accuracy",
                  progress_bar=True,
                  copy_training_data:bool=True,
                  k_folds:int=0,
@@ -66,7 +66,7 @@ class Trainer:
         self.progress_bar = progress_bar
         
         self.fn_epoch_callback = fn_epoch_callback        
-        self.fn_test_score = fn_test_score
+        self.fn_eval_score = fn_eval_score
 
         self.copy_training_data = copy_training_data
 
@@ -76,10 +76,10 @@ class Trainer:
         self.kfold_progress_bar = kfold_progress_bar
         self.k_folds = k_folds
 
-        if fn_test_score == "accuracy":
-            self.fn_test_score = accuracy_score        
+        if fn_eval_score == "accuracy":
+            self.fn_eval_score = accuracy_score        
         else:
-            self.fn_test_score = fn_test_score
+            self.fn_eval_score = fn_eval_score
         
         if n_jobs < 0:
             n_cpus = os.cpu_count()                        
@@ -104,7 +104,8 @@ class Trainer:
         self._cls_input_block = None # the input block in use.
         
         self.x_train = None
-
+        self.x_eval = None
+        
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
         
@@ -114,10 +115,16 @@ class Trainer:
         # if isinstance(x_train, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
         #     raise ValueError("x_train can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
 
+        if isinstance(self.x_eval, np.ndarray) and not isinstance(x_train, np.ndarray):
+            raise ValueError("x_eval must be of type np.ndarray. x_eval type: {}, x_train type: {}".format(type(x_train), type(self.x_eval)))
+
+        elif isinstance(self.x_eval, csr_matrix) and not isinstance(x_train, csr_matrix):
+            raise ValueError("x_eval must be of type sparse. x_eval type: {}, x_train type: {}".format(type(x_train), type(self.x_eval)))
+
         if isinstance(x_train, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
             raise ValueError("x_train can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
 
-        
+
         y_train = np.atleast_1d(y_train)
         if x_train.shape[0] != y_train.shape[0]:
             raise ValueError("Data x_train and y_train must have the same number of examples: {} != {}".format(x_train.shape[0], y_train.shape[0]))
@@ -139,61 +146,39 @@ class Trainer:
         self.y_train = y_train        
 
 
-    def set_test_data(self, x_test:np.array, y_test:np.array):
-        
+    def set_eval_data(self, x_eval:np.array, y_eval:np.array):
+
         # if isinstance(x_test, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
         #     raise ValueError("x_test can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
 
-        if isinstance(x_test, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
-            raise ValueError("x_test can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
+        if isinstance(self.x_train, np.ndarray) and not isinstance(x_eval, np.ndarray):
+            raise ValueError("x_train must be of type np.ndarray. x_eval type: {}, x_train type: {}".format(type(x_eval), type(self.x_train)))
 
+        elif isinstance(self.x_train, csr_matrix) and not isinstance(x_eval, csr_matrix):
+            raise ValueError("x_eval must be of type sparse. x_eval type: {}, x_train type: {}".format(type(x_eval), type(self.x_train)))
 
-        y_test = np.atleast_1d(y_test)
-        if x_test.shape[0] != y_test.shape[0]:
-            raise ValueError("Data x_test and y_test must have the same number of examples: {} != {}".format(x_test.shape[0], y_test.shape[0]))
+        if isinstance(x_eval, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
+            raise ValueError("x_eval can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
+
+        y_eval = np.atleast_1d(y_eval)
+        if x_eval.shape[0] != y_eval.shape[0]:
+            raise ValueError("Data x_eval and y_eval must have the same number of examples: {} != {}".format(x_eval.shape[0], y_eval.shape[0]))
              
-        if x_test is not None:
-            x_test = x_test.copy()
-            y_test = y_test.copy()
+        if x_eval is not None:
+            x_eval = x_eval.copy()
+            y_eval = y_eval.copy()
 
-        if x_test.dtype != np.uint8:
-            raise ValueError("Data x_test must be of type np.uint8, was: {}".format(x_test.dtype))
+        if x_eval.dtype != np.uint8:
+            raise ValueError("Data x_eval must be of type np.uint8, was: {}".format(x_eval.dtype))
         
-        if y_test.dtype != np.uint32:
-            raise ValueError("Data y_test must be of type np.uint32, was: {}".format(y_test.dtype))
+        if y_eval.dtype != np.uint32:
+            raise ValueError("Data y_eval must be of type np.uint32, was: {}".format(y_eval.dtype))
         
-        if x_test.shape[1] != self.tm.n_literals:
-            raise ValueError("Data x_test does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_test.shape[1], self.tm.n_literals))
+        if x_eval.shape[1] != self.tm.n_literals:
+            raise ValueError("Data x_eval does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_eval.shape[1], self.tm.n_literals))
         
-        self.x_test = x_test
-        self.y_test = y_test
-
-
-    def set_validation_data(self, x_val:np.array, y_val:np.array):
-
-        # if isinstance(x_val, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
-        #     raise ValueError("x_val can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
-
-        if isinstance(x_val, np.ndarray) and self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
-            raise ValueError("x_val can not be np.ndarray when using sparse tsetlin machine. To use this data with sparse tsetlin machine, convert it to sparse using scipy.sparse.csr_matrix().")
-
-        y_val = np.atleast_1d(y_val)       
-
-        if x_val is not None:
-            x_val = x_val.copy()
-            y_val = y_val.copy()
-
-        if x_val.dtype != np.uint8:
-            raise ValueError("Data x_test must be of type np.uint8, was: {}".format(x_val.dtype))
-        
-        if y_val.dtype != np.uint32:
-            raise ValueError("Data y_test must be of type np.uint32, was: {}".format(y_val.dtype))
-        
-        if x_val.shape[1] != self.tm.n_literals:
-            raise ValueError("Data x_test does not match in shape[1] (#literals) with n_literals : {} != {}".format(x_val.shape[1], self.tm.n_literals))
-        
-        self.x_val = x_val
-        self.y_val = y_val 
+        self.x_eval = x_eval
+        self.y_eval = y_eval
 
 
     def _get_feedback_block(self, n_classes, threshold):
@@ -224,18 +209,18 @@ class Trainer:
 
     def _select_backend_ib(self):
 
-        if isinstance(self.x_train, csr_matrix) and isinstance(self.x_test, csr_matrix):
+        if isinstance(self.x_train, csr_matrix) and isinstance(self.x_eval, csr_matrix):
 
             if self.tm._backend_clause_block_cls == _backend_impl["sparse_cb"]:
                 self._cls_input_block = self._cls_sparse_ib
             else:
                 self._cls_input_block = self._cls_sparse_input_dense_output_ib
         
-        elif isinstance(self.x_train, np.ndarray) and isinstance(self.x_test, np.ndarray):
+        elif isinstance(self.x_train, np.ndarray) and isinstance(self.x_eval, np.ndarray):
             self._cls_input_block = self._cls_dense_ib
         
         else:
-            raise ValueError("Train and test data must be of the same type. x_train type: {}, x_test type: {}".format(type(self.x_train), type(self.x_test)))
+            raise ValueError("Train and eval data must be of the same type. x_train type: {}, x_eval type: {}".format(type(self.x_train), type(self.x_eval)))
 
 
     def _train_inner(self):                
@@ -275,21 +260,21 @@ class Trainer:
 
             # main loop
             n_epochs_trained = 0
-            best_test_score = -1.0
-            best_test_epoch = -1
+            best_eval_score = -1.0
+            best_eval_epoch = -1
             train_acc = -1.0
             
             train_time_of_epochs = []
             
             train_log = []
-            test_log = []
+            eval_log = []
             did_early_exit = False
             
-            y_hat = np.empty_like(self.y_test)
+            y_hat = np.empty_like(self.y_eval)
 
             hide_progress_bar = self.progress_bar is False  
             with tqdm.tqdm(total=self.n_epochs, disable=hide_progress_bar) as progress_bar:
-                progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best test score: NA".format(self.n_epochs))
+                progress_bar.set_description("Processing epoch 1 of {}, train acc: NA, best eval score: NA".format(self.n_epochs))
         
                 for epoch in range(self.n_epochs):         
                     t0 = perf_counter()                                   
@@ -300,32 +285,32 @@ class Trainer:
                     train_log.append(train_acc)                
                     n_epochs_trained += 1
                     
-                    _flexible_set_data(input_block, self.x_test, self.y_test)
+                    _flexible_set_data(input_block, self.x_eval, self.y_eval)
 
                     if self.tm._is_multi_label is False:
                         exec.eval_predict(y_hat)                            
                     else:
                         exec.eval_predict_multi(y_hat)        
                             
-                    test_score = self.fn_test_score(self.y_test, np.array(y_hat))
-                    test_log.append(test_score)                
+                    eval_score = self.fn_eval_score(self.y_eval, np.array(y_hat))
+                    eval_log.append(eval_score)                
                     
-                    self.fn_epoch_callback(epoch, train_acc, test_score)            
-                    if test_score > best_test_score:
-                        best_test_score = test_score
-                        best_test_epoch = epoch
+                    self.fn_epoch_callback(epoch, train_acc, eval_score)            
+                    if eval_score > best_eval_score:
+                        best_eval_score = eval_score
+                        best_eval_epoch = epoch
                         if self.load_best_state:
                             self._best_tm_state = self.tm._load_state_from_backend(only_return_copy=True)                                                
 
                     
-                    progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best test score: {:.3f} (epoch: {})".format(epoch+1,
+                    progress_bar.set_description("Processing epoch {} of {}, train acc: {:.3f}, best eval score: {:.3f} (epoch: {})".format(epoch+1,
                                                                                                                                 self.n_epochs,
                                                                                                                                 train_acc,
-                                                                                                                                best_test_score,
-                                                                                                                                best_test_epoch))
+                                                                                                                                best_eval_score,
+                                                                                                                                best_eval_epoch))
                     progress_bar.update(1)
                     
-                    if test_score >= self.early_exit_acc:                                    
+                    if eval_score >= self.early_exit_acc:                                    
                         did_early_exit = True
                         break
                     
@@ -340,11 +325,11 @@ class Trainer:
         
         r = {
             "train_time_of_epochs": train_time_of_epochs,
-            "best_test_score": best_test_score,
-            "best_test_epoch": best_test_epoch,
+            "best_eval_score": best_eval_score,
+            "best_eval_epoch": best_eval_epoch,
             "n_epochs": n_epochs_trained,
             "train_log": train_log,
-            "test_log": test_log,
+            "eval_log": eval_log,
             "did_early_exit": did_early_exit
             }
         
@@ -355,8 +340,8 @@ class Trainer:
         
         if self.k_folds > 1:
 
-            x = np.vstack((self.x_train, self.x_test))
-            y = np.concatenate((self.y_train, self.y_test))
+            x = np.vstack((self.x_train, self.x_eval))
+            y = np.concatenate((self.y_train, self.y_eval))
 
             kf = StratifiedKFold(n_splits=self.k_folds, random_state=self.seed, shuffle=True)
             
@@ -365,32 +350,32 @@ class Trainer:
 
             with tqdm.tqdm(total=self.k_folds, disable=self.kfold_progress_bar is False) as progress_bar:
                 
-                progress_bar.set_description("Processing kfold 1 of {}, best test score: NA".format(self.k_folds))
+                progress_bar.set_description("Processing kfold 1 of {}, best eval score: NA".format(self.k_folds))
                 
-                for i, (train_index, test_index) in enumerate(kf.split(x, y)):
+                for i, (train_index, eval_index) in enumerate(kf.split(x, y)):
 
-                    x_train, x_test = x[train_index], x[test_index]
-                    y_train, y_test = y[train_index], y[test_index]
+                    x_train, x_eval = x[train_index], x[eval_index]
+                    y_train, y_eval = y[train_index], y[eval_index]
 
                     x_train = np.ascontiguousarray(x_train, dtype=np.uint8)
-                    x_test = np.ascontiguousarray(x_test, dtype=np.uint8)
+                    x_eval = np.ascontiguousarray(x_eval, dtype=np.uint8)
                     y_train = np.ascontiguousarray(y_train, dtype=np.uint32)
-                    y_test = np.ascontiguousarray(y_test, dtype=np.uint32)
+                    y_eval = np.ascontiguousarray(y_eval, dtype=np.uint32)
 
                     self.set_train_data(x_train, y_train)
-                    self.set_test_data(x_test, y_test)
+                    self.set_eval_data(x_eval, y_eval)
 
                     self._train_inner()
 
-                    if self.results["best_test_score"] > best_score:
+                    if self.results["best_eval_score"] > best_score:
                         
-                        best_score = self.results["best_test_score"]
+                        best_score = self.results["best_eval_score"]
                         best_iter = i
 
-                    progress_bar.set_description("Processing kfold {} of {}, best test score: {:.3f} (iter: {})".format(i+1, self.k_folds, best_score, best_iter))
+                    progress_bar.set_description("Processing kfold {} of {}, best eval score: {:.3f} (iter: {})".format(i+1, self.k_folds, best_score, best_iter))
                     progress_bar.update(1)
             
-            r = {"best_test_score": best_score, "k_folds" : self.k_folds}
+            r = {"best_eval_score": best_score, "k_folds" : self.k_folds}
 
             self.results = r
             return self.results

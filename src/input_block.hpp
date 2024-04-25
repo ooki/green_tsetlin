@@ -161,25 +161,20 @@ namespace green_tsetlin
             
             virtual void prepare_example(int index)
             {
-                std::cout << "prepare_example : START" << std::endl;
                 if(this->m_labels != nullptr)
                     this->m_current_label = &this->m_labels[index*this->m_num_labels_per_example];
 
-                memset(this->m_current_example, 0, this->m_num_literals * sizeof(_ExampleType));
+                memset(this->m_current_example, 0, this->m_num_literals);
 
                 const int32_t row_end = m_indptr[index+1];
-                for(int32_t row_iter = m_indptr[index]; row_iter < row_end; row_iter++)
-                {                    
-                    this->m_current_example[row_iter] = 1;
-                }
-
-                std::cout << "prepare_example : END" << std::endl;
-                    
+                for(int32_t row_iter = m_indptr[index]; row_iter < row_end; row_iter++)                                    
+                {
+                    this->m_current_example[m_indices[row_iter]] = 1;
+                }   
             }
             
             void set_data_sparse(pybind11::array indices, pybind11::array indptr, pybind11::array labels)
             {
-                std::cout << "set data sparse input, dense output : START" << std::endl;
                 // 
                 pybind11::buffer_info indices_info = indices.request();                            
                 m_indices = static_cast<int32_t*>(indices_info.ptr);
@@ -203,10 +198,7 @@ namespace green_tsetlin
                 else                    
                     this->m_num_labels_per_example = shape2[1];
                 
-                this->m_labels = static_cast<uint32_t*>(buffer_info2.ptr);
-
-                std::cout << "set data sparse input, dense output : END" << std::endl;
-            
+                this->m_labels = static_cast<uint32_t*>(buffer_info2.ptr);            
             }
             void set_data(pybind11::array_t<uint8_t> examples, pybind11::array_t<uint32_t> labels)
             {

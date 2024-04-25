@@ -291,7 +291,7 @@ def test_train_simple_xor_sparse_input_dense_backend_pygtc():
     r = trainer.train()    
     assert r["best_eval_score"] > 0.99
 
-def _test_train_simple_xor_sparse_input_dense_backend_gtc():
+def test_train_simple_xor_sparse_input_dense_backend_gtc():
     
     n_literals = 7
     n_clauses = 5
@@ -299,7 +299,7 @@ def _test_train_simple_xor_sparse_input_dense_backend_gtc():
     s = 3.0
     threshold = 42   
     tm = gt.TsetlinMachine(n_literals=n_literals, n_clauses=n_clauses, n_classes=n_classes, s=s, threshold=threshold, literal_budget=4)        
-    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100)
+    trainer = gt.Trainer(tm, seed=32, n_jobs=1, n_epochs=100, progress_bar=False)
     
     x, y, ex, ey = gt.dataset_generator.xor_dataset(n_literals=n_literals, noise=0.05)    
     sparse_x = csr_matrix(x)
@@ -594,5 +594,7 @@ if __name__ == "__main__":
     # test_train_simple_xor_sparse_input_dense_backend_gtc()
 
     test_set_test_train()
+    test_train_simple_xor_sparse_input_dense_backend_gtc()
+    test_set_test_val_train()
 
     print("<done: ", __file__, ">")

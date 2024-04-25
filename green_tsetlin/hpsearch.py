@@ -1,5 +1,4 @@
 from typing import Tuple, Union
-import os
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
@@ -66,7 +65,7 @@ class HyperparameterSearch:
         self.k_folds = k_folds
 
 
-    def set_train_data(self, train_x, train_y):
+    def set_train_data(self, x_train, y_train):
         """
         Set the training data for the study.
 
@@ -76,11 +75,11 @@ class HyperparameterSearch:
 
         """
         
-        self.train_x = train_x
-        self.train_y = train_y
+        self.x_train = x_train
+        self.y_train = y_train
 
 
-    def set_test_data(self, test_x, test_y):
+    def set_eval_data(self, x_eval, y_eval):
         """
         Set the test data for the model.
 
@@ -90,16 +89,16 @@ class HyperparameterSearch:
 
         """
 
-        self.test_x = test_x
-        self.test_y = test_y
+        self.x_eval = x_eval
+        self.y_eval = y_eval
 
 
     def _check_data(self):
 
-        if self.train_x is None:
+        if self.x_eval is None:
             raise ValueError("Train data not set. Use set_train_data()")
         
-        elif self.test_x is None:
+        elif self.x_train is None:
             raise ValueError("Validation data not set. Use set_validation_data()")
 
 
@@ -121,11 +120,11 @@ class HyperparameterSearch:
         literal_budget = trial.suggest_int("literal_budget", self.literal_budget[0], self.literal_budget[1]) if not isinstance(self.literal_budget, int) else self.literal_budget
         max_epoch_per_trial = trial.suggest_int("max_epoch_per_trial", self.max_epoch_per_trial[0], self.max_epoch_per_trial[1]) if not isinstance(self.max_epoch_per_trial, int) else self.max_epoch_per_trial
 
-        tm = TsetlinMachine(n_literals=self.train_x.shape[1], 
+        tm = TsetlinMachine(n_literals=self.x_train.shape[1], 
                             n_clauses=clauses, 
                             s=s,
                             threshold=threshold,
-                            n_classes=len(np.unique(self.train_y)),
+                            n_classes=len(np.unique(self.y_train)),
                             literal_budget=literal_budget)
 
         trainer = Trainer(tm=tm, 
@@ -136,12 +135,12 @@ class HyperparameterSearch:
                           k_folds=self.k_folds,
                           kfold_progress_bar=False)
         
-        trainer.set_train_data(self.train_x, self.train_y)
-        trainer.set_test_data(self.test_x, self.test_y)
+        trainer.set_train_data(self.x_train, self.y_train)
+        trainer.set_eval_data(self.x_eval, self.y_eval)
 
         res = trainer.train()
         
-        res = trainer.results["best_test_score"]
+        res = trainer.results["best_eval_score"]
 
         if self.minimize_literal_budget:
             return res, tm.literal_budgets[0]
@@ -222,7 +221,7 @@ if __name__ == "__main__":
     train_x_bin, val_x_bin, train_y, val_y = train_test_split(x_bin, y, test_size=0.2, random_state=seed, shuffle=True)
 
     tm_hp.set_train_data(train_x_bin, train_y)
-    tm_hp.set_validation_data(val_x_bin, val_y)
+    tm_hp.set_eval_data(val_x_bin, val_y)
 
     tm_hp.optimize(n_trials=2, study_name="IMDB_study", storage=None, return_best=True)
 
