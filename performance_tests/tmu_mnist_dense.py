@@ -13,7 +13,8 @@ import tqdm
 import green_tsetlin as gt
 
 from tmu.models.classification.coalesced_classifier import TMCoalescedClassifier
-from pyTsetlinMachine.tm import MultiClassTsetlinMachine
+import pyTsetlinMachine.tm
+import pyTsetlinMachineParallel.tm 
 
 
 def get_mnist():
@@ -52,68 +53,89 @@ if __name__ == "__main__":
     
     X_train, X_test, y_train, y_test = get_mnist()
     
-    s = 10.0
-    n_clauses = 5_000
-    threshold = n_clauses // 4
-    
-    all_backends = ["pyTsetlinMachine", "gt_job1", "tmu"]
-    
-    #backend_to_test = 
-    # backend_to_test = "gt_job1"
-    
-    log_result("-- new run, clauses:{} --".format(n_clauses))
-    
-    # for backend_to_test in ["pyTsetlinMachine"]:
-    for backend_to_test in all_backends:
-    
-        print("TESTING BACKEND:", backend_to_test)
+    for n_clauses in [10, 100]: #, 1000, 2000, 5000]:
         
-        t0_total = perf_counter()
+        s = 3.0    
+        threshold = n_clauses // 4
         
-        if backend_to_test == "tmu":
-            tm = TMCoalescedClassifier(
-                number_of_clauses=n_clauses,
-                T=threshold,
-                s=s,
-                weighted_clauses=True,
-                focused_negative_sampling=True,
-                platform="CPU"
-            )
+        all_backends = ["pyTsetlinMachine", "pyTsetlinMachineParallel", "gt_job1", "gt_job4", "tmu"]
+        
+        #backend_to_test = 
+        # backend_to_test = "gt_job1"
+        
+        log_result("-- new run, clauses:{} --".format(n_clauses))
+        
+        # for backend_to_test in ["pyTsetlinMachine"]:
+        for backend_to_test in all_backends:
+        
+            print("TESTING BACKEND:", backend_to_test, "Clause Size:", n_clauses)
             
+            t0_total = perf_counter()
             
-            for epoch in range(5):
-                #t0 = perf_counter()
-                tm.fit(X_train, y_train)
-                result = 100 * (tm.predict(X_test) == y_test).mean()            
-                print("result:", result)
-                #t1 = perf_counter()
-                #print("epoch [{}] time: {:.3f}".format(epoch, t1 - t0) )
+            if backend_to_test == "tmu":
+                tm = TMCoalescedClassifier(
+                    number_of_clauses=n_clauses,
+                    T=threshold,
+                    s=s,
+                    weighted_clauses=True,
+                    focused_negative_sampling=False,                
+                    platform="CPU",
+                    max_included_literal=20,
+                )
                 
-        
-        elif backend_to_test == "gt_job1":
-            tm = gt.TsetlinMachine(n_literals=X_train.shape[1], n_clauses=n_clauses, n_classes=10, s=s, threshold=threshold, literal_budget=30)
+                
+                for epoch in range(5):
+                    #t0 = perf_counter()
+                    tm.fit(X_train, y_train)
+                    result = 100 * (tm.predict(X_test) == y_test).mean()            
+                    #t1 = perf_counter()
+                    #print("epoch [{}] time: {:.3f}".format(epoch, t1 - t0) )
+                    
             
-            trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=1, progress_bar=True, early_exit_acc=2.0)
-            trainer.set_train_data(X_train, y_train)
-            trainer.set_test_data(X_test, y_test)
+            elif backend_to_test == "gt_job1":
+                tm = gt.TsetlinMachine(n_literals=X_train.shape[1], n_clauses=n_clauses, n_classes=10, s=s, threshold=threshold,
+                                    boost_true_positives=True,
+                                    literal_budget=20)
+                
+                trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=1, progress_bar=True, early_exit_acc=2.0)
+                trainer.set_train_data(X_train, y_train)
+                trainer.set_test_data(X_test, y_test)
+                
+                trainer.train()
             
-            r = trainer.train()
-            print(r)
-            
-            
-        elif backend_to_test == "pyTsetlinMachine":
-            tm = MultiClassTsetlinMachine(number_of_clauses=n_clauses, T=threshold, s=s, boost_true_positive_feedback=1, weighted_clauses=True, max_included_literals=30)
+            elif backend_to_test == "gt_job4":
+                tm = gt.TsetlinMachine(n_literals=X_train.shape[1], n_clauses=n_clauses, n_classes=10, s=s, threshold=threshold,
+                                    boost_true_positives=True,
+                                    literal_budget=20)
+                
+                trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=4, progress_bar=True, early_exit_acc=2.0)
+                trainer.set_train_data(X_train, y_train)
+                trainer.set_test_data(X_test, y_test)
+                trainer.train()
+                
+                
+            elif backend_to_test == "pyTsetlinMachine":
+                tm = pyTsetlinMachine.tm.MultiClassTsetlinMachine(number_of_clauses=n_clauses, T=threshold, s=s, boost_true_positive_feedback=1,
+                                                                weighted_clauses=True,
+                                                                max_included_literals=20)
 
-            for i in range(5):
-                tm.fit(X_train, y_train, epochs=1, incremental=True)
-                result = 100*(tm.predict(X_test) == y_test).mean()
-                print("#{} Accuracy: {:.2f} ".format(i+1, result))
-        
-        t1_total = perf_counter()
-        delta_t = "total time: {:.3f}".format(t1_total - t0_total)
-        
-        log_result("{} => {} secs".format(backend_to_test, delta_t))
-        print("done: {} => {} secs".format(backend_to_test, delta_t))
+                for i in range(5):
+                    tm.fit(X_train, y_train, epochs=1, incremental=True)
+                    result = 100*(tm.predict(X_test) == y_test).mean()
+                    
+            elif backend_to_test == "pyTsetlinMachineParallel":
+                tm = pyTsetlinMachineParallel.tm.MultiClassTsetlinMachine(number_of_clauses=n_clauses, T=threshold, s=s,
+                                                                        boost_true_positive_feedback=1, weighted_clauses=True)
+
+                for i in range(5):
+                    tm.fit(X_train, y_train, epochs=1, incremental=True)
+                    result = 100*(tm.predict(X_test) == y_test).mean()
+            
+            t1_total = perf_counter()
+            delta_t = "total time: {:.3f}".format(t1_total - t0_total)
+            
+            log_result("{} => {} secs".format(backend_to_test, delta_t))
+            print("done: {} => {} secs".format(backend_to_test, delta_t))
         
     print("<done>")
     
