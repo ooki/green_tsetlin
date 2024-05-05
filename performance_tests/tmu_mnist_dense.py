@@ -13,8 +13,10 @@ import tqdm
 import green_tsetlin as gt
 
 from tmu.models.classification.coalesced_classifier import TMCoalescedClassifier
-import pyTsetlinMachine.tm
+#import pyTsetlinMachine.tm
 import pyTsetlinMachineParallel.tm 
+import PyTsetlinMachineCUDA.tm
+
 
 
 def get_mnist():
@@ -53,15 +55,17 @@ if __name__ == "__main__":
     
     X_train, X_test, y_train, y_test = get_mnist()
     
-    for n_clauses in [10, 100]: #, 1000, 2000, 5000]:
+    for n_clauses in [10, 100, 1000, 2000, 5000]:
         
         s = 3.0    
         threshold = n_clauses // 4
         
-        all_backends = ["pyTsetlinMachine", "pyTsetlinMachineParallel", "gt_job1", "gt_job4", "tmu"]
+        #all_backends = ["pyTsetlinMachine", "gt_job1", "gt_job4", "tmu"] # "pyTsetlinMachineParallel"
+        #all_backends = ["pyTsetlinMachineParallel"]
+        #all_backends = ["tmu_gpu"]
+        #all_backends = ["PyTsetlinMachineCUDA"]
+        all_backends = ["gt_job4"]
         
-        #backend_to_test = 
-        # backend_to_test = "gt_job1"
         
         log_result("-- new run, clauses:{} --".format(n_clauses))
         
@@ -78,9 +82,9 @@ if __name__ == "__main__":
                     T=threshold,
                     s=s,
                     weighted_clauses=True,
-                    focused_negative_sampling=False,                
+                    focused_negative_sampling=True,                
                     platform="CPU",
-                    max_included_literal=20,
+                    max_included_literals=20,
                 )
                 
                 
@@ -91,15 +95,31 @@ if __name__ == "__main__":
                     #t1 = perf_counter()
                     #print("epoch [{}] time: {:.3f}".format(epoch, t1 - t0) )
                     
+            elif backend_to_test == "tmu_gpu":
+                tm = TMCoalescedClassifier(
+                    number_of_clauses=n_clauses,
+                    T=threshold,
+                    s=s,
+                    weighted_clauses=True,
+                    focused_negative_sampling=True,                
+                    platform="GPU",
+                    max_included_literals=20,
+                )
+                
+                
+                for epoch in range(5):
+                    #t0 = perf_counter()
+                    tm.fit(X_train, y_train)
+                    result = 100 * (tm.predict(X_test) == y_test).mean()            
             
             elif backend_to_test == "gt_job1":
                 tm = gt.TsetlinMachine(n_literals=X_train.shape[1], n_clauses=n_clauses, n_classes=10, s=s, threshold=threshold,
                                     boost_true_positives=True,
                                     literal_budget=20)
                 
-                trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=1, progress_bar=True, early_exit_acc=2.0)
+                trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=1, progress_bar=False, early_exit_acc=2.0)
                 trainer.set_train_data(X_train, y_train)
-                trainer.set_test_data(X_test, y_test)
+                trainer.set_eval_data(X_test, y_test)
                 
                 trainer.train()
             
@@ -108,9 +128,9 @@ if __name__ == "__main__":
                                     boost_true_positives=True,
                                     literal_budget=20)
                 
-                trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=4, progress_bar=True, early_exit_acc=2.0)
+                trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=4, progress_bar=False, early_exit_acc=2.0)
                 trainer.set_train_data(X_train, y_train)
-                trainer.set_test_data(X_test, y_test)
+                trainer.set_eval_data(X_test, y_test)
                 trainer.train()
                 
                 
@@ -130,6 +150,15 @@ if __name__ == "__main__":
                 for i in range(5):
                     tm.fit(X_train, y_train, epochs=1, incremental=True)
                     result = 100*(tm.predict(X_test) == y_test).mean()
+            
+            elif backend_to_test == "PyTsetlinMachineCUDA":
+                tm = PyTsetlinMachineCUDA.tm.MultiClassTsetlinMachine(number_of_clauses=n_clauses, T=threshold, s=s,
+                                                                        boost_true_positive_feedback=1)
+
+                for i in range(5):
+                    tm.fit(X_train, y_train, epochs=1, incremental=True)
+                    result = 100*(tm.predict(X_test) == y_test).mean()
+            
             
             t1_total = perf_counter()
             delta_t = "total time: {:.3f}".format(t1_total - t0_total)

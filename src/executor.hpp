@@ -113,7 +113,7 @@ namespace green_tsetlin
                     m_feedback_block->reset();
                     int example_index = m_index_set[i];
 
-                   m_input_block->prepare_example(example_index);
+                    m_input_block->prepare_example(example_index);
 
                     for(auto cb : m_clause_blocks)
                     {             
@@ -173,8 +173,20 @@ namespace green_tsetlin
                     m_feedback_block->reset();  
                     m_input_block->prepare_example(i);
 
-                    for(auto cb : m_clause_blocks)                    
-                        cb->eval_example();                    
+                    for(auto cb : m_clause_blocks)
+                    {   
+                        if(enable_multithread)
+                        {
+                            m_pool.push_task(&ClauseBlock::eval_example, cb);
+                        }
+                        else
+                        {
+                            cb->eval_example();
+                        }                     
+                    }
+
+                    if(enable_multithread)
+                        m_pool.wait_for_tasks();
 
                     output[i] = m_feedback_block->predict();
                 }         
