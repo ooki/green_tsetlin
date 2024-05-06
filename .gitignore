@@ -10,6 +10,8 @@ __pycache__/
 *.out  
 *.test_bin   
 
+# vscode
+.vscode/
 
 # Distribution / packaging
 .Python
