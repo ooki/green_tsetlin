@@ -35,7 +35,15 @@ bool has_avx2()
 
 bool has_neon()
 {
-    return false;
+    #ifdef USE_NEON
+        #if defined(__ARM_NEON__) 
+            return true;
+        #else
+            return false;
+        #endif
+    #endif
+
+    return false; 
 }
 
 #include <random_generator.hpp>
@@ -197,6 +205,34 @@ typedef typename gt::ClauseBlockT<
 
 
 #endif // USE_AVX2
+
+
+#ifdef USE_NEON
+
+#include <func_neon.hpp>
+typedef typename gt::AlignedTsetlinState<16, 128 / sizeof(gt::WeightInt)> TsetlinStateNeon;
+
+template<bool lit_budget, bool btp>
+using ClauseBlockNeonImpl = gt::ClauseBlockT<
+                                    TsetlinStateNeon,
+                                    gt::InitializeAlignedNeon<TsetlinStateNeon, lit_budget>, // pad_class (weights) = false
+                                    gt::CleanupAlignedNeon<TsetlinStateNeon, lit_budget>, 
+                                    gt::SetClauseOutputNeon<TsetlinStateNeon, lit_budget>, 
+                                    gt::EvalClauseOutputNeon<TsetlinStateNeon>,
+                                    gt::CountVotesNeon<TsetlinStateNeon>,
+                                    gt::TrainUpdateNeon<TsetlinStateNeon,
+                                                        gt::ClauseUpdateNeon<TsetlinStateNeon,
+                                                                            gt::Type1aFeedbackNeon<TsetlinStateNeon, btp>,
+                                                                            gt::Type1bFeedbackNeon<TsetlinStateNeon>,
+                                                                            gt::Type2FeedbackNeon<TsetlinStateNeon>
+                                                                            >,
+                                                        lit_budget 
+                                                        >,
+                                    DenseInputBlock8u
+                                >;
+
+#endif // USE_NEON
+
 
 template<typename _T>
 void define_clause_block(py::module& m, const char* name)
@@ -404,6 +440,16 @@ PYBIND11_MODULE(green_tsetlin_core, m) {
     // AVX2 Conv TM implementations
     define_clause_block<ClauseBlockConvAVX2Impl>(m, "ClauseBlockConvAVX2"); // AVX2 Conv TM
 #endif // USE_AVX2
+
+#ifdef USE_NEON
+
+    // NEON TM implementations
+    define_clause_block<ClauseBlockNeonImpl<true, true>>(m, "ClauseBlockNeon_Lt_Bt"); // NEON TM, (L)lit_budget = true, (B)btp = true
+    define_clause_block<ClauseBlockNeonImpl<true, false>>(m, "ClauseBlockNeon_Lt_Bf"); // NEON TM, (L)lit_budget = true, (B)btp = false
+    define_clause_block<ClauseBlockNeonImpl<false, true>>(m, "ClauseBlockNeon_Lf_Bt"); // NEON TM, (L)lit_budget = false, (B)btp = true
+    define_clause_block<ClauseBlockNeonImpl<false, false>>(m, "ClauseBlockNeon_Lf_Bf"); // NEON TM, (L)lit_budget = false, (B)btp = false
+
+#endif // USE_NEON
 
     // Sparse TM implementations
     define_clause_block_sparse<ClauseBlockSparseImpl<true, true, true>>(m, "ClauseBlockSparse_Lt_Dt_Bt"); // Sparse TM, (L)lit_budget = true, (D)dynamic_AL = true, (B)btp = true

@@ -64,8 +64,10 @@ try:
         impl["cb_Lf_Bf"] = gtc.ClauseBlockAVX2_Lf_Bf
 
     if gtc.has_neon():
-        impl["cb"] = gtc.ClauseBlockNeon
-        impl["conv_cb"] = gtc.ClauseBlockConvNeon
+        impl["cb_Lt_Bt"] = gtc.ClauseBlockNeon_Lt_Bt # (L)lit_budget = true, (B)boost_true_positives = true
+        impl["cb_Lt_Bf"] = gtc.ClauseBlockNeon_Lt_Bf
+        impl["cb_Lf_Bt"] = gtc.ClauseBlockNeon_Lf_Bt
+        impl["cb_Lf_Bf"] = gtc.ClauseBlockNeon_Lf_Bf
 
 
 except ImportError:

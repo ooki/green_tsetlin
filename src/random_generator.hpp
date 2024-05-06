@@ -10,9 +10,9 @@
     #include <immintrin.h> // intrics
 #endif 
 
-// #ifdef USE_NEON
-//     #include <arm_neon.h>
-// #endif 
+#ifdef USE_NEON
+    #include <arm_neon.h>
+#endif 
 
 
 namespace green_tsetlin
@@ -112,6 +112,96 @@ namespace green_tsetlin
 
     };
 #endif // #ifdef USE_AVX2
+
+
+
+#ifdef USE_NEON
+
+    class Xoshiro128Plus
+    {
+        public:
+            Xoshiro128Plus()
+            {
+            }
+
+            void seed(unsigned int start_seed)
+            {
+                seed_internal(start_seed);
+
+                for(int i = 0; i < 32; i++)  // help it mix         
+                    next();
+            }
+
+            #ifdef FAKE_NEON_PRNG
+            uint8x16_t next()
+            {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> u(-127, 127);
+
+                int8_t numbers[16];
+
+                for(int i = 0;i < 16; i++)
+                    numbers[i] = (int8_t)u(gen);
+                    
+                uint8x16_t out = vld1q_s8(&numbers[0]);
+                return out;
+            }            
+            #else 
+            int8x16_t next()
+            {
+                uint64x2_t s1 = state[0];
+                const uint64x2_t s0 = state[1];
+                state[0] = s0;
+
+                s1 = veorq_u64(vshlq_n_u64(s1, 23), s1);
+                state[1] = veorq_u64(veorq_u64(s1, s0), veorq_u64(vshrq_n_u64(s1, 18), vshrq_n_u64(s0, 5)));
+            
+                
+                // state1 = s1 ^ s0 ^ (s1 >> 18) ^ (s0 >> 5); // b, c
+                return vreinterpretq_s8_u8(vreinterpretq_u8_u64(state[1] + s0));
+
+
+
+                // state[1] = (s0, s1);
+                // s1 = vshlq_n_u64(s1, 17);
+                // state[0] = veorq_u64(state[0], s1);
+                // s0 = vshrq_n_u64(s0, 26);
+                // state[1] = veorq_u64(state[1], s0);
+                // s0 = vshlq_n_u64(s0, 55);            
+
+                // return vreinterpretq_s8_u8(vreinterpretq_u8_u64(veorq_u64(state[0], state[1])));
+            }
+            #endif 
+
+        
+            uint64x2_t state[2];
+
+        private:
+            void seed_internal(unsigned int seed) // hack to get slightly better seeds that the standard '42' type seed.
+            {                
+                const size_t num_bytes = 8;
+
+                std::default_random_engine seed_rng(seed);
+                std::uniform_int_distribution random_byte(0, 255);
+
+                union{
+                    uint8_t tmp_seed[num_bytes];
+                    uint64_t seed64;
+                };
+
+                for(size_t i = 0; i < num_bytes; ++i)
+                {
+                    tmp_seed[i] = random_byte(seed_rng);
+                }
+
+                state[0] = vdupq_n_u64(seed64);
+                state[1] = vdupq_n_u64(0x73A2C175221D6A27);
+            }
+
+    };
+
+#endif // #ifdef USE_NEON
 
 }; // namespace green_tsetlin
 

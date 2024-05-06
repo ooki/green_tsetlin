@@ -12,10 +12,10 @@ import tqdm
 
 import green_tsetlin as gt
 
-from tmu.models.classification.coalesced_classifier import TMCoalescedClassifier
-#import pyTsetlinMachine.tm
-import pyTsetlinMachineParallel.tm 
-import PyTsetlinMachineCUDA.tm
+# from tmu.models.classification.coalesced_classifier import TMCoalescedClassifier
+# #import pyTsetlinMachine.tm
+# import pyTsetlinMachineParallel.tm 
+# import PyTsetlinMachineCUDA.tm
 
 
 
@@ -128,10 +128,12 @@ if __name__ == "__main__":
                                     boost_true_positives=True,
                                     literal_budget=20)
                 
+                print("tm._backend_clause_block_cls:", tm._backend_clause_block_cls)
                 trainer = gt.Trainer(tm, n_epochs=5, seed=42, n_jobs=4, progress_bar=False, early_exit_acc=2.0)
                 trainer.set_train_data(X_train, y_train)
                 trainer.set_eval_data(X_test, y_test)
                 trainer.train()
+                print("tm._backend_clause_block_cls:", tm._backend_clause_block_cls)
                 
                 
             elif backend_to_test == "pyTsetlinMachine":

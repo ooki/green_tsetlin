@@ -70,7 +70,7 @@ namespace green_tsetlin
                 state.fast_rng.seed(seed);
                 state.rng.seed(seed);
                 
-                state.reminder_mask = reinterpret_cast<int8_t*>(safe_aligned_alloc(state.align_to, state.literals_per_vector));
+                state.reminder_mask = reinterpret_cast<int8_t*>(safe_aligned_alloc(32, state.literals_per_vector));
                 for(int i = 0; i < state.literals_per_vector; ++i)
                         state.reminder_mask[i] = 0xFF;
 
@@ -90,7 +90,7 @@ namespace green_tsetlin
 
                 int clause_mem = state.num_clauses * state.num_literals_mem * 2;
 
-                state.clauses = reinterpret_cast<int8_t*>(safe_aligned_alloc(state.align_to, clause_mem));
+                state.clauses = reinterpret_cast<int8_t*>(safe_aligned_alloc(32, clause_mem));
                 if(do_literal_budget)
                     state.literal_counts = new uint32_t[state.num_clauses];
                 
@@ -106,7 +106,7 @@ namespace green_tsetlin
                 state.clause_weights = reinterpret_cast<WeightInt*>(safe_aligned_alloc(32, weights_mem));
 
                 //state.class_votes = new int32_t[state.num_classes];
-                state.class_votes =  reinterpret_cast<WeightInt*>(safe_aligned_alloc(16, state.num_classes * sizeof(WeightInt)));
+                state.class_votes =  reinterpret_cast<WeightInt*>(safe_aligned_alloc(32, state.num_classes * sizeof(WeightInt)));
 
                 memset(state.class_votes, 0, sizeof(WeightInt) * state.num_classes);
 
@@ -488,13 +488,13 @@ namespace green_tsetlin
                             state.clause_outputs[clause_k] = 0;
                     }
 
-                    if( state.rng_nv.next_u() < prob_positive)
+                    if( state.fast_rng.next_u() < prob_positive)
                     {
                         _ClauseUpdate clause_update;
                         clause_update(state, clause_row, clause_weights + positive_class, 1, literals, state.clause_outputs[clause_k]);                    
                     }
       
-                    if( state.rng_nv.next_u() < prob_negative)
+                    if( state.fast_rng.next_u() < prob_negative)
                     {
                         _ClauseUpdate update_clause;
                         update_clause(state, clause_row, clause_weights + negative_class, -1, literals, state.clause_outputs[clause_k]);
@@ -538,19 +538,18 @@ namespace green_tsetlin
             }
     };
 
-    template <typename _State>
+    template <typename _State, bool use_boost_true_positive>
     class Type1aFeedbackNeon
     {
         public:
             void operator()(_State& state, int8_t* clause_row, const uint8_t* literals_in)
             {
                 //std::cout << "==== NEON T1a - start ========" << std::endl;
-                constexpr bool use_boost_true_positive = false;
 
                 int8_t* clause = (int8_t*)__builtin_assume_aligned(clause_row, 32);
                 const int8_t* literals = (int8_t*)__builtin_assume_aligned(literals_in, 32);
 
-                int8x16_t _minus_one = vdupq_n_s8(-1);                
+                // int8x16_t _minus_one = vdupq_n_s8(-1);                
                 int8x16_t _cmp_s = vdupq_n_s8(state.gtcmp_for_s);
 
                                 
