@@ -7,9 +7,7 @@ Green Tsetlin
 ## Installation
 Green Tsetlin can be installed by the following:
 ```bash
-git clone git@github.com:ooki/green_tsetlin.git
-cd green_tsetlin
-pip install -e .
+pip install green-tsetlin
 ```
 
 ## Tsetlin Machine
