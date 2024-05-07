@@ -88,7 +88,7 @@ hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
                                         minimize_literal_budget=False)
 
 hyperparam_search.set_train_data(train_x, train_y)
-hyperparam_search.set_test_data(test_x, test_y)
+hyperparam_search.set_eval_data(test_x, test_y)
 
 hyperparam_search.optimize(trials=10)
 ```
