@@ -12,7 +12,7 @@ import distutils
 distutils.log.set_verbosity(1)
 
 
-__version__ = "0.1.10"
+__version__ = "1.0.0"
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
@@ -29,7 +29,7 @@ compile_args = []
 define_macros = [('VERSION_INFO', __version__)]
 
 if sys.platform.startswith('darwin') and has_neon:
-    print("TODO: replace -mcpu=native with a proper build flag! ALSO: check if NEON is in flags somehow...")
+    # print("TODO: replace -mcpu=native with a proper build flag! ALSO: check if NEON is in flags somehow...")
     # compile_args = ["-target arm64-apple-macos11", "-arch=arm64", "-O3", "-mmacosx-version-min=10.15", "-mfloat-abi=hard"]  # -mfloat-abi=hard needs to be used with neon
     compile_args = ["-mcpu=native", "-arch=arm64", "-O3", "-mmacosx-version-min=10.15", "-mfloat-abi=hard"]  # -mfloat-abi=hard needs to be used with neon
 
@@ -43,7 +43,7 @@ elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and 
     if has_avx2:
         define_macros.append(("USE_AVX2", 1))
      
-print("using defines:", define_macros)
+# print("using defines:", define_macros)
 
 ext_modules = [
     Pybind11Extension("green_tsetlin_core",
@@ -68,11 +68,11 @@ setup(
     },
     description="A fast Tsetlin Machine impl, based on c++",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: C",
+        "Programming Language :: C++",
         "Programming Language :: Python",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
@@ -83,6 +83,10 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3",        
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12"
     ],
     license='MIT',
     long_description=long_description,
@@ -98,7 +102,5 @@ setup(
           'scikit-learn >= 1.2',
           'tqdm >= 4.65',
           'optuna'
-          
       ],
-    
 )
