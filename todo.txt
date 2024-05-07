@@ -4,8 +4,6 @@ TODO:
 - Fix before release:
     - Rename literal_budget to max_rule_length/size
     - move s_inv and s_min1_inv to state for sparse and dense tm
-    - Add SparseForDenseTMInputBlock that lets a dense model run on a sparse model with instanciating the dense version only in prepare_example()
-    - ~~load last state if load_best_state is false~~ DONE
 
 - Inference
     - Rewrite Inference:predict() to user a sorted list of on literals (like sparse). 
@@ -18,9 +16,7 @@ TODO:
     - vectorized count votes (as dense)
     - ruleset/predictor 
     - setup hpsearch.py so it works for sparseTM
-    - convert sparse to dense in SparseTM
-    - fix clang bug on mac
-    
+    - convert sparse to dense in SparseTM    
 
 - Dense TM:
     - vectorized count votes
