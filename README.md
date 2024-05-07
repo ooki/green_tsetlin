@@ -5,7 +5,7 @@ Green Tsetlin
 
 
 ## Installation
-Green Tsetlin is available in PyPI and can be installed with pip:
+Green Tsetlin can be installed by the following:
 ```bash
 git clone git@github.com:ooki/green_tsetlin.git
 cd green_tsetlin
