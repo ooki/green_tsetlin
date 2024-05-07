@@ -162,16 +162,16 @@ namespace green_tsetlin
         public:                        
             void operator()(_State& state)
             {
-                free(state.clauses);
+                safe_aligned_free(state.clauses);
                 state.clauses = nullptr;     
 
-                free(state.class_votes);
+                safe_aligned_free(state.class_votes);
                 state.class_votes = nullptr;
 
-                free(state.clause_weights);
+                safe_aligned_free(state.clause_weights);
                 state.clause_weights = nullptr;
 
-                free(state.reminder_mask);
+                safe_aligned_free(state.reminder_mask);
                 state.reminder_mask = nullptr;       
 
                 if(do_literal_budget)

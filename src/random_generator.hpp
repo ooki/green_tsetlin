@@ -15,6 +15,16 @@
 #endif 
 
 
+#ifdef _MSC_VER
+    // MSVC-specific code
+    typedef unsigned __int128 __uint128_t;
+#else
+    // GCC and Clang code
+    #include <stdint.h>
+    typedef __uint128_t __uint128_t;
+#endif
+
+
 namespace green_tsetlin
 {
     class Wyhash64

@@ -6,13 +6,13 @@ from pathlib import Path
 
 from pybind11.setup_helpers import Pybind11Extension
 from cpuinfo import get_cpu_info
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import distutils
 distutils.log.set_verbosity(1)
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
@@ -95,7 +95,7 @@ setup(
     extras_require={"test": "pytest"},
     zip_safe=False,
     python_requires=">=3.8",
-    packages=['green_tsetlin'],
+    packages=find_packages(),
     install_requires=[
           'numpy >= 1.24',
           'scipy >= 1.10.1',
@@ -103,4 +103,6 @@ setup(
           'tqdm >= 4.65',
           'optuna'
       ],
+    tests_require=['pytest'],
+    test_suite='tests',
 )
