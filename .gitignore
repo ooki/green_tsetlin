@@ -10,9 +10,6 @@ __pycache__/
 *.out  
 *.test_bin   
 
-# vscode
-.vscode/
-
 # Distribution / packaging
 .Python
 build/
@@ -129,6 +126,9 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
+# shpinx build
+docs/_build/
 
 # mypy
 .mypy_cache/
