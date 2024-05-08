@@ -21,7 +21,7 @@ cpu_info = get_cpu_info()
 has_avx2 = "avx2" in cpu_info.get("flags", "")
 
 brand_raw = cpu_info.get("brand_raw", "").lower().split()
-has_neon = "m1" in brand_raw or "m2" in brand_raw
+has_neon = "m1" in brand_raw or "m2" in brand_raw or "m3" in brand_raw or "m4" in brand_raw
 
 
 
@@ -29,19 +29,25 @@ compile_args = []
 define_macros = [('VERSION_INFO', __version__)]
 
 if sys.platform.startswith('darwin') and has_neon:
-    # print("TODO: replace -mcpu=native with a proper build flag! ALSO: check if NEON is in flags somehow...")
     # compile_args = ["-target arm64-apple-macos11", "-arch=arm64", "-O3", "-mmacosx-version-min=10.15", "-mfloat-abi=hard"]  # -mfloat-abi=hard needs to be used with neon
-    compile_args = ["-mcpu=native", "-arch=arm64", "-O3", "-mmacosx-version-min=10.15", "-mfloat-abi=hard"]  # -mfloat-abi=hard needs to be used with neon
+    compile_args = ["-arch=arm64", "-O3", "-mfpu=neon", "-mmacosx-version-min=10.15",  "-DNDEBUG"]  # -mfloat-abi=hard needs to be used with neon
 
     # also took out: "-arch=arm64", "-mfloat-abi=hard", 
     define_macros.append(("USE_NEON", 1))
 
+elif sys.platform.startswith('win32'):
+    compile_args =["/EHsc", "/O2", "/arch:AVX2", "/MT", "/DNDEBUG"]
+    if has_avx2:
+        define_macros.append(("USE_AVX2", 1))
 
-elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and has_neon is False):    
-    compile_args =["-mavx2", "-mfma", "-O3", "-pthread"]
+else: # assume we are on linux (or g++) at least if nothing else is specified.
+    #elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and has_neon is False):    
+    compile_args =["-mavx2", "-mfma", "-O3", "-pthread", "-DNDEBUG"]
 
     if has_avx2:
         define_macros.append(("USE_AVX2", 1))
+
+
      
 # print("using defines:", define_macros)
 
@@ -51,7 +57,7 @@ ext_modules = [
         define_macros = define_macros,
         cxx_std=17,
         include_dirs=["src/"],       
-        extra_compile_args=["-DNDEBUG"] + compile_args
+        extra_compile_args=compile_args
         ),
 ]
 
