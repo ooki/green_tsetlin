@@ -10,6 +10,11 @@ Green Tsetlin can be installed by the following:
 pip install green-tsetlin
 ```
 
+## Documentation
+The documentation can be found on: https://green-tsetlin.readthedocs.io/  
+Below is some short examples of some of the capabilities of green-tsetlin.
+
+
 ## Tsetlin Machine
 The Tsetlin Machine is the core of Green Tsetlin.
 Here a dense (regular) TM:
