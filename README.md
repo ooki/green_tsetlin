@@ -12,6 +12,7 @@ pip install green-tsetlin
 
 ## Tsetlin Machine
 The Tsetlin Machine is the core of Green Tsetlin.
+Here a dense (regular) TM:
 ```python
 import green_tsetlin as gt
 
@@ -20,25 +21,36 @@ tm = gt.TsetlinMachine(n_literals=4,
                        n_classes=2,
                        s=3.0,
                        threshold=42,
-                       literal_budget=4,
-                       boost_true_positives=False,
-                       multi_label=False)
+                       literal_budget=4
+                       )
+```
+
+
+## Sparse Tsetlin Machine
+The Tsetlin Machine is the core of Green Tsetlin.
+Here a sparse TM:
+```python
+import green_tsetlin as gt
+
+tm = gt.SparseTsetlinMachine(n_literals=4,
+                             n_clauses=5,
+                             n_classes=2,
+                             s=3.0,
+                             threshold=42,
+                             literal_budget=4,
+                             )
 ```
 
 
 ## Trainer
-Green Tsetlin Trainer is a simple wrapper for the Tsetlin Machine.
+Use the Trainer to fit a Tsetlin Machine to the data.  
+The trainer class is used for both sparse and dense data and TMs.
 ```python
 import green_tsetlin as gt
         
-tm = gt.TsetlinMachine(n_literals=4, 
-                       n_clauses=5, 
-                       n_classes=2, 
-                       s=3.0, 
-                       threshold=42, 
-                       literal_budget=4)        
 
-trainer = gt.Trainer(tm, seed=42, n_jobs=2)
+# set n_jobs = 1 to run single threaded
+trainer = gt.Trainer(tm, seed=42, n_jobs=1)
 
 trainer.set_train_data(train_x, train_y)
 trainer.set_eval_data(eval_x, eval_y)
