@@ -4,11 +4,5 @@ Installation
 
 .. code-block:: bash
 
-    $ pip install green_tsetlin
+    pip install green-tsetlin
 
-
-For less cpu heavy machines
-
-.. code-block:: bash
-
-    $ pip install green_tsetlin[cpu]
