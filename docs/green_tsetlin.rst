@@ -9,8 +9,3 @@ Trainer
    :undoc-members:
    :show-inheritance:
    :noindex:
-
-   .. autoclass:: green_tsetlin.trainer.Trainer
-      :members:
-      :undoc-members:
-      :show-inheritance:
