@@ -48,7 +48,7 @@ Examples
 .. toctree::
    :maxdepth: 2
 
-   notebooks/imdb_example
+   imdb
 
 
 Indices and tables
