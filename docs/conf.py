@@ -39,4 +39,4 @@ html_logo = "image/RTD_LOGO.png"
 html_logo_width = 50  
 html_logo_height = 50 
 
-html_static_path = ['_static']
+# html_static_path = ['_static']
