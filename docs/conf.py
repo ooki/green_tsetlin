@@ -10,6 +10,7 @@ import os
 import sys
 os.system("mkdir -p notebooks/ && cp -r ../examples/* notebooks/")
 
+sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('"..'))
 
 
@@ -40,6 +41,6 @@ autodoc_mock_imports = ["ROOT"]
 # html_theme = 'sphinx_rtd_theme' 
 html_theme = "renku"
 
-html_logo = "image/RTD_LOGO.png"
+html_logo = "image/RTD_LOGO_SMALL.png"
 
 # html_static_path = ['_static']
