@@ -5,10 +5,11 @@ green\_tsetlin
 trainer
 -----------------------------
 
-.. automodule:: green_tsetlin.trainer
+.. automodule:: green_tsetlin.Trainer
    :members:
    :undoc-members:
    :show-inheritance:
+
 
 tsetlin\_machine
 --------------------------------------
