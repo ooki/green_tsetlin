@@ -18,11 +18,4 @@ Green Tsetlin documentation
 Indices and tables
 ==================
 
-Trainer
------------------------------
-.. automodule:: green_tsetlin.trainer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 * :ref:`genindex`
