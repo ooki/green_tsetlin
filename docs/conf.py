@@ -10,7 +10,7 @@ import os
 import sys
 os.system("mkdir -p notebooks/ && cp -r ../examples/* notebooks/")
 
-sys.path.insert(0, os.path.abspath('../green_tsetlin/'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 project = 'green_tsetlin'

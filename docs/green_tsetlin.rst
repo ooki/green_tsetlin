@@ -6,10 +6,6 @@ Green Tsetlin
    :maxdepth: 2
    :caption: Contents:
 
+   green_tsetlin/trainer.py
 
-Trainer
------------------------------
-.. automodule:: trainer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
