@@ -1,4 +1,4 @@
-Green\_Tsetlin
+Green Tsetlin
 ======================
 
 .. toctree::
@@ -9,7 +9,7 @@ Green\_Tsetlin
 
 Trainer
 -----------------------------
-.. automodule:: green_tsetlin.trainer
+.. automodule:: trainer
    :members:
    :undoc-members:
    :show-inheritance:
