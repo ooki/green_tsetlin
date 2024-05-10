@@ -34,7 +34,7 @@ PyPI install, presuming you have build-essential installed (ubuntu).
 
 
 User Guide / tutorials
-------------------------
+========================
 
 .. toctree::
    :maxdepth: 2
@@ -43,12 +43,13 @@ User Guide / tutorials
    
 
 Examples
-------------------------
+======================
 
 .. toctree::
    :maxdepth: 2
 
    imdb
+   iris
 
 
 Indices and tables

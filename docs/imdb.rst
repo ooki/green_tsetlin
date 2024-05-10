@@ -1,5 +1,5 @@
-Tsetlin Machine trains on IMDB
-===============================
+Sparse data : Tsetlin Machine trains on IMDB
+=============================================
 
 Here we show green\_tsetlin Tsetlin Machine trains on the **IMDB sentiment dataset**.  
 

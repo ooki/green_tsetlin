@@ -1,8 +1,5 @@
 How to : Inference
-==========
-
-As Tsetlin Machine 
-
+=================== 
 
 With a trained Tsetlin Machine we can utilize the interpretable capabilities of the Tsetlin Machine.
 
