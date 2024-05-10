@@ -129,6 +129,7 @@ venv.bak/
 
 # shpinx build
 docs/_build/
+docs/notebooks/
 
 # mypy
 .mypy_cache/
