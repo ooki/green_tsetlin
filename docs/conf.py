@@ -35,6 +35,6 @@ autodoc_mock_imports = ["ROOT"]
 # html_theme = 'sphinx_rtd_theme' 
 html_theme = "renku"
 
-html_logo = "_static/RTD_LOGO.png"
+html_logo = "image/RTD_LOGO.png"
 
 html_static_path = ['_static']
