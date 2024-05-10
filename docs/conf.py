@@ -37,4 +37,4 @@ html_theme = "renku"
 
 html_logo = "image/RTD_LOGO.png"
 
-html_static_path = ['_static']
+# html_static_path = ['_static']
