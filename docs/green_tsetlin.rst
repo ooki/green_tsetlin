@@ -6,3 +6,4 @@ Trainer
 -----------------------------
 
 .. automodule:: green_tsetlin.trainer
+   :members:
