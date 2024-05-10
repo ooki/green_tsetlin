@@ -2,7 +2,7 @@ green\_tsetlin
 ======================
 
 
-trainer
+Trainer
 -----------------------------
 
 .. automodule:: green_tsetlin.Trainer
