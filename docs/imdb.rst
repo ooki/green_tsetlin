@@ -91,3 +91,13 @@ HyperparameterSearch.optimize:
                     study_name="IMDB hpsearch", 
                     show_progress_bar=True, 
                     storage=None)
+
+We get the best hyperparameters:
+
+.. code-block:: python
+
+    params = hpsearch.best_trials[0].params
+    performance = hpsearch.best_trials[0].values
+
+    print("best paramaters: ", params)
+    print("best score: ", performance)
