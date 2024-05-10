@@ -63,6 +63,21 @@ class DenseState:
 
 
 class TsetlinMachine:
+    """
+        Example
+        --------
+
+        .. code-block:: python
+            
+            import green_tsetlin as gt
+            
+            tm = gt.TsetlinMachine(n_literals=4,
+                                n_clauses=5,
+                                n_classes=2,
+                                s=3.0,
+                                threshold=42,
+                                literal_budget=4)
+    """
     def __init__(self, n_literals:int, n_clauses: int, n_classes: int, s : Union[float, list], threshold: int,
                  literal_budget:Optional[int]=None, boost_true_positives: bool = False, multi_label:bool=False):
 
@@ -110,6 +125,7 @@ class TsetlinMachine:
         # self.dynamic_AL = False
         
         self._backend_clause_block_cls = _backend_impl["cb"]
+
 
     def set_trainable_flags(self, trainable_flags:List[bool]):
         """
@@ -205,6 +221,7 @@ class TsetlinMachine:
         else:
             self._state = state
     
+
     def _save_state_in_backend(self):
         """ Set the internal state
         """
@@ -256,11 +273,19 @@ class TsetlinMachine:
                     
         self._state.save_to_file(path)
 
+
     def get_ruleset(self):        
+        """
+        Retrieves the ruleset object.
+
+        Returns:
+            RuleSet: The ruleset object.
+        """
         rs = gt.RuleSet(self._is_multi_label)
         rs.compile_from_dense_state(self._state)        
         return rs
     
+
     def construct_clause_blocks(self) -> list:
         """ Creates the backend clause blocks, will not allocate them (use allocate_clause_blocks Context Manager).
         The clause blocks are found in the _cbs attribute, and a copy of this list returned (sharing the cb's, but not the list).
@@ -295,11 +320,28 @@ class TsetlinMachine:
     
 
     def get_predictor(self, explanation: str = "none", exclude_negative_clauses=False) -> "gt.Predictor":
+        """
+        Returns a Predictor object that uses the Tsetlin Machine's current state to make predictions.
+
+        :param explanation: (str) A string representing the type of explanation to be used. Default is "none".
+        :param exclude_negative_clauses: (bool) A boolean indicating whether negative clauses should be excluded. Default is False.
+        :return: gt.Predictor A Predictor object that uses the Tsetlin Machine's current state to make predictions.
+        
+        Example
+        -------
+        .. code-block:: python
+
+            .
+            .
+            .
+            trainer.train()
+            predictor = tsetlinmachine.get_predictor()
+            predictor.predict(x)
+        """
         rs = gt.ruleset.RuleSet(is_multi_label=self._is_multi_label)
         rs.compile_from_dense_state(self._state)        
         return gt.Predictor.from_ruleset(rs, explanation, exclude_negative_clauses)
     
-
 
     def _set_extra_params_on_cb(self, cb, k:int):
         pass

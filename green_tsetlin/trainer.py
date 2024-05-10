@@ -31,11 +31,11 @@ class Trainer:
         
         tm = gt.TsetlinMachine(n_literals=4, n_clauses=5, n_classes=2, s=3.0, threshold=42, literal_budget=4, boost_true_positives=False)        
         
-        train_x, train_y, eval_x, eval_y = gt.dataset_generator.xor_dataset(n_literals=n_literals)    
+        train_x, train_y, eval_x, eval_y = gt.dataset_generator.xor_dataset(n_literals=6)    
         
         trainer = gt.Trainer(tm, seed=42, n_jobs=1)
         trainer.set_train_data(train_x, train_y)
-        trainer.set_test_data(eval_x, eval_y)
+        trainer.set_eval_data(eval_x, eval_y)
         
         trainer.train()
     
@@ -108,6 +108,22 @@ class Trainer:
         
 
     def set_train_data(self, x_train:np.array, y_train:np.array):
+        """
+        Set the training data for the trainer.
+
+        Parameters:
+            **x_train (np.array)**: The input training data.
+
+            **y_train (np.array)**: The target training data.
+
+        Raises:
+            - ValueError: If x_eval is of type np.ndarray and x_train is not, or if x_eval is of type csr_matrix and x_train is not.
+            - ValueError: If x_train is of type np.ndarray and the backend clause block class is _backend_impl["sparse_cb"].
+            - ValueError: If x_train and y_train do not have the same number of examples.
+            - ValueError: If x_train is not of type np.uint8.
+            - ValueError: If y_train is not of type np.uint32.
+            - ValueError: If x_train does not match in shape[1] (number of literals) with n_literals.
+        """
         
         # raise error if data is sparse and cb is dense, and vice versa
 
@@ -147,6 +163,22 @@ class Trainer:
 
 
     def set_eval_data(self, x_eval:np.array, y_eval:np.array):
+        """
+        Set the evaluation data for the trainer.
+
+        Parameters:
+            **x_eval (np.array)**: The input evaluation data.
+            
+            **y_eval (np.array)**: The target evaluation data.
+
+        Raises:
+            - ValueError: If x_train is of type np.ndarray and x_eval is not, or if x_train is of type csr_matrix and x_eval is not
+            - ValueError: If x_eval is of type np.ndarray and the backend clause block class is _backend_impl["sparse_cb"].
+            - ValueError: If x_eval and y_eval do not have the same number of examples.
+            - ValueError: If x_eval is not of type np.uint8.
+            - ValueError: If y_eval is not of type np.uint32.
+            - ValueError: If x_eval does not match in shape[1] (#literals) with n_literals.
+            """
 
         # if isinstance(x_test, csr_matrix) and self.tm._backend_clause_block_cls == _backend_impl["cb"]:
         #     raise ValueError("x_test can not be csr_matrix when using dense tsetlin machine. To use this data with dense tsetlin machine, convert it to dense using .toarray() method.")
@@ -337,6 +369,22 @@ class Trainer:
         
     
     def train(self):
+        """
+        Trains the model using either k-fold cross-validation or a single training set.
+        
+        Returns:
+            dict: If k-fold cross-validation is used, returns a dictionary with the following keys:
+                - 'best_eval_score' (float): The best evaluation score achieved during training.
+                - 'k_folds' (int): The number of folds used in cross-validation.
+            dict: If a single training set is used, returns a dictionary with the following keys:
+                - 'train_time_of_epochs' (list): The training time for each epoch.
+                - 'best_eval_score' (float): The best evaluation score achieved during training.
+                - 'best_eval_epoch' (int): The epoch in which the best evaluation score was achieved.
+                - 'n_epochs' (int): The total number of epochs trained.
+                - 'train_log' (list): The training loss for each epoch.
+                - 'eval_log' (list): The evaluation loss for each epoch.
+                - 'did_early_exit' (bool): Indicates whether training early exited.
+        """
         
         if self.k_folds > 1:
 
