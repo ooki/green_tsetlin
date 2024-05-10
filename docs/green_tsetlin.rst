@@ -5,57 +5,58 @@ green\_tsetlin
 Trainer
 -----------------------------
 
-.. autoclass:: green_tsetlin.trainer
+.. automodule:: green_tsetlin.trainer
+   :imported-members:
    :members:
    :undoc-members:
    :show-inheritance:
 
-..
-   tsetlin\_machine
-   --------------------------------------
 
-   .. automodule:: green_tsetlin.tsetlin_machine
-      :members:
-      :undoc-members:
-      :show-inheritance:
+tsetlin\_machine
+--------------------------------------
 
-   sparse\_tsetlin\_machine
-   ----------------------------------------------
+.. automodule:: green_tsetlin.tsetlin_machine
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   .. automodule:: green_tsetlin.sparse_tsetlin_machine
-      :members:
-      :undoc-members:
-      :show-inheritance:
+sparse\_tsetlin\_machine
+----------------------------------------------
 
-   predictor
-   -------------------------------
+.. automodule:: green_tsetlin.sparse_tsetlin_machine
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   .. automodule:: green_tsetlin.predictor
-      :members:
-      :undoc-members:
-      :show-inheritance:
+predictor
+-------------------------------
 
-   ruleset 
-   -----------------------------
+.. automodule:: green_tsetlin.predictor
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   .. automodule:: green_tsetlin.ruleset
-      :members:
-      :undoc-members:
-      :show-inheritance:
+ruleset 
+-----------------------------
 
-   hpsearch 
-   ------------------------------
+.. automodule:: green_tsetlin.ruleset
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   .. automodule:: green_tsetlin.hpsearch
-      :members:
-      :undoc-members:
-      :show-inheritance:
+hpsearch 
+------------------------------
 
-   dataset\_generator
-   ----------------------------------------
+.. automodule:: green_tsetlin.hpsearch
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   .. automodule:: green_tsetlin.dataset_generator
-      :members:
-      :undoc-members:
-      :show-inheritance:
+dataset\_generator
+----------------------------------------
+
+.. automodule:: green_tsetlin.dataset_generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
