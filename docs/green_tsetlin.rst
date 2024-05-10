@@ -5,5 +5,7 @@ green\_tsetlin
 Trainer
 -----------------------------
 
-.. automodule:: green_tsetlin.trainer
+.. autoclass:: green_tsetlin.Trainer
    :members:
+   :undoc-members:
+   :show-inheritance:
