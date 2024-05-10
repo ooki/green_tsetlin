@@ -36,7 +36,5 @@ autodoc_mock_imports = ["ROOT"]
 html_theme = "renku"
 
 html_logo = "_static/RTD_LOGO.png"
-html_logo_width = 50  
-html_logo_height = 50 
 
 html_static_path = ['_static']
