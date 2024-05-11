@@ -37,8 +37,8 @@ if sys.platform.startswith('darwin') and has_neon:
 
 elif sys.platform.startswith('win32'):
     compile_args =["/EHsc", "/O2", "/arch:AVX2", "/MT", "/DNDEBUG"]
-    if has_avx2:
-        define_macros.append(("USE_AVX2", 1))
+    #if has_avx2:
+    define_macros.append(("USE_AVX2", 1))
 
 else: # assume we are on linux (or g++) at least if nothing else is specified.
     #elif sys.platform.startswith('linux') or (sys.platform.startswith('darwin') and has_neon is False):    
