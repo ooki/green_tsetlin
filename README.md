@@ -1,7 +1,7 @@
 
 Green Tsetlin
 ==============
-![logo](docs/image/Green%20Tsetlin%20transparent%20gray.png)
+![logo](docs/image/GT_FRONTPAGE_RTD.png)
 
 
 ## Installation
