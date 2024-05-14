@@ -110,6 +110,7 @@ was important for that specific prediction.
 First we have to get the predictor class. We can get explanations on literals, features or both.
 
 .. code-block:: python
+    
     predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
 
 Then, we want to test on a simple example:
@@ -123,6 +124,7 @@ This is not on TM format, so we need to convert it binary. This is done with the
 **Important** : the exact same vocabulary from the CountVectorizer needs to be used.
 
 .. code-block:: python
+    
     example = vectorizer.transform([example]).toarray().astype(np.uint8)
     
 We can now proceed to predict and explain the examples:
