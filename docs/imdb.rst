@@ -123,18 +123,28 @@ Then, we want to test on a simple example:
     
 This is not on TM format, so we need to convert it binary. This is done with the previuosly used CountVectorizer. 
 
-**Important** : the exact same vocabulary from the CountVectorizer needs to be used.
+**Important** : the exact same vocabulary from the CountVectorizer used to transform the data into bag of words needs to be used.
+
+.. code-block:: python
+    
+    import pickle
+    
+    feature_names = pickle.load(open("feature_names_imdb.pkl", "rb"))
+    vectorizer = CountVectorizer(vocabulary=feature_names, binary=True)
+
 
 .. code-block:: python
     
     example = vectorizer.transform([example]).toarray().astype(np.uint8)
-    
+
+
 We can now proceed to predict and explain the examples:
 
 .. code-block:: python
 
     pred, expl = predictor.predict_and_explain(example1)
-    
+
+
 Showing the explanation gives on insight in what features were important.
 
 .. code-block:: python
@@ -145,6 +155,7 @@ Showing the explanation gives on insight in what features were important.
     explanation = explanation[0][weight_idx]
     for w, f in zip(explanation, feature_names):
         print(f"{f} : {w}")
+
 
 .. code-block:: none
 
