@@ -4,18 +4,18 @@
 
 Green Tsetlin
 ==============
-### Installation
+### **Installation**
 Green Tsetlin can be installed by the following:
 ```bash
 pip install green-tsetlin
 ```
 
-### Documentation
+### **Documentation**
 The documentation can be found on: https://green-tsetlin.readthedocs.io/  
 Below is some short examples of some of the capabilities of green-tsetlin.
 
 
-### Tsetlin Machine
+### **Tsetlin Machine**
 The Tsetlin Machine is the core of Green Tsetlin.
 Here a dense (regular) TM:
 ```python
@@ -31,7 +31,7 @@ tm = gt.TsetlinMachine(n_literals=4,
 ```
 
 
-### Sparse Tsetlin Machine
+### **Sparse Tsetlin Machine**
 The Tsetlin Machine is the core of Green Tsetlin.
 Here a sparse TM:
 ```python
@@ -47,7 +47,7 @@ tm = gt.SparseTsetlinMachine(n_literals=4,
 ```
 
 
-### Trainer
+### **Trainer**
 Use the Trainer to fit a Tsetlin Machine to the data.  
 The trainer class is used for both sparse and dense data and TMs.
 ```python
@@ -63,7 +63,7 @@ trainer.set_eval_data(eval_x, eval_y)
 trainer.train()
 ```
 
-### Exporting Tsetlin Machines
+### **Exporting Tsetlin Machines**
 Exporting trained Tsetlin Machines.
 ```python
 .
@@ -72,7 +72,7 @@ tm.save_state("tsetlin_state.npz")
 ```
 
 
-### Loading exported Tsetlin Machines
+### **Loading exported Tsetlin Machines**
 Loading trained Tsetlin Machines to continue training or use for inference.
 ```python
 .
@@ -80,7 +80,7 @@ Loading trained Tsetlin Machines to continue training or use for inference.
 tm.load_state("tsetlin_state.npz")
 ```
 
-### Inference
+### **Inference**
 Inference with trained Tsetlin Machines.
 ```python
 .
@@ -89,7 +89,7 @@ predictor = tm.get_predictor()
 predictor.predict(x)
 ```
 
-### Green Tsetlin hpsearch
+### **Green Tsetlin hpsearch**
 With the built-in hyperparameter search you can optimize your Tsetlin Machine parameters.
 ```python
 from green_tsetlin.hpsearch import HyperparameterSearch
