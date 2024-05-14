@@ -140,6 +140,7 @@ This is not on TM format, so we need to convert it binary. This is done with the
 
 We can now proceed to predict and explain the examples:
 
+
 .. code-block:: python
 
     pred, expl = predictor.predict_and_explain(example1)
