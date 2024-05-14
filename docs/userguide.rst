@@ -70,4 +70,33 @@ And imported to continue training or use for inference:
 inference
 ------------
 
-Something explainstuff
+**Using the trained TM for inference** lets us predict and explain the prediction. 
+This means, given a set of features, we can see which features 
+was important for that specific prediction.
+
+First we have to get the predictor class. We can get explanations on literals, features or both.
+
+.. code-block:: python
+    
+    predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
+
+Then, we want to test on a simple example:
+
+.. code-block:: python
+    
+    example = [0, 1, 1, 1]
+    y_pred, expl = predictor.predict_and_explain(example)
+
+Showing the explanation gives on insight in what features were important.
+
+.. code-block:: python
+
+    for i, (f, w) in enumerate(zip(example, expl)):
+        print(f"feature {i}:{f} - {w}")
+
+.. code-block:: none
+
+    feature 0:0 - 124
+    feature 1:1 - 192
+    feature 2:1 - 0
+    feature 3:1 - 0

@@ -109,9 +109,11 @@ was important for that specific prediction.
 
 First we have to get the predictor class. We can get explanations on literals, features or both.
 
+
 .. code-block:: python
     
     predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
+
 
 Then, we want to test on a simple example:
 
