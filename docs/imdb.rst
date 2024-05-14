@@ -101,3 +101,55 @@ We get the best hyperparameters:
 
     print("best paramaters: ", params)
     print("best score: ", performance)
+
+
+**Using the trained TM for inference** lets us predict and explain the prediction. 
+This means, given a set of features, we can see which features 
+was important for that specific prediction.
+
+First we have to get the predictor class. We can get explanations on literals, features or both.
+
+.. code-block:: python
+    predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
+
+Then, we want to test on a simple example:
+
+.. code-block:: python
+
+    example = "I thought this was a great movie, however the popcorn was bad."
+    
+This is not on TM format, so we need to convert it binary. This is done with the previuosly used CountVectorizer. 
+
+**Important** : the exact same vocabulary from the CountVectorizer needs to be used.
+
+.. code-block:: python
+    example = vectorizer.transform([example]).toarray().astype(np.uint8)
+    
+We can now proceed to predict and explain the examples:
+
+.. code-block:: python
+
+    pred, expl = predictor.predict_and_explain(example1)
+    
+Showing the explanation gives on insight in what features were important.
+
+.. code-block:: python
+
+    feature_idx = np.where(example[0] == 1)[0]
+    feature_names = vectorizer.get_feature_names_out()
+    feature_names = [feature_names[i] for i in feature_idx]
+    explanation = explanation[0][weight_idx]
+    for w, f in zip(explanation, feature_names):
+        print(f"{f} : {w}")
+
+.. code-block:: none
+
+    bad : -75
+    great : 194
+    however : 0
+    movie : 0
+    popcorn : 0
+    the : 0
+    this : 0
+    thought : 0
+    was : 0
