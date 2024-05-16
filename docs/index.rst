@@ -50,6 +50,7 @@ Examples
 
    imdb
    iris
+   amazon
 
 
 Indices and tables
