@@ -76,11 +76,16 @@ Using the trained TM for inference lets us predict and explain the prediction.
 This means, given a set of features, we can see which features 
 was important for that specific prediction.
 
-First we have to get the predictor class. We can get explanations on literals, features or both.
+Literal explanations
+~~~~~~~~~~~~~~~~~~~~~
+
+First we have to get the predictor class. We can get explanations on literals, features or both. If a feature is divided into more than one literal,
+it would be insightful to instead use feature explanation. For this example, one feature is one literal, so we use literals.
 
 .. code-block:: python
     
-    predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
+    tm_trained = gt.TsetlinMachine.load_state("tsetlin_state.npz")
+    predictor = tm_trained.get_predictor(explanation="literals", exclude_negative_clauses=False)
 
 Then, we want to test on a simple example:
 
@@ -113,3 +118,13 @@ With a trained TM we can export the predictor as c program:
 
     predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
     predictor.export_as_program("xor_tm_dense.h")
+
+Feature explanation
+~~~~~~~~~~~~~~~~~~~~
+
+Head to the Iris tutorial to see how feature explanation is used.
+
+.. toctree::
+   :maxdepth: 2
+
+   iris
