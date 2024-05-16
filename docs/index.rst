@@ -25,7 +25,7 @@ More details on the framework: `ArXiv paper <https://arxiv.org/pdf/2405.04212>`_
 Software can be found here: `GitHub <https://github.com/ooki/green_tsetlin>`_
 
 installation
---------------------
+=============
 PyPI install, presuming you have build-essential installed (ubuntu).
 
 .. code-block:: bash
@@ -33,8 +33,8 @@ PyPI install, presuming you have build-essential installed (ubuntu).
    pip install green-tsetlin
 
 
-User Guide / tutorials
-========================
+User Guide 
+===========
 
 .. toctree::
    :maxdepth: 2
@@ -43,7 +43,7 @@ User Guide / tutorials
    
 
 Examples
-======================
+=========
 
 .. toctree::
    :maxdepth: 2
@@ -53,6 +53,6 @@ Examples
 
 
 Indices and tables
-==================
+===================
 
 * :ref:`genindex`
