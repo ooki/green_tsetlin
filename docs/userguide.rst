@@ -109,6 +109,17 @@ Showing the explanation gives on insight in what features were important.
     feature 3:1 - 0
 
 
+Feature explanation
+~~~~~~~~~~~~~~~~~~~~
+
+Head to the Iris tutorial to see how feature explanation is used.
+
+.. toctree::
+   :maxdepth: 2
+
+   iris
+
+
 Exporting predictor as c program
 --------------------------------------------------
 
@@ -120,12 +131,3 @@ With a trained TM we can export the predictor as c program:
     predictor.export_as_program("xor_tm_dense.h")
 
 
-Feature explanation
-~~~~~~~~~~~~~~~~~~~~
-
-Head to the Iris tutorial to see how feature explanation is used.
-
-.. toctree::
-   :maxdepth: 2
-
-   iris
