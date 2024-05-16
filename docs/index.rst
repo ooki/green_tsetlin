@@ -42,8 +42,8 @@ User Guide
    userguide
    
 
-Examples
-=========
+Tutorials
+==========
 
 .. toctree::
    :maxdepth: 2
