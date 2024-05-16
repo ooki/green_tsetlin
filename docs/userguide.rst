@@ -119,6 +119,7 @@ With a trained TM we can export the predictor as c program:
     predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
     predictor.export_as_program("xor_tm_dense.h")
 
+
 Feature explanation
 ~~~~~~~~~~~~~~~~~~~~
 
