@@ -50,7 +50,7 @@ int main() {
 
     const int n_ta = 32;
     const int n_bits = 8;
-    const int mem_size = n_ta;
+    const int mem_size = ((state.num_clauses / state.outputs_per_vector) + 1) * state.outputs_per_vector;
     const int vector_size = 4;
 
     
