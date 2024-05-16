@@ -79,27 +79,8 @@ int main() {
             const int out_bit_i = ta_i % 8;
             const int out_location = (bit_j * vector_size) + out_block_i;
             data[out_location] |= bit_ij << out_bit_i;
-
-
-            // if(ta_i == 0)
-            // {
-            //     std::cout << "out location:" << out_location << " out_block_i:" << out_block_i << " out_bit_i:" << out_bit_i << " bit_j:" << bit_j << std::endl;
-            //     std::cout << "    write:" << (uint32_t)bit_ij << std::endl;                
-            // }
-            // if(ta_i == 0)
-            // {
-            //     std::cout << "-" << std::endl;
-            //     std::cout << "out location:" << out_location << " out_block_i:" << out_block_i << " out_bit_i:" << out_bit_i << " bit_j:" << bit_j << std::endl;
-            //     std::cout << "    write:" << (uint32_t)bit_ij << std::endl;
-            // }
-            // {
-            //     std::cout << "i:" << ta_i << " j:" << bit_j << " bit_ji = " << bit_ij << std::endl;
-            //     std::cout << "or mask: " << std::bitset<16>(data[bit_j]) << std::endl;
-            // }
         }
     }
-
-    // inc((uint32_t*)data, (uint32_t)-1);
 
     for(int i = 0; i < 1000;i++)
         dec((uint32_t*)data, (uint32_t)-1);
@@ -121,45 +102,13 @@ int main() {
         }
     }
 
-    // out location:1 out_block_i:1 out_bit_i:0 bit_j:0
-    // out location:1 out_block_i:1 out_bit_i:1 bit_j:0
-
     for (size_t i = 0; i < n_bits; ++i) {
         for(int j = 0; j < 4; ++j)
         {
             std::cout << std::bitset<8>(data[(i*4)+j]) << " ";
         }
         std::cout << std::endl;
-            //std::cout << "POST data[" << i << "]: " << std::bitset<32>(data[i*4]) << std::endl;
     }
-
-
-    // for(int i = 0; i < 1000; i++)
-    //     inc(data, (uint16_t)-1);
-
-    // for (size_t i = 0; i < n_bits; ++i) {
-    //     std::cout << "POST data[" << i << "]: " << std::bitset<16>(data[i]) << std::endl;
-    // }
-
-    // for(int bit_i = 0; bit_i < n_bits; bit_i++)
-    // {
-    //     for(int ta_j = 0; ta_j < n_ta; ta_j++)
-    //     {
-    //         uint16_t bit_ij = (data[bit_i] >> ta_j) & 1;
-    //         data_out[ta_j] |= bit_ij << bit_i;
-    //     }
-    // }
-
-    
-
-
-    
-
-
-
-    // for (size_t i = 0; i < n_ta; ++i) {
-    //    std::cout << "in_data[" << i << "]: " << std::bitset<8>(in_data[i]) << std::endl;
-    // }
 
     for (int i = 0; i < n_ta; ++i)
         std::cout << (uint32_t)data_out[i] << " ";
