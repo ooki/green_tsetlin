@@ -47,7 +47,9 @@ With the green\_tsetlin Trainer we can wrap the TM and train it.
     trainer.set_train_data(train_x, train_y)
     trainer.set_eval_data(eval_x, eval_y)
     
-    trainer.train()
+    results = trainer.train() # can also be accessed by trainer.results
+
+
 
 Exporting and importing models
 --------------------------------------------------
@@ -70,7 +72,7 @@ And imported to continue training or use for inference:
 inference
 ------------
 
-**Using the trained TM for inference** lets us predict and explain the prediction. 
+Using the trained TM for inference lets us predict and explain the prediction. 
 This means, given a set of features, we can see which features 
 was important for that specific prediction.
 
@@ -100,3 +102,14 @@ Showing the explanation gives on insight in what features were important.
     feature 1:1 - 192
     feature 2:1 - 0
     feature 3:1 - 0
+
+
+Exporting predictor as c program
+--------------------------------------------------
+
+With a trained TM we can export the predictor as c program:
+
+.. code-block:: python
+
+    predictor = tm.get_predictor(explanation="literals", exclude_negative_clauses=False)
+    predictor.export_as_program("xor_tm_dense.h")
