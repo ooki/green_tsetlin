@@ -29,7 +29,7 @@ namespace green_tsetlin
                 state.fast_rng.seed(seed);
                 state.rng.seed(seed);
 
-                state.reminder_mask = reinterpret_cast<int8_t*>(aligned_alloc(32, state.literals_per_vector));
+                state.reminder_mask = reinterpret_cast<int8_t*>(safe_aligned_alloc(32, state.literals_per_vector));
                 for(int i = 0; i < state.literals_per_vector; ++i)
                         state.reminder_mask[i] = 0xFF;
                         

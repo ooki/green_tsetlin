@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include <cstdint>
 
 #include <gt_common.hpp>
 #include <random_generator.hpp>
@@ -17,8 +18,8 @@ namespace green_tsetlin
     class BitwiseState
     {
         public:
-            constexpr const int m_vector_size = _vector_size;
-            constexpr const int m_bits_per_state = _bits_per_state;
+            constexpr const int const_vector_size = _vector_size;
+            constexpr const int const_bits_per_state = _bits_per_state;
 
             int num_clauses = 0;
             int num_classes = 0;
@@ -29,8 +30,23 @@ namespace green_tsetlin
             int num_literals_mem = 0;
             int num_reminder = 0;
 
+
+            uint64_t* clauses = nullptr;
+
+
             int8_t gtcmp_for_s = 0;
 
+            // rng's
+            std::default_random_engine rng;
+            Wyhash64                   fast_rng;
+
+            #ifdef USE_AVX2
+            XorShift128plus4G           avx2_rng;
+            #endif 
+
+            #ifdef USE_NEON
+            Xoshiro128Plus  rng_neon;
+            #endif 
 
 
         inline void set_s(double s_param)

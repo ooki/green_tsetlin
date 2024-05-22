@@ -5,7 +5,7 @@ CXX = g++
 OUTPUT = bitwise
 
 # Define the source file
-SOURCE = bitwise.cpp
+SOURCE = bitwise_x86.cpp
 
 # Define the compile flags (optional)
 CFLAGS = -Wall -std=c++17 -mavx2

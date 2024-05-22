@@ -60,10 +60,15 @@ int main() {
 
 
     for (int i = 0; i < n_ta; ++i)
-        in_data[i] = i % 256;
+        in_data[i] = (115+i) % 256;
 
     in_data[0] = 0xFF;
-    in_data[1] = 15;
+    in_data[1] = 0;
+    in_data[2] = 0;
+
+    for(int i = 0; i < n_ta;++i)
+        std::cout << "in[" << i << "]: " << std::bitset<8>(in_data[i]) << std::endl;
+
 
     for (int i = 0; i < n_ta; ++i)
         std::cout << (uint32_t)in_data[i] << " ";
@@ -82,11 +87,11 @@ int main() {
         }
     }
 
-    for(int i = 0; i < 1000;i++)
-        dec((uint32_t*)data, (uint32_t)-1);
+    // for(int i = 0; i < 1000;i++)
+    //     dec((uint32_t*)data, (uint32_t)-1);
 
-    for(int i = 0; i < 1000;i++)
-        inc((uint32_t*)data, (uint32_t)-1);
+    // for(int i = 0; i < 1000;i++)
+    //     inc((uint32_t*)data, (uint32_t)-1);
 
 
     for(int bit_i = 0; bit_i < n_bits; bit_i++)
@@ -102,13 +107,22 @@ int main() {
         }
     }
 
-    for (size_t i = 0; i < n_bits; ++i) {
-        for(int j = 0; j < 4; ++j)
-        {
-            std::cout << std::bitset<8>(data[(i*4)+j]) << " ";
-        }
-        std::cout << std::endl;
-    }
+    // for (size_t i = 0; i < n_bits; ++i) {
+    //     for(int j = 0; j < 4; ++j)
+    //     {
+    //         std::cout << std::bitset<8>(data[(i*4)+j]) << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    // for (size_t i = 0; i < n_bits; ++i) {        
+    //     std::cout << std::bitset<32>(data[i*4]) << std::endl;
+    // }
+
+    // std::cout << "row[0]: " << std::bitset<32>((uint32_t)data[0]) << std::endl;
+    int i = (n_bits-1) * vector_size; 
+    for(int j = 0; j < 4; j++)
+        std::cout << "row[" << i << " J:" << j << "]: " << std::bitset<8>(data[i+j]) << std::endl;
 
     for (int i = 0; i < n_ta; ++i)
         std::cout << (uint32_t)data_out[i] << " ";
