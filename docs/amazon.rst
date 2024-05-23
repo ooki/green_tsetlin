@@ -83,7 +83,10 @@ Results from the training can be exstracted form the trainer object.
 
 .. code-block:: python
 
-    
+    {'train_time_of_epochs': [1722.16, 1685.90, 1664.17], 'best_test_score': 0.639, 
+    'best_test_epoch': 1, 'n_epochs': 3, 'train_log': [0.631, 0.632, 0.633], 
+    'test_log': [0.638, 0.639, 0.637], 'did_early_exit': False}
+
 
 
 
