@@ -1,5 +1,5 @@
-Training Sparse Tsetlin Machine on Large-Scale-Text Corpora
-============================================================
+Amazon : large scale multi-class text sentiment classification 
+===============================================================
 
 
 Here we show how green\_tsetlin Sparse Tsetlin Machine can be leveraged for training on the **Amazon Review sentiment dataset** (https://jmcauley.ucsd.edu/data/amazon/).  

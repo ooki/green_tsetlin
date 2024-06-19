@@ -51,6 +51,7 @@ Tutorials
    imdb
    iris
    amazon
+   mnist
 
 
 Indices and tables

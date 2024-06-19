@@ -1,5 +1,5 @@
-Sparse data : Tsetlin Machine trains on IMDB
-=============================================
+IMDB : highly polar text sentiment classification
+==================================================
 
 Here we show green\_tsetlin Tsetlin Machine trains on the **IMDB sentiment dataset**.  
 

@@ -1,5 +1,5 @@
-Continuous data : Tsetlin Machine trains on Iris dataset
-=========================================================
+Iris : continuous features    
+===========================
 
 Here we show green\_tsetlin Tsetlin Machine trains on the **Iris dataset**.
 
