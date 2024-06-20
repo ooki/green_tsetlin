@@ -55,6 +55,11 @@ here is from a previous search.
     results = trainer.results
 
 
+.. code-block:: python
+
+    print(results)
+
+
 .. code-block:: none 
 
     {
