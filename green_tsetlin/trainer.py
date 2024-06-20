@@ -342,7 +342,7 @@ class Trainer:
                                                                                                                                 best_eval_epoch))
                     progress_bar.update(1)
                     
-                    if eval_score >= self.early_exit_acc:                                    
+                    if eval_score >= self.early_exit_acc:
                         did_early_exit = True
                         break
                     
@@ -393,7 +393,9 @@ class Trainer:
 
             kf = StratifiedKFold(n_splits=self.k_folds, random_state=self.seed, shuffle=True)
             
-            best_iter = -1
+            time_epochs = []
+            train_log = []
+            eval_log = []
             best_score = -1
 
             with tqdm.tqdm(total=self.k_folds, disable=self.kfold_progress_bar is False) as progress_bar:
@@ -414,16 +416,22 @@ class Trainer:
                     self.set_eval_data(x_eval, y_eval)
 
                     self._train_inner()
+                    
+                    time_epochs.extend(self.results["train_time_of_epochs"])
+                    train_log.extend(self.results["train_log"])
+                    eval_log.extend(self.results["eval_log"])
 
                     if self.results["best_eval_score"] > best_score:
-                        
                         best_score = self.results["best_eval_score"]
-                        best_iter = i
-
-                    progress_bar.set_description("Processing kfold {} of {}, best eval score: {:.3f} (iter: {})".format(i+1, self.k_folds, best_score, best_iter))
+                        
+                    progress_bar.set_description("Processing kfold {} of {}, best eval score: {:.3f}".format(i+1, self.k_folds, best_score))
                     progress_bar.update(1)
             
-            r = {"best_eval_score": best_score, "k_folds" : self.k_folds}
+            r = {"best_eval_score": best_score,
+                 "k_folds" : self.k_folds,
+                 "train_time_of_epochs": time_epochs,
+                 "train_log": train_log,
+                 "eval_log": eval_log}
 
             self.results = r
             return self.results

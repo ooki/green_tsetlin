@@ -51,8 +51,34 @@ class HyperparameterSearch:
                  literal_budget : Union[Tuple[int, int], int],
                  minimize_literal_budget : bool = False,
                  seed : int = 42, 
-                 n_jobs : int = -1,
-                 k_folds : int = 0):
+                 n_jobs : int = 1,
+                 k_folds : int = 1):
+        
+        """
+        Parameters:
+        s_space (Union[Tuple[float, float], float]): The range of s values to search for. If a single float is provided,
+            it will be used as the fixed value for s.
+
+        clause_space (Union[Tuple[int, int], int]): The range of clause values to search for. If a single int is provided,
+            it will be used as the fixed value for clause.
+
+        threshold_space (Union[Tuple[int, int], int]): The range of threshold values to search for. If a single int is provided,
+            it will be used as the fixed value for threshold.
+
+        max_epoch_per_trial (Union[Tuple[int, int], int]): The range of max epoch per trial values to search for. If a single int is provided,
+            it will be used as the fixed value for max epoch per trial.
+
+        literal_budget (Union[Tuple[int, int], int]): The range of literal budget values to search for. If a single int is provided,
+            it will be used as the fixed value for literal budget.
+
+        minimize_literal_budget (bool, optional): Whether to minimize or maximize the literal budget. Defaults to False.
+
+        seed (int, optional): The random seed. Defaults to 42.
+        
+        n_jobs (int, optional): The number of jobs for parallel work in the TM. Defaults to 1.
+        
+        k_folds (int, optional): The number of k-folds for cross-validation for each TM training. Defaults to 1.
+        """
         
         self.s_space = s_space
         self.clause_space = clause_space
@@ -72,7 +98,6 @@ class HyperparameterSearch:
         Parameters:
             train_x (array): The input training data.
             train_y (array): The target training data.
-
         """
         
         self.x_train = x_train
@@ -86,7 +111,6 @@ class HyperparameterSearch:
         Parameters:
             test_x (array): The input test data.
             test_y (array): The target test data.
-
         """
 
         self.x_eval = x_eval
@@ -96,10 +120,10 @@ class HyperparameterSearch:
     def _check_data(self):
 
         if self.x_eval is None:
-            raise ValueError("Train data not set. Use set_train_data()")
+            raise ValueError("validation data not set. Use set_train_data()")
         
         elif self.x_train is None:
-            raise ValueError("Validation data not set. Use set_validation_data()")
+            raise ValueError("train data not set. Use set_eval_data()")
 
 
     def objective(self, trial):
@@ -116,7 +140,7 @@ class HyperparameterSearch:
 
         s = trial.suggest_float("s", self.s_space[0], self.s_space[1]) if not isinstance(self.s_space, float) else self.s_space
         clauses = trial.suggest_int("n_clauses", self.clause_space[0], self.clause_space[1]) if not isinstance(self.clause_space, int) else self.clause_space
-        threshold = trial.suggest_float("threshold", self.threshold_space[0], self.threshold_space[1]) if not isinstance(self.threshold_space, int) else self.threshold_space
+        threshold = trial.suggest_int("threshold", self.threshold_space[0], self.threshold_space[1]) if not isinstance(self.threshold_space, int) else self.threshold_space
         literal_budget = trial.suggest_int("literal_budget", self.literal_budget[0], self.literal_budget[1]) if not isinstance(self.literal_budget, int) else self.literal_budget
         max_epoch_per_trial = trial.suggest_int("max_epoch_per_trial", self.max_epoch_per_trial[0], self.max_epoch_per_trial[1]) if not isinstance(self.max_epoch_per_trial, int) else self.max_epoch_per_trial
 
@@ -168,8 +192,6 @@ class HyperparameterSearch:
         else:
             study = optuna.create_study(study_name=study_name, storage=storage, direction="maximize", load_if_exists=True)
         
-        # study.optimize(self.objective, n_trials=n_trials, show_progress_bar=show_progress_bar)
-
         with tqdm(total=n_trials, disable=show_progress_bar is False) as bar:
             
             bar.set_description("Processing trial 1 of {}, best score: NA".format(n_trials))
@@ -180,7 +202,7 @@ class HyperparameterSearch:
                 value = self.objective(trial)
                 study.tell(trial, value)
 
-                bar.set_description("Processing trial {} of {}, best score: {}".format(i, n_trials, study.best_trials[0].values))
+                bar.set_description("Processing trial {} of {}, best score: {}".format(i+1, n_trials, study.best_trials[0].values))
                 bar.update(1)
 
         self.best_trials = study.best_trials
