@@ -32,19 +32,20 @@ TM requires binary values, each pixel is converted with a threshold of 75.
     y_test = y_test.astype(np.uint32)
 
 
-We can now train the Tsetlin Machine. Here, it is preferable and recommended to run a hyperparameter search. Head to the IMDB or IRIS tutorial to see how.
+We can now train the Tsetlin Machine. Here, it is preferable and recommended to run a hyperparameter search. Head to the IMDB or IRIS tutorial to see how. Parameters set
+here is from a previous search.
 
 .. code-block:: python
 
     import green_tsetlin as gt
 
     tm = gt.TsetlinMachine(n_literals=28*28, 
-                           n_clauses=2000,
+                           n_clauses=6154,
                            n_classes=10,
-                           s=5.0, 
-                           threshold=1250)
+                           s=21.627727185060525, 
+                           threshold=1218)
 
-    trainer = gt.Trainer(tm, seed=42, n_epochs=10, n_jobs=1)
+    trainer = gt.Trainer(tm, seed=42, n_epochs=10, n_jobs=1, k_folds=2)
 
     trainer.set_train_data(X_train, y_train)
     trainer.set_eval_data(X_test, y_test)
