@@ -512,10 +512,17 @@ namespace green_tsetlin
                     _subtract = _mm256_and_si256(_literal_on, _update);
                     _subtract = _mm256_and_si256(_minus_one, _subtract);
 
-                    // boost
-                    _add = _mm256_and_si256(~_literal_on, ~_update);
-                    _add = _mm256_and_si256(_ones, _add);
+                    if(use_boost_true_positive)
+                    {
+                        _add = _mm256_and_si256(~_literal_on, _ones);
+                    }
+                    else
+                    {
+                        _add = _mm256_and_si256(~_literal_on, ~_update);
 
+                        _add = _mm256_and_si256(_ones, _add); // -> boost, seb added.
+                    }
+                    
                                             
                     _clause = _mm256_adds_epi8(_clause, _mm256_or_si256(_subtract, _add));
                     _mm256_store_si256((__m256i*)&clause_row[state.num_literals_mem + (chunk_i * state.literals_per_vector)], _clause);
