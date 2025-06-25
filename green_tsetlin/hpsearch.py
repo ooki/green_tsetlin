@@ -247,7 +247,7 @@ class HyperparameterSearch:
 
         res = trainer.train()
         
-        res = trainer.results["best_eval_score"]
+        res = trainer.results["eval_log"][-1]
 
         if self.minimize_literal_budget:
             return res, tm.literal_budgets[0]
