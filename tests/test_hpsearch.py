@@ -15,6 +15,7 @@ def test_set_data():
                                               threshold_space=(10, 100),
                                               max_epoch_per_trial=(10, 100),
                                               literal_budget=(5, 20),
+                                              search_or_use_boost_true_positives=(False, True),
                                               seed=42,
                                               n_jobs=5)
     
@@ -36,6 +37,7 @@ def test_trial():
                                               threshold_space=(10, 100),
                                               max_epoch_per_trial=(10, 100),
                                               literal_budget=(5, 20),
+                                              search_or_use_boost_true_positives=(False, True),
                                               seed=42,
                                               n_jobs=5)
     
@@ -43,10 +45,10 @@ def test_trial():
     hyperparam_search.set_eval_data(test_x, test_y)
 
     class MockTrial:
-        def suggest_float(self, name, low, high):
+        def suggest_float(self, name, low, high, step):
             return (low + high) / 2
         
-        def suggest_int(self, name, low, high):
+        def suggest_int(self, name, low, high, step):
             return (low + high) // 2
 
     trial = MockTrial()
@@ -63,6 +65,7 @@ def test_optimization_literals():
                                               threshold_space=(3, 20),
                                               max_epoch_per_trial=10,
                                               literal_budget=(1, train_x.shape[1]),
+                                              search_or_use_boost_true_positives=(False, True),
                                               minimize_literal_budget=True,
                                               seed=42,
                                               n_jobs=5)
@@ -94,6 +97,7 @@ def test_set_params():
                                               threshold_space=30,
                                               max_epoch_per_trial=5, 
                                               literal_budget=5,
+                                              search_or_use_boost_true_positives=(False, True),
                                               seed=42,
                                               n_jobs=5)
     
@@ -110,6 +114,7 @@ def test_set_params():
                                               threshold_space=30,
                                               max_epoch_per_trial=5, 
                                               literal_budget=5,
+                                              search_or_use_boost_true_positives=(False, True),
                                               seed=42,
                                               n_jobs=5)
     
@@ -131,6 +136,7 @@ def test_optimization():
                                               threshold_space=(3, 20),
                                               max_epoch_per_trial=20,
                                               literal_budget=(1, train_x.shape[1]),
+                                              search_or_use_boost_true_positives=(False, True),
                                               seed=42,
                                               n_jobs=5,
                                               k_folds=4,
@@ -157,6 +163,7 @@ def test_with_kfold():
                                                 threshold_space=(3, 20),
                                                 max_epoch_per_trial=20,
                                                 literal_budget=(1, train_x.shape[1]),
+                                                search_or_use_boost_true_positives=(False, True),
                                                 seed=seed,
                                                 n_jobs=5,
                                                 k_folds=5)

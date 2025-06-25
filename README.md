@@ -99,6 +99,7 @@ hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
                                         threshold_space=(3, 20),
                                         max_epoch_per_trial=20,
                                         literal_budget=(1, train_x.shape[1]),
+                                        search_or_use_boost_true_positives=(False, True),
                                         seed=42,
                                         n_jobs=5,
                                         k_folds=4,
@@ -107,7 +108,7 @@ hyperparam_search = HyperparameterSearch(s_space=(2.0, 20.0),
 hyperparam_search.set_train_data(train_x, train_y)
 hyperparam_search.set_eval_data(test_x, test_y)
 
-hyperparam_search.optimize(trials=10)
+hyperparam_search.optimize(n_trials=10)
 ```
 
 

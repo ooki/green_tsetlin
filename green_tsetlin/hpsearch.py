@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import TypeAlias, Tuple, Union
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
@@ -8,6 +8,7 @@ import optuna
 
 from green_tsetlin.tsetlin_machine import TsetlinMachine
 from green_tsetlin.trainer import Trainer
+
 
 
 class HyperparameterSearch:
@@ -44,40 +45,66 @@ class HyperparameterSearch:
     """
 
     def __init__(self, 
-                 s_space : Union[Tuple[float, float], float], 
-                 clause_space : Union[Tuple[int, int], int], 
-                 threshold_space : Union[Tuple[int, int], int], 
-                 max_epoch_per_trial : Union[Tuple[int, int], int],
-                 literal_budget : Union[Tuple[int, int], int],
+                 s_space : Union[Tuple[float, float, float], Tuple[float, float], float], 
+                 clause_space : Union[Tuple[int, int, int], Tuple[int, int], int], 
+                 threshold_space : Union[Tuple[int, int, int], Tuple[int, int], int], 
+                 max_epoch_per_trial : Union[Tuple[int, int, int], Tuple[int, int], int],
+                 literal_budget : Union[Tuple[int, int, int], Tuple[int, int], int],
+                 search_or_use_boost_true_positives: Tuple[bool, bool], 
                  minimize_literal_budget : bool = False,
                  seed : int = 42, 
                  n_jobs : int = 1,
                  k_folds : int = 1):
         
         """
-        Parameters:
-        s_space (Union[Tuple[float, float], float]): The range of s values to search for. If a single float is provided,
-            it will be used as the fixed value for s.
+        Initialize the hyper-parameter search space and general training options for a
+        Tsetlin Machine (TM).
 
-        clause_space (Union[Tuple[int, int], int]): The range of clause values to search for. If a single int is provided,
-            it will be used as the fixed value for clause.
+        Parameters
+        ----------
+        s_space : Union[Tuple[float, float, float], Tuple[float, float], float]
+            Search space for the `s` parameter.
 
-        threshold_space (Union[Tuple[int, int], int]): The range of threshold values to search for. If a single int is provided,
-            it will be used as the fixed value for threshold.
+            * ``(low, high, step)`` – scan the inclusive range ``[low, high]`` with the given step size.  
+            * ``(low, high)``       – scan every integer value in the inclusive range ``[low, high]``.  
+            * ``value``             – use a single fixed value.
 
-        max_epoch_per_trial (Union[Tuple[int, int], int]): The range of max epoch per trial values to search for. If a single int is provided,
-            it will be used as the fixed value for max epoch per trial.
+        clause_space : Union[Tuple[int, int, int], Tuple[int, int], int]
+            Search space for the number of clauses, interpreted in the same way
+            as *s_space*.
 
-        literal_budget (Union[Tuple[int, int], int]): The range of literal budget values to search for. If a single int is provided,
-            it will be used as the fixed value for literal budget.
+        threshold_space : Union[Tuple[int, int, int], Tuple[int, int], int]
+            Search space for the threshold parameter, interpreted as above.
 
-        minimize_literal_budget (bool, optional): Whether to minimize or maximize the literal budget. Defaults to False.
+        max_epoch_per_trial : Union[Tuple[int, int, int], Tuple[int, int], int]
+            Search space for the maximum number of training epochs **per trial**.
 
-        seed (int, optional): The random seed. Defaults to 42.
-        
-        n_jobs (int, optional): The number of jobs for parallel work in the TM. Defaults to 1.
-        
-        k_folds (int, optional): The number of k-folds for cross-validation for each TM training. Defaults to 1.
+        literal_budget : Union[Tuple[int, int, int], Tuple[int, int], int]
+            Search space for the literal budget (upper bound on literals per clause).
+
+        search_or_use_boost_true_positives: Tuple[bool, bool]
+            First bool is if you want to search, other one is if only use or not use.
+
+        minimize_literal_budget : bool, default ``False``
+            If ``True`` the tuner tries to **minimise** the literal budget;
+            otherwise it treats larger budgets as potentially beneficial.
+
+        seed : int, default ``42``
+            Random seed used for all stochastic components.
+
+        n_jobs : int, default ``1``
+            Number of parallel jobs (processes) when fitting multiple TMs.
+
+        k_folds : int, default ``1``
+            Number of folds for cross-validation during each hyper-parameter
+            evaluation. A value of ``1`` disables cross-validation.
+
+        Notes
+        -----
+        *Any* of the ``*_space`` arguments may be supplied in any of the three
+        formats shown above.  Using a three-tuple enables non-unit step sizes
+        (e.g. ``(1, 10, 2) → 1, 3, 5, 7, 9``).  Two-tuple inputs default to a
+        step of ``1``; single values fix the parameter.
         """
         
         self.s_space = s_space
@@ -88,6 +115,7 @@ class HyperparameterSearch:
         self.n_jobs = n_jobs
         self.literal_budget = literal_budget
         self.minimize_literal_budget = minimize_literal_budget
+        self.search_or_use_boost_true_positives = search_or_use_boost_true_positives
         self.k_folds = k_folds
 
 
@@ -138,18 +166,73 @@ class HyperparameterSearch:
 
         self._check_data()
 
-        s = trial.suggest_float("s", self.s_space[0], self.s_space[1]) if not isinstance(self.s_space, float) else self.s_space
-        clauses = trial.suggest_int("n_clauses", self.clause_space[0], self.clause_space[1]) if not isinstance(self.clause_space, int) else self.clause_space
-        threshold = trial.suggest_int("threshold", self.threshold_space[0], self.threshold_space[1]) if not isinstance(self.threshold_space, int) else self.threshold_space
-        literal_budget = trial.suggest_int("literal_budget", self.literal_budget[0], self.literal_budget[1]) if not isinstance(self.literal_budget, int) else self.literal_budget
-        max_epoch_per_trial = trial.suggest_int("max_epoch_per_trial", self.max_epoch_per_trial[0], self.max_epoch_per_trial[1]) if not isinstance(self.max_epoch_per_trial, int) else self.max_epoch_per_trial
+        s = (
+            self.s_space
+            if isinstance(self.s_space, float)               # fixed value → use as-is
+            else trial.suggest_float(
+                "s",
+                self.s_space[0],
+                self.s_space[1],
+                step=self.s_space[2] if len(self.s_space) == 3 else 0.1   # default = 0.1
+            )
+        )
+
+        clauses = (
+            self.clause_space
+            if isinstance(self.clause_space, int)
+            else trial.suggest_int(
+                "n_clauses",
+                self.clause_space[0],
+                self.clause_space[1],
+                step=self.clause_space[2] if len(self.clause_space) == 3 else 1   # default = 1
+            )
+        )
+
+        threshold = (
+            self.threshold_space
+            if isinstance(self.threshold_space, int)
+            else trial.suggest_int(
+                "threshold",
+                self.threshold_space[0],
+                self.threshold_space[1],
+                step=self.threshold_space[2] if len(self.threshold_space) == 3 else 1
+            )
+        )
+
+        literal_budget = (
+            self.literal_budget
+            if isinstance(self.literal_budget, int)
+            else trial.suggest_int(
+                "literal_budget",
+                self.literal_budget[0],
+                self.literal_budget[1],
+                step=self.literal_budget[2] if len(self.literal_budget) == 3 else 1
+            )
+        )
+
+        max_epoch_per_trial = (
+            self.max_epoch_per_trial
+            if isinstance(self.max_epoch_per_trial, int)
+            else trial.suggest_int(
+                "max_epoch_per_trial",
+                self.max_epoch_per_trial[0],
+                self.max_epoch_per_trial[1],
+                step=self.max_epoch_per_trial[2] if len(self.max_epoch_per_trial) == 3 else 1
+            )
+        )
+
+        if self.search_or_use_boost_true_positives[0]:
+            boost_true_positives = trial.suggest_int("boost_true_positives", 0, 1)
+        else:
+            boost_true_positives = self.search_or_use_boost_true_positives[1]
 
         tm = TsetlinMachine(n_literals=self.x_train.shape[1], 
                             n_clauses=clauses, 
                             s=s,
                             threshold=threshold,
                             n_classes=len(np.unique(self.y_train)),
-                            literal_budget=literal_budget)
+                            literal_budget=literal_budget,
+                            boost_true_positives=boost_true_positives)
 
         trainer = Trainer(tm=tm, 
                           n_jobs=self.n_jobs,
@@ -172,7 +255,7 @@ class HyperparameterSearch:
         return res
 
 
-    def optimize(self, n_trials, study_name, storage : str = None, show_progress_bar : bool = False):
+    def optimize(self, n_trials, study_name, storage : str = None, show_progress_bar : bool = True):
         
         """
         A method to optimize the parameters using Optuna for a given number of trials.
@@ -206,6 +289,8 @@ class HyperparameterSearch:
                 bar.update(1)
 
         self.best_trials = study.best_trials
+        for t in self.best_trials:
+            print(t.params)
 
 
 
