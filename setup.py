@@ -107,7 +107,8 @@ setup(
           'scipy >= 1.10.1',
           'scikit-learn >= 1.2',
           'tqdm >= 4.65',
-          'optuna'
+          'optuna',
+          'datasets>=3.6.0'
       ],
     tests_require=['pytest'],
     test_suite='tests',
