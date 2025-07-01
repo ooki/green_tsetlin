@@ -158,6 +158,8 @@ class Predictor:
         y_hat = self.predict(x)
         return y_hat, self.explain()
     
+    def get_votes(self):
+        return self._inf.get_votes()
 
     def _allocate_backend(self):
         if self._inf is None:
