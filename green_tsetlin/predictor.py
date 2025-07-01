@@ -19,6 +19,8 @@ class Predictor:
         self.explanation = explanation
         self.exclude_negative_clauses = exclude_negative_clauses
 
+        self.x_copy_mem = None
+
         valid_explanations = set(["none", "literals", "features", "both"])
         if explanation not in valid_explanations:
             raise ValueError("explanation must be one of the following: {}".format(", ".join(valid_explanations)))
@@ -64,6 +66,8 @@ class Predictor:
         self.n_literals = self._ruleset.n_literals
         self.n_classes = self._ruleset.n_classes
 
+        self.x_copy_mem = np.zeros(self.n_literals, dtype=np.uint8)
+
     def set_features(self, feature_map: Union[List[int], np.array]):
         
         if not isinstance(feature_map, np.ndarray):
@@ -87,7 +91,14 @@ class Predictor:
     def predict(self, x : np.array) -> Union[Union[int, str], List[Union[int, str]]]:
         self._allocate_backend()
 
-        self._predict_if_target_is_none = self._inf.predict(x)
+        x_aligned = x
+        # check if x is contiguous
+        if not x.flags["C_CONTIGUOUS"]:
+            # copy it to self.x_copy_mem (and thus making it contiguous)
+            np.copyto(self.x_copy_mem, x)
+            x_aligned = self.x_copy_mem
+
+        self._predict_if_target_is_none = self._inf.predict(x_aligned)
         predicted_class = self._predict_if_target_is_none
 
         if self.target_names is not None:
@@ -147,6 +158,8 @@ class Predictor:
         y_hat = self.predict(x)
         return y_hat, self.explain()
     
+    def get_votes(self):
+        return self._inf.get_votes()
 
     def _allocate_backend(self):
         if self._inf is None:
